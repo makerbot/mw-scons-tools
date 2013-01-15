@@ -1,4 +1,3 @@
-#from SCons.Scanner import Dir
 from SCons.Script import ARGUMENTS
 import sys, os
 
