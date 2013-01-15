@@ -1,4 +1,5 @@
 from SCons.Script import ARGUMENTS
+#from SCons.FS import Dir
 import sys, os
 
 def rInstall(env, dest, src, pattern='*'):
@@ -40,7 +41,12 @@ def mb_install_resources(env, source):
 def mb_install_app(env, source):
     target = env.Install(env['MB_APP_DIR'], source)
     env.Append(MB_INSTALL_TARGETS = target)
-    return targets
+    return target
+
+def mb_install_egg(env, source):
+    target = env.Install(env['MB_EGG_DIR'], source)
+    env.Append(MB_INSTALL_TARGETS = target)
+    return target
 
 def create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
@@ -93,15 +99,18 @@ def set_install_paths(env):
     if sys.platform == 'linux2':
         env.SetDefault(MB_BIN_DIR = prefix + '/bin',
                        MB_APP_DIR = prefix + '/bin',
-                       MB_CONFIG_DIR = prefix + '/share/makerbot')
+                       MB_CONFIG_DIR = prefix + '/share/makerbot',
+                       MB_EGG_DIR = prefix + '/share/makerbot/python')
     elif sys.platform == 'darwin':
         env.SetDefault(MB_BIN_DIR = prefix + '/Library/MakerBot',
                        MB_CONFIG_DIR = prefix + '/Library/MakerBot',
-                       MB_APP_DIR = prefix + '/Applications')
+                       MB_APP_DIR = prefix + '/Applications',
+                       MB_EGG_DIR = prefix + '/Library/MakerBot/python')
     elif sys.platform == 'win32':
         env.SetDefault(MB_BIN_DIR = prefix + '/MakerWare',
                        MB_APP_DIR = prefix + '/MakerWare',
-                       MB_CONFIG_DIR = prefix + '/MakerWare')
+                       MB_CONFIG_DIR = prefix + '/MakerWare',
+                       MB_EGG_DIR = prefix + '/MakerWare/python')
 
     
 def generate(env):
@@ -114,8 +123,9 @@ def generate(env):
     env.AddMethod(mb_install_lib, 'MBInstallLib')
     env.AddMethod(mb_install_headers, 'MBInstallHeaders')
     env.AddMethod(mb_install_bin, 'MBInstallBin')
-    env.AddMethod(mb_install_resources, 'MBInstallResource')
+    env.AddMethod(mb_install_resources, 'MBInstallResources')
     env.AddMethod(mb_install_app, 'MBInstallApp')
+    env.AddMethod(mb_install_egg, 'MBInstallEgg')
 
     env.AddMethod(set_default_prefix, 'MBSetDefaultPrefix')
     env.AddMethod(set_install_paths, 'MBSetInstallPaths')
