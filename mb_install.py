@@ -23,7 +23,7 @@ def mb_install_lib(env, source):
     return target
 
 def mb_install_headers(env, source):
-    targets = rInstall(env, env['MB_INCLUDE_DIR'], source)
+    targets = env.rInstall(env['MB_INCLUDE_DIR'], source)
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
 
@@ -109,6 +109,8 @@ def generate(env):
 
     env['MB_INSTALL_TARGETS'] = []
 
+    env.AddMethod(rInstall, 'rInstall')
+
     env.AddMethod(mb_install_lib, 'MBInstallLib')
     env.AddMethod(mb_install_headers, 'MBInstallHeaders')
     env.AddMethod(mb_install_bin, 'MBInstallBin')
@@ -118,7 +120,7 @@ def generate(env):
     env.AddMethod(set_default_prefix, 'MBSetDefaultPrefix')
     env.AddMethod(set_install_paths, 'MBSetInstallPaths')
     env.AddMethod(create_install_target, 'MBCreateInstallTarget')
-
+    
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
 
