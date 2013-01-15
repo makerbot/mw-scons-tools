@@ -55,7 +55,7 @@ def set_default_prefix(env):
 
         elif sys.platform == 'win32':
             if os.path.exists('c:/Program Files (x86)'):
-                prefix = 'c:/Program Files (x86)/'
+                prefix = 'c:/Program Files (x86)/MakerBot'
             else:
                 prefix = 'c:/Program Files/MakerBot'
 
