@@ -51,6 +51,14 @@ def mb_install_egg(env, source):
 def create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
+def add_devel_lib_path(env, path):
+    if ARGUMENTS.get('devel_libs', '') is not '':
+        env.Prepend(LIBPATH = str(env.Dir(path)))
+
+def add_devel_include_path(env, path):
+    if ARGUMENTS.get('devel_libs', '') is not '':
+        env.Prepend(CPPPATH = str(env.Dir(path)))
+
 def set_default_prefix(env):
     #setup the default install root
     prefix = ARGUMENTS.get('install_prefix', '')
@@ -130,6 +138,8 @@ def generate(env):
     env.AddMethod(set_default_prefix, 'MBSetDefaultPrefix')
     env.AddMethod(set_install_paths, 'MBSetInstallPaths')
     env.AddMethod(create_install_target, 'MBCreateInstallTarget')
+    env.AddMethod(add_devel_lib_path, 'MBAddDevelLibPath')
+    env.AddMethod(add_devel_include_path, 'MBAddDevelIncludePath')
     
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
