@@ -1,22 +1,33 @@
 from SCons.Script import ARGUMENTS
 #from SCons.FS import Dir
 import sys, os
+import glob
 
-def rInstall(env, dest, src, pattern='*'):
+def rInstall(env, dest, src):
+    if not hasattr(src, '__iter__'):
+        srcs = [src]
+    else:
+        srcs = src
+
     installs = []
 
-    src_str = str(src)
-
-    for curpath, dirnames, filenames in os.walk(src_str):
-        relative = os.path.relpath(curpath, src_str)
-
-        installs.append(env.Install(os.path.join(dest, relative),
-                                    filter(lambda f:
-                                               (os.path.exists(str(f)) and
-                                                not os.path.isdir(str(f))),
-                                           env.Glob(os.path.join(curpath, pattern)))))
+    for source in srcs:
+        src_str = str(source)
+        if not os.path.isdir(src_str):
+            installs.append(env.Install(dest, source))
+        else:
+            base = os.path.join(dest, os.path.basename(src_str))
+            for curpath, dirnames, filenames in os.walk(str(source)):
+                relative = os.path.relpath(curpath, source)
+                installs.append(env.Install(os.path.join(base, relative),
+                                            map(lambda f: os.path.join(curpath, f),
+                                                filenames)))
 
     return installs
+
+def mb_glob(env, path):
+    (head, tail) = os.path.split(path)
+    return glob.glob(os.path.join(str(env.Dir(head)), tail))
 
 def mb_install_lib(env, source):
     target = env.Install(env['MB_LIB_DIR'], source)
@@ -140,7 +151,8 @@ def generate(env):
     env.AddMethod(create_install_target, 'MBCreateInstallTarget')
     env.AddMethod(add_devel_lib_path, 'MBAddDevelLibPath')
     env.AddMethod(add_devel_include_path, 'MBAddDevelIncludePath')
-    
+    env.AddMethod(mb_glob, 'MBGlob')
+
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
 
