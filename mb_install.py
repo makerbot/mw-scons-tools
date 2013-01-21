@@ -50,12 +50,9 @@ def mb_install_resources(env, source):
     return targets
 
 def mb_install_config(env, source, dest=None):
-    print 'install config: ' + source + ':' + str(dest)
     if dest is None:
-        print 'no dest'
         target = env.Install(env['MB_CONFIG_DIR'], source)
     else:
-        print 'installing to ' + os.path.join(env['MB_CONFIG_DIR'], dest)
         target = env.InstallAs(os.path.join(env['MB_CONFIG_DIR'], dest), source)
     env.Append(MB_INSTALL_TARGETS = target)
     return target
@@ -80,9 +77,7 @@ def create_install_target(env):
 
 def add_devel_lib_path(env, path):
     if ARGUMENTS.get('devel_libs', '') is not '':
-        print 'Adding devel lib path ' + str(env.Dir(path))
         env.Prepend(LIBPATH = str(env.Dir(path)))
-        print 'LIBPATH is now ' + ', '.join(env['LIBPATH'])
 
 def add_devel_include_path(env, path):
     if ARGUMENTS.get('devel_libs', '') is not '':
