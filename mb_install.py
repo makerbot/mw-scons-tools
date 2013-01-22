@@ -79,11 +79,11 @@ def create_install_target(env):
 
 def add_devel_lib_path(env, path):
     if ARGUMENTS.get('devel_libs', '') is not '':
-        env.Prepend(LIBPATH = str(env.Dir(path)))
+        env.Prepend(LIBPATH = [str(env.Dir(path))])
 
 def add_devel_include_path(env, path):
     if ARGUMENTS.get('devel_libs', '') is not '':
-        env.Prepend(CPPPATH = str(env.Dir(path)))
+        env.Prepend(CPPPATH = [str(env.Dir(path))])
 
 def set_default_prefix(env):
     #setup the default install root
