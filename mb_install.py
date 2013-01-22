@@ -31,6 +31,8 @@ def mb_glob(env, path):
 
 def mb_install_lib(env, source):
     target = env.Install(env['MB_LIB_DIR'], source)
+    if sys.platform == 'win32':
+        target = [target, env.Install(env['MB_BIN_DIR'], source)]
     env.Append(MB_INSTALL_TARGETS = target)
     return target
 
