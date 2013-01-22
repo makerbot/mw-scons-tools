@@ -131,7 +131,8 @@ def set_install_paths(env):
 
     #OSX doesn't use the standard link lines
     if sys.platform == 'darwin':
-        env.Append(FRAMEWORKS = ['MakerBot'])
+        if ARGUMENTS.get('devel_libs', '') is not '1':
+            env.Append(FRAMEWORKS = ['MakerBot'])
     else:
         env.Append(LIBPATH = [lib_dir])
         env.Append(CPPPATH = [include_dir])
