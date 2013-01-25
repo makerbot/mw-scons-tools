@@ -46,8 +46,8 @@ def mb_install_bin(env, source):
     env.Append(MB_INSTALL_TARGETS = target)
     return target
 
-def mb_install_resources(env, source):
-    targets = env.rInstall(env['MB_RESOURCE_DIR'], source)
+def mb_install_resources(env, source, subdir=''):
+    targets = env.rInstall(os.path.join(env['MB_RESOURCE_DIR'], subdir), source)
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
 
