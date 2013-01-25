@@ -163,7 +163,19 @@ def set_install_paths(env):
                        MB_CONFIG_DIR = prefix + '/MakerWare',
                        MB_EGG_DIR = prefix + '/MakerWare/python')
 
-    
+_is_windows = ('win32' == sys.platform)
+_is_linux = (sys.platform.startswith('linux'))
+_is_mac = ('darwin' == sys.platform)
+
+def mb_is_windows(env):
+  return is_windows
+
+def mb_is_linux(env):
+  return _is_linux
+
+def mb_is_mac(env):
+  return _is_mac
+
 def generate(env):
     print "Loading MakerBot install tool"
 
@@ -186,6 +198,10 @@ def generate(env):
     env.AddMethod(add_devel_lib_path, 'MBAddDevelLibPath')
     env.AddMethod(add_devel_include_path, 'MBAddDevelIncludePath')
     env.AddMethod(mb_glob, 'MBGlob')
+
+    env.AddMethod(mb_is_windows, 'MBIsWindows')
+    env.AddMethod(mb_is_linux, 'MBIsLinux')
+    env.AddMethod(mb_is_mac, 'MBIsMac')
 
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
