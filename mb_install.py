@@ -168,7 +168,7 @@ _is_linux = (sys.platform.startswith('linux'))
 _is_mac = ('darwin' == sys.platform)
 
 def mb_is_windows(env):
-  return is_windows
+  return _is_windows
 
 def mb_is_linux(env):
   return _is_linux
