@@ -36,7 +36,7 @@ def mb_install_lib(env, source):
     env.Append(MB_INSTALL_TARGETS = target)
     return target
 
-def mb_install_headers(env, source, dest=None):
+def mb_install_headers(env, source, dest=''):
     targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'], dest), source)
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
