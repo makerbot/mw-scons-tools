@@ -63,7 +63,7 @@ def mb_install_lib(env, source, name):
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
 
-def mb_install_headers(env, source, name, dest=''):
+def mb_install_headers(env, source, name, dest='', make_current_link=False):
     targets = []
     if env.MBIsMac():
         framework = os.path.join(env['MB_FRAMEWORK_DIR'], name + '.framework')
@@ -72,18 +72,24 @@ def mb_install_headers(env, source, name, dest=''):
 
         targets = env.rInstall(os.path.join(framework, include_dir), source)
         
-        # #make relative symlinks between Current and the new version
-        current_dir = os.path.join('Versions', 'Current')
-        # current_link = env.Command(os.path.join(framework, current_dir),
-        #                            targets, 'cd ' + framework +
-        #                            ';ln -s ' + version_dir + ' ' + current_dir)
-        # targets.append(current_link)
+        #make relative symlinks between Current and the new version
+        current_dir = 'Current'
+        if make_current_link:
+            current_link = env.Command(os.path.join(framework, 'Versions',
+                                                    current_dir),
+                                       libinst,
+                                       'cd ' + os.path.join(framework,
+                                                            'Versions')
+                                       + ';ln -sf ' +
+                                       env['MB_VERSION'] + ' ' + current_dir)
+            targets.append(current_link)
 
         #make a relative symlink for the current headers
         toplink = os.path.join(framework, 'Headers')
         targets.append(env.Command(os.path.join(framework, toplink),
                                    targets, 'cd ' + framework +
-                                   ';ln -s ' + os.path.join(current_dir,
+                                   ';ln -s ' + os.path.join('Versions',
+                                                            current_dir,
                                                             'Headers')
                                              + ' ' + toplink))
         
