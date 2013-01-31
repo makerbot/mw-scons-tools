@@ -242,6 +242,10 @@ def set_install_paths(env):
     env['MB_VERSION'] = version_file.readline()
     version_file.close()
 
+    #make sure LIBS is initialized
+    if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
+        env['LIBS'] = []
+
 _is_windows = ('win32' == sys.platform)
 _is_linux = (sys.platform.startswith('linux'))
 _is_mac = ('darwin' == sys.platform)
