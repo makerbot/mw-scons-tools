@@ -70,14 +70,15 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         version_dir = os.path.join('Versions', env['MB_VERSION'])
         include_dir = os.path.join(version_dir, 'Headers')
 
-        targets = env.rInstall(os.path.join(framework, include_dir), source)
-        
+        headers = env.rInstall(os.path.join(framework, include_dir), source)
+        targets += headers
+
         #make relative symlinks between Current and the new version
         current_dir = 'Current'
         if make_current_link:
             current_link = env.Command(os.path.join(framework, 'Versions',
                                                     current_dir),
-                                       libinst,
+                                       headers,
                                        'cd ' + os.path.join(framework,
                                                             'Versions')
                                        + ';ln -sf ' +
