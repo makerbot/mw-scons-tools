@@ -51,7 +51,7 @@ def mb_install_lib(env, source, name):
         #make a relative symlink for the current lib
         targets.append(env.Command(os.path.join(framework, name),
                                    current_link, 'cd ' + framework +
-                                   ';ln -s ' +
+                                   ';ln -sf ' +
                                    os.path.join('Versions', current_dir, name)
                                              + ' ' + name))
     
@@ -89,7 +89,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         toplink = os.path.join(framework, 'Headers')
         targets.append(env.Command(os.path.join(framework, toplink),
                                    targets, 'cd ' + framework +
-                                   ';ln -s ' + os.path.join('Versions',
+                                   ';ln -sf ' + os.path.join('Versions',
                                                             current_dir,
                                                             'Headers')
                                              + ' ' + toplink))
