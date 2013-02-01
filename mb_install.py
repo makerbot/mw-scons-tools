@@ -96,7 +96,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         
     else:
         targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'], 
-                                            os.path.join(dest, 'name')),
+                                            os.path.join(dest, name)),
                                source)
 
     env.Append(MB_INSTALL_TARGETS = targets)
