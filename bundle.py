@@ -12,7 +12,8 @@ def norun(command) :
 
 
 def createBundle(target, source, env) :
-	bundleDir = env['BUNDLE_NAME']+'.app'
+	bundleDir = str(target[0])
+	print "creating bundle at " + bundleDir
 	run("rm -rf "+bundleDir )
 	run("mkdir -p %s/Contents/Resources" % bundleDir )
 	run("mkdir -p %s/Contents/Frameworks" % bundleDir )
