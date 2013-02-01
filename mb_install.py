@@ -260,6 +260,30 @@ def mb_is_linux(env):
 def mb_is_mac(env):
   return _is_mac
 
+def mb_set_lib_sym_name(env, name):
+    if env.MBIsMac() and not env.MBUseDevelLibs():
+        libpath = os.path.join('/',
+                               'Library',
+                               'Frameworks',
+                               name + '.framework',
+                               'Versions',
+                               env['MB_VERSION'],
+                               name)
+        if '-install_name' in env['LINKFLAGS']:
+            nameindex = env['LINKFLAGS'].index('-install_name') + 1
+            env['LINKFLAGS'][nameindex] = libpath
+        else:
+            env.Append(LINKFLAGS = ['-install_name', libpath])
+
+        if '-current_version' not in env['LINKFLAGS']:
+            env.Append(LINKFLAGS = ['-current_version', env['MB_VERSION']])
+
+        if '-compatibility_version' not in env['LINKFLAGS']:
+            env.Append(LINKFLAGS = ['-compatibility_version',
+                                    env['MB_VERSION']])
+        
+
+
 def generate(env):
     print "Loading MakerBot install tool"
 
@@ -282,6 +306,7 @@ def generate(env):
     env.AddMethod(add_devel_lib_path, 'MBAddDevelLibPath')
     env.AddMethod(add_devel_include_path, 'MBAddDevelIncludePath')
     env.AddMethod(mb_add_lib, 'MBAddLib')
+    env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
     env.AddMethod(mb_glob, 'MBGlob')
 
     env.AddMethod(mb_is_windows, 'MBIsWindows')
