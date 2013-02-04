@@ -204,10 +204,10 @@ def set_install_paths(env):
 
     #OSX doesn't use the standard link lines
     if sys.platform == 'darwin':
+        #add the fake root frameworks path
+        env['MB_FRAMEWORK_DIR'] = os.path.join(prefix, 'Library/Frameworks')
+
         if not env.MBUseDevelLibs():
-            #add the fake root frameworks path
-            env['MB_FRAMEWORK_DIR'] = os.path.join(prefix,
-                                                   'Library/Frameworks')
             env.Append(CCFLAGS = ['-F' + env['MB_FRAMEWORK_DIR']])
             env.Append(LINKFLAGS = ['-F' + env['MB_FRAMEWORK_DIR']])
     else:
