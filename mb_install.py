@@ -14,7 +14,11 @@ def rInstall(env, dest, src):
     for source in srcs:
         src_str = str(source)
         if not os.path.isdir(src_str):
-            installs.append(env.Install(dest, source))
+            inst = env.Install(dest, source)
+            if isinstance(inst, list):
+                installs.extend(inst)
+            else:
+                installs.append(inst)
         else:
             base = os.path.join(dest, os.path.basename(src_str))
             for curpath, dirnames, filenames in os.walk(str(source)):
@@ -180,6 +184,8 @@ def set_default_prefix(env):
                 prefix = 'c:/Program Files (x86)/MakerBot'
             else:
                 prefix = 'c:/Program Files/MakerBot'
+        elif sys.platform == 'darwin':
+            prefix = '/'
 
     env.SetDefault(MB_PREFIX = prefix)
     if config_prefix != '':
@@ -220,23 +226,28 @@ def set_install_paths(env):
     #setup other install locations
 
     if sys.platform == 'linux2':
-        env.SetDefault(MB_BIN_DIR = prefix + '/bin',
-                       MB_APP_DIR = prefix + '/bin',
-                       MB_RESOURCE_DIR = prefix + '/share/makerbot',
-                       MB_CONFIG_DIR = prefix + '/etc',
-                       MB_EGG_DIR = prefix + '/share/makerbot/python')
+        env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'bin'),
+                       MB_APP_DIR = os.path.join(prefix, 'bin'),
+                       MB_RESOURCE_DIR = os.path.join(prefix,
+                                                      'share', 'makerbot'),
+                       MB_CONFIG_DIR = os.path.join(prefix, 'etc'),
+                       MB_EGG_DIR = os.path.join(prefix,
+                                                 'share', 'makerbot', 'python'))
     elif sys.platform == 'darwin':
-        env.SetDefault(MB_BIN_DIR = prefix + '/Library/MakerBot',
-                       MB_RESOURCE_DIR = prefix + '/Library/MakerBot',
-                       MB_CONFIG_DIR = prefix + '/Library/MakerBot',
-                       MB_APP_DIR = prefix + '/Applications',
-                       MB_EGG_DIR = prefix + '/Library/MakerBot/python')
+        env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'Library', 'MakerBot'),
+                       MB_RESOURCE_DIR = os.path.join(prefix,
+                                                      'Library', 'MakerBot'),
+                       MB_CONFIG_DIR = os.path.join(prefix,
+                                                    'Library', 'MakerBot'),
+                       MB_APP_DIR = os.path.join(prefix, 'Applications'),
+                       MB_EGG_DIR = os.path.join(prefix, 'Library', 'MakerBot',
+                                                 'python'))
     elif sys.platform == 'win32':
-        env.SetDefault(MB_BIN_DIR = prefix + '/MakerWare',
-                       MB_APP_DIR = prefix + '/MakerWare',
-                       MB_RESOURCE_DIR = prefix + '/MakerWare',
-                       MB_CONFIG_DIR = prefix + '/MakerWare',
-                       MB_EGG_DIR = prefix + '/MakerWare/python')
+        env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'MakerWare'),
+                       MB_APP_DIR = os.path.join(prefix, 'MakerWare'),
+                       MB_RESOURCE_DIR = os.path.join(prefix, 'MakerWare'),
+                       MB_CONFIG_DIR = os.path.join(prefix, 'MakerWare'),
+                       MB_EGG_DIR = os.path.join(prefix, 'MakerWare', 'python'))
 
     #extract the build version
     version_file = open(str(env.File('#/mb_version')))
@@ -262,13 +273,6 @@ def mb_is_mac(env):
 
 def mb_set_lib_sym_name(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
-        libpath = os.path.join('/',
-                               'Library',
-                               'Frameworks',
-                               name + '.framework',
-                               'Versions',
-                               env['MB_VERSION'],
-                               name)
         if '-install_name' in env['LINKFLAGS']:
             nameindex = env['LINKFLAGS'].index('-install_name') + 1
             env['LINKFLAGS'][nameindex] = libpath
