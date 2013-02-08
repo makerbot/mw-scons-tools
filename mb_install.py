@@ -273,6 +273,13 @@ def mb_is_mac(env):
 
 def mb_set_lib_sym_name(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
+        libpath = os.path.join('/',
+                               'Library',
+                               'Frameworks',
+                               name + '.framework',
+                               'Versions',
+                               env['MB_VERSION'],
+                               name)
         if '-install_name' in env['LINKFLAGS']:
             nameindex = env['LINKFLAGS'].index('-install_name') + 1
             env['LINKFLAGS'][nameindex] = libpath
