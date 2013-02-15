@@ -232,9 +232,9 @@ def set_install_paths(env):
                                                       'share', 'makerbot'),
                        MB_CONFIG_DIR = os.path.join(prefix, 'etc'),
                        MB_EGG_DIR = os.path.join(prefix,
-                                                 'share', 'makerbot', 'python'))
+                                                 'share', 'makerbot', 'python'),
                        MB_SYSTEM_EGG_DIR = os.path.join(['/', 'usr', 'share', 
-                                                         'makerbot', 'python'])
+                                                         'makerbot', 'python']))
     elif sys.platform == 'darwin':
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'Library', 'MakerBot'),
                        MB_RESOURCE_DIR = os.path.join(prefix,
