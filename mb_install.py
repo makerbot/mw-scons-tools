@@ -34,7 +34,7 @@ def mb_glob(env, path):
     (head, tail) = os.path.split(path)
     return glob.glob(os.path.join(str(env.Dir(head)), tail))
 
-def mb_install_lib(env, source, name):
+def mb_install_lib(env, source, name, dest=''):
     targets = []
     if env.MBIsMac():
         framework = os.path.join(env['MB_FRAMEWORK_DIR'], name + '.framework')
@@ -60,8 +60,8 @@ def mb_install_lib(env, source, name):
                                    os.path.join('Versions', current_dir, name)
                                              + ' ' + name))
     
-    else:                 
-        targets.append(env.Install(env['MB_LIB_DIR'], source))
+    else:
+        targets.append(os.path.join(env['MB_LIB_DIR'], dest), source))
         if env.MBIsWindows():
             targets.append(env.Install(env['MB_BIN_DIR'], source))
 
