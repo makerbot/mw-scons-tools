@@ -61,7 +61,7 @@ def mb_install_lib(env, source, name, dest=''):
                                              + ' ' + name))
     
     else:
-        targets.append(os.path.join(env['MB_LIB_DIR'], dest), source)
+        targets.append(os.path.join(env['MB_LIB_DIR'], dest, source))
         if env.MBIsWindows():
             targets.append(env.Install(env['MB_BIN_DIR'], source))
 
