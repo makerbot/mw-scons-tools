@@ -3,6 +3,7 @@ from SCons.Script import ARGUMENTS
 import sys, os
 import glob
 import string
+import re
 
 def rInstall(env, dest, src):
     if not hasattr(src, '__iter__'):
@@ -279,6 +280,26 @@ def mb_is_linux(env):
 
 def mb_is_mac(env):
   return _is_mac
+
+def mb_prepare_boost(env):
+    boost_dir = os.environ.get('MB_BOOST_DIR')
+    if boost_dir is None:
+        print 'MB_BOOST_DIR not specified'
+    else:
+        include_dir = os.path.join(boost_dir, 'include')
+        boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
+        #get the list of boost versions available
+        versions = [(int(match.group('major')), int(match.group('minor')))
+                for match in (boost_version_re.match(a) 
+                for a in os.listdir(include_dir)) if match]
+        #sort them by major,minor then pick the latest
+        subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
+        include = os.path.join(include_dir, subdir)
+        lib = os.path.join(boost_dir, 'lib')
+        env.Append(CPPPATH = include)
+        env.Append(LIBPATH = lib)
+        print include
+        print lib
 
 def mb_set_lib_sym_name(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
