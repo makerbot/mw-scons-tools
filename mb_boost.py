@@ -17,19 +17,21 @@ def mb_is_mac(env):
   return _is_mac
 
 def mb_prepare_boost(env):
-    boost_dir = env['MB_BOOST_DIR']
+    boost_dir = os.environ.get('MB_BOOST_DIR')
+    if boost_dir is None:
+        raise RuntimeError('Missing MB_BOOST_DIR')
     include_dir = os.path.join(boost_dir, 'include')
     boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
     versions = [(int(match.group('major')), int(match.group('minor')))
             for match in (boost_version_re.match(a) 
             for a in os.listdir(include_dir)) if match]
-    subdir = 'boost-{}_{}'.format(*(versions.sorted()[-1])
+    subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
     include = os.path.join(include_dir, subdir)
     lib = os.path.join(boost_dir, 'lib')
-    vars = {'CPPPATH': include, 'LIBPATH', lib}
+    env.Append(CPPPATH = include)
+    env.Append(LIBPATH = lib)
     print include
     print lib
-    env.Append(vars)
 
 def generate(env):
     print "Loading MakerBot boost tool"
