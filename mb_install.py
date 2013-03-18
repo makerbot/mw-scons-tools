@@ -284,7 +284,9 @@ def mb_is_mac(env):
 def mb_prepare_boost(env):
     boost_dir = os.environ.get('MB_BOOST_DIR')
     if boost_dir is None:
+        print '\n======================================================='
         print 'MB_BOOST_DIR not specified'
+        print ''
     else:
         include_dir = os.path.join(boost_dir, 'include')
         boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
@@ -298,8 +300,11 @@ def mb_prepare_boost(env):
         lib = os.path.join(boost_dir, 'lib')
         env.Append(CPPPATH = include)
         env.Append(LIBPATH = lib)
+        print '\n======================================================='
+        print 'Boost directories: '
         print include
         print lib
+        print ''
 
 def mb_set_lib_sym_name(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
@@ -354,9 +359,12 @@ def generate(env):
     env.AddMethod(mb_is_linux, 'MBIsLinux')
     env.AddMethod(mb_is_mac, 'MBIsMac')
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
+    
+    env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
 
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
+    env.MBPrepareBoost()
 
 def exists(env) :
 	return True
