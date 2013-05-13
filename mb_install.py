@@ -5,6 +5,8 @@ import glob
 import string
 import re
 
+symlink_env_name = 'MB_MAC_FRAMEWORK_HEADER_SYMLINK_DONE'
+
 def rInstall(env, dest, src):
     if not hasattr(src, '__iter__'):
         srcs = [src]
@@ -76,16 +78,37 @@ def mb_install_lib(env, source, name, dest=''):
 def mb_install_headers(env, source, name, dest='', make_current_link=False):
     targets = []
     if env.MBIsMac():
-        framework = os.path.join(env['MB_FRAMEWORK_DIR'], name + '.framework')
+        # Name might include subdirectories; if so, split out the
+        # top-level directory as the framework name
+        #
+        # E.g. "conveyor-ui" -> "conveyor-ui"
+        #      "conveyor-ui/widgets" -> "conveyor-ui"
+        #
+        # TODO(nicholasbishop): this will break with more levels of
+        # subdirectories
+        #
+        # TODO(nicholasbishop): IMO a more explicit interface that
+        # acknowledges better the differences between platforms might
+        # be a better idea.
+        split_name = os.path.split(name)
+        if split_name[0]:
+            framework_name = split_name[0]
+            include_subdir = split_name[1]
+        else:
+            framework_name = split_name[1]
+            include_subdir = ''
+        framework_name += '.framework'
+
+        framework = os.path.join(env['MB_FRAMEWORK_DIR'], framework_name)
         version_dir = os.path.join('Versions', env['MB_VERSION'])
-        include_dir = os.path.join(version_dir, 'Headers')
+        include_dir = os.path.join(version_dir, 'Headers', include_subdir)
 
         headers = env.rInstall(os.path.join(framework, include_dir), source)
         targets += headers
 
         #make relative symlinks between Current and the new version
         current_dir = 'Current'
-        if make_current_link:
+        if make_current_link and not env[symlink_env_name]:
             current_link = env.Command(os.path.join(framework, 'Versions',
                                                     current_dir),
                                        headers,
@@ -97,12 +120,17 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
 
         #make a relative symlink for the current headers
         toplink = os.path.join(framework, 'Headers')
-        targets.append(env.Command(os.path.join(framework, toplink),
-                                   targets, 'cd ' + framework +
-                                   ';ln -sf ' + os.path.join('Versions',
-                                                            current_dir,
-                                                            'Headers')
-                                             + ' ' + toplink))
+        target_path = os.path.join(framework, toplink)
+        if not env[symlink_env_name]:
+            targets.append(env.Command(
+                target_path,
+                targets, 'cd ' + framework +
+                ';ln -sf ' + os.path.join('Versions',
+                                          current_dir,
+                                          'Headers')
+                + ' ' + toplink))
+
+        env[symlink_env_name] = True
         
     else:
         targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'], 
@@ -334,6 +362,12 @@ def generate(env):
     print "Loading MakerBot install tool"
 
     env['MB_INSTALL_TARGETS'] = []
+
+    # Unpleasant state tracker: in case MBInstallHeaders is called
+    # multiple times on OSX, ensure that the symlink command isn't
+    # created multiple times. Should find a more SCons-like way of
+    # doing the symlink step.
+    env[symlink_env_name] = False
 
     env.AddMethod(rInstall, 'rInstall')
 
