@@ -909,7 +909,7 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
         try : self.AppendUnique(CPPDEFINES=moduleDefines[module])
         except: pass
     debugSuffix = ''
-    if sys.platform in ["darwin", "linux2"] and not crosscompiling :
+    if sys.platform in ["linux2"] and not crosscompiling :
         if debug : debugSuffix = '_debug'
         for module in modules :
             if module not in pclessModules : continue
@@ -955,37 +955,22 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
             self["QT5_MOCCPPPATH"] = self["CPPPATH"]
         self.AppendUnique(LIBPATH=[os.path.join('$QT5DIR','lib')])
         return
-        
-    """
-    if sys.platform=="darwin" :
-        # TODO: Test debug version on Mac
-        self.AppendUnique(LIBPATH=[os.path.join('$QT5DIR','lib')])
-        self.AppendUnique(LINKFLAGS="-F$QT5DIR/lib")
-        self.AppendUnique(LINKFLAGS="-L$QT5DIR/lib") #TODO clean!
-        if debug : debugSuffix = 'd'
-        for module in modules :
-#            self.AppendUnique(CPPPATH=[os.path.join("$QT5DIR","include")])
-#            self.AppendUnique(CPPPATH=[os.path.join("$QT5DIR","include",module)])
-# port qt5-mac:
-            self.AppendUnique(CPPPATH=[os.path.join("$QT5DIR","include", "qt5")])
-            self.AppendUnique(CPPPATH=[os.path.join("$QT5DIR","include", "qt5", module)])
-            if module in staticModules :
-                self.AppendUnique(LIBS=[module+debugSuffix]) # TODO: Add the debug suffix
-                self.AppendUnique(LIBPATH=[os.path.join("$QT5DIR","lib")])
-            else :
-#                self.Append(LINKFLAGS=['-framework', module])
-# port qt5-mac:
-                self.Append(LIBS=module)
-        if 'QtOpenGL' in modules:
-            self.AppendUnique(LINKFLAGS="-F/System/Library/Frameworks")
-            self.Append(LINKFLAGS=['-framework', 'AGL']) #TODO ughly kludge to avoid quotes
-            self.Append(LINKFLAGS=['-framework', 'OpenGL'])
-        self["QT5_MOCCPPPATH"] = self["CPPPATH"]
-        return
-# This should work for mac but doesn't
-#    env.AppendUnique(FRAMEWORKPATH=[os.path.join(env['QT5DIR'],'lib')])
-#    env.AppendUnique(FRAMEWORKS=['QtCore','QtGui','QtOpenGL', 'AGL'])
-    """
+
+    if sys.platform=="darwin":
+        # Implementation notes:
+        #
+        # When specifying frameworks explicitly with "-framework", the
+        # include path that results isn't compatible with the way our
+        # source code includes Qt files (e.g. "#include <QString>"),
+        # so we use explicit "-I" options.
+
+        # Add path to all Qt frameworks
+        self.AppendUnique(FRAMEWORKPATH='$QT5DIR/lib')
+
+        # Each module adds an include path and a framework link option
+        for m in modules:
+            self.AppendUnique(CCFLAGS='-I$QT5DIR/include/' + m)
+            self.AppendUnique(FRAMEWORKS=m)
         
 def exists(env):
     return _detect(env)
