@@ -326,7 +326,7 @@ def mb_prepare_boost(env):
         subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
         include = os.path.join(include_dir, subdir)
         lib = os.path.join(boost_dir, 'lib')
-        env.Append(CPPPATH = include)
+        env.Append(CPPPATH = [include])
         env.Append(LIBPATH = lib)
         print '\n======================================================='
         print 'Boost directories: '

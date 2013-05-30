@@ -969,7 +969,7 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
 
         # Each module adds an include path and a framework link option
         for m in modules:
-            self.AppendUnique(CCFLAGS='-I$QT5DIR/include/' + m)
+            self.AppendUnique(CCFLAGS=['-I$QT5DIR/include/' + m])
             self.AppendUnique(FRAMEWORKS=m)
         
 def exists(env):
