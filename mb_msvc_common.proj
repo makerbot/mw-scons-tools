@@ -13,14 +13,24 @@
     <MBPrecompiledHeader>NotUsing</MBPrecompiledHeader>
     <MBGenerateDebugInformation>true</MBGenerateDebugInformation>
     <MBSDLCheck>true</MBSDLCheck>
+    <!-- *** Some properties for referring to other projects *** -->
+    <!-- For switching between dllexport and dllimport -->
     <MBUseJsonDLL>JSON_DLL</MBUseJsonDLL>
     <MBBuildJsonDLL>JSON_DLL_BUILD</MBBuildJsonDLL>
     <MBUseJsonRpcDLL>JSONRPC_DLL</MBUseJsonRpcDLL>
     <MBBuildJsonRpcDLL>JSONRPC_DLL_BUILD</MBBuildJsonRpcDLL>
     <MBUseConveyorDLL>CONVEYOR_DLL</MBUseConveyorDLL>
     <MBBuildConveyorDLL>CONVEYOR_DLL_BUILD</MBBuildConveyorDLL>
+    <MBUseConveyorUiDLL>CONVEYOR_UI_DLL</MBUseConveyorUiDLL>
+    <MBBuildConveyorUiDLL>CONVEYOR_UI_DLL_BUILD</MBBuildConveyorUiDLL>
     <MBUseThingDLL>THING_DLL</MBUseThingDLL>
     <MBBuildThingDLL>THING_DLL_BUILD</MBBuildThingDLL>
+    <!-- Include directories -->
+    <MBIncludeJson>..\..\..\..\json-cpp\include</MBIncludeJson>
+    <MBIncludeJsonRpc>..\..\..\..\jsonrpc\src\main\include</MBIncludeJsonRpc>
+    <MBIncludeConveyor>..\..\..\..\conveyor\include</MBIncludeConveyor>
+    <MBIncludeConveyorUi>..\..\..\..\conveyor-ui\include</MBIncludeConveyorUi>
+    <MBIncludeThing>..\..\..\..\libthing-surprise\include</MBIncludeThing>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MBIsDebug)'!=''">
     <!-- Debug-specific properties -->
