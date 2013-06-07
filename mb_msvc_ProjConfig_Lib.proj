@@ -31,4 +31,13 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug_Lib'">
+    <MBIsDebug>true</MBIsDebug>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release_Lib'">
+    <MBIsRelease>true</MBIsRelease>
+  </PropertyGroup>
+  <PropertyGroup Condition="true">
+    <MBIsLib>true</MBIsLib>
+  </PropertyGroup>
 </Project>

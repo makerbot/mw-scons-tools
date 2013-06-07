@@ -18,4 +18,14 @@
       <ClCompile Include="%(Moc.OutputFileName)" />
     </ItemGroup>
   </Target>
+  <PropertyGroup Condition="true">
+    <MBIncludeQtBase>$(QT5DIR)\include</MBIncludeQtBase>
+    <MBIncludeQtCore>$(QT5DIR)\include\QtCore</MBIncludeQtCore>
+    <MBIncludeQtGui>$(QT5DIR)\include\QtGui</MBIncludeQtGui>
+    <MBIncludeQtWidgets>$(QT5DIR)\include\QtWidgets</MBIncludeQtWidgets>
+    <MBQtCoreLib>Qt5Core.lib</MBQtCoreLib>
+    <MBQtGuiLib>Qt5Gui.lib</MBQtGuiLib>
+    <MBQtWidgetsLib>Qt5Widgets.lib</MBQtWidgetsLib>
+    <MBQtLibDir>$(QT5DIR)\lib</MBQtLibDir>
+  </PropertyGroup>
 </Project>
