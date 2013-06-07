@@ -7,4 +7,45 @@
     <OutDir>$(ProjectDir)..\..\..\obj\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)$(Platform)_Int\$(Configuration)_Int\</IntDir>
   </PropertyGroup>
+    <PropertyGroup Condition="true">
+    <!-- Common properties to all builds -->
+    <MBWarningLevel>Level3</MBWarningLevel>
+    <MBPrecompiledHeader>NotUsing</MBPrecompiledHeader>
+    <MBGenerateDebugInformation>true</MBGenerateDebugInformation>
+    <MBSDLCheck>true</MBSDLCheck>
+    <MBUseJsonDLL>JSON_DLL</MBUseJsonDLL>
+    <MBBuildJsonDLL>JSON_DLL_BUILD</MBBuildJsonDLL>
+    <MBUseJsonRpcDLL>JSONRPC_DLL</MBUseJsonRpcDLL>
+    <MBBuildJsonRpcDLL>JSONRPC_DLL_BUILD</MBBuildJsonRpcDLL>
+    <MBUseConveyorDLL>CONVEYOR_DLL</MBUseConveyorDLL>
+    <MBBuildConveyorDLL>CONVEYOR_DLL_BUILD</MBBuildConveyorDLL>
+    <MBUseThingDLL>THING_DLL</MBUseThingDLL>
+    <MBBuildThingDLL>THING_DLL_BUILD</MBBuildThingDLL>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MBIsDebug)'!=''">
+    <!-- Debug-specific properties -->
+    <MBOptimization>Disabled</MBOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(MBIsRelease)'!=''">
+    <!-- Release-specific properties -->
+    <MBOptimization>MaxSpeed</MBOptimization>
+    <MBFunctionLevelLinking>true</MBFunctionLevelLinking>
+    <MBIntrinsicFunctions>true</MBIntrinsicFunctions>
+    <MBEnableCOMDATFolding>true</MBEnableCOMDATFolding>
+    <MBOptimizeReferences>true</MBOptimizeReferences>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="true">
+    <ClCompile>
+      <WarningLevel>$(MBWarningLevel)</WarningLevel>
+      <Optimization>$(MBOptimization)</Optimization>
+      <SDLCheck>$(MBSDLCheck)</SDLCheck>
+      <FunctionLevelLinking>$(MBFunctionLevelLinking)</FunctionLevelLinking>
+      <IntrinsicFunctions>$(MBIntrinsicFunctions)</IntrinsicFunctions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>$(MBGenerateDebugInformation)</GenerateDebugInformation>
+      <EnableCOMDATFolding>$(MBEnableCOMDATFolding)</EnableCOMDATFolding>
+      <OptimizeReferences>$(MBOptimizeReferences)</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
 </Project>
