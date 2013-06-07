@@ -8,11 +8,6 @@
     <IntDir>$(SolutionDir)$(Platform)_Int\$(Configuration)_Int\</IntDir>
   </PropertyGroup>
     <PropertyGroup Condition="true">
-    <!-- Common properties to all builds -->
-    <MBWarningLevel>Level3</MBWarningLevel>
-    <MBPrecompiledHeader>NotUsing</MBPrecompiledHeader>
-    <MBGenerateDebugInformation>true</MBGenerateDebugInformation>
-    <MBSDLCheck>true</MBSDLCheck>
     <!-- *** Some properties for referring to other projects *** -->
     <!-- For switching between dllexport and dllimport -->
     <MBUseJsonDLL>JSON_DLL</MBUseJsonDLL>
@@ -46,14 +41,15 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="true">
     <ClCompile>
-      <WarningLevel>$(MBWarningLevel)</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>$(MBOptimization)</Optimization>
-      <SDLCheck>$(MBSDLCheck)</SDLCheck>
+      <SDLCheck>true</SDLCheck>
       <FunctionLevelLinking>$(MBFunctionLevelLinking)</FunctionLevelLinking>
       <IntrinsicFunctions>$(MBIntrinsicFunctions)</IntrinsicFunctions>
+      <ProgramDataBaseFileName>$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>$(MBGenerateDebugInformation)</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>$(MBEnableCOMDATFolding)</EnableCOMDATFolding>
       <OptimizeReferences>$(MBOptimizeReferences)</OptimizeReferences>
     </Link>
