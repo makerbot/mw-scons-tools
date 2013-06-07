@@ -6,9 +6,21 @@
     <MBIncludeQtCore>$(QT5DIR)\include\QtCore</MBIncludeQtCore>
     <MBIncludeQtGui>$(QT5DIR)\include\QtGui</MBIncludeQtGui>
     <MBIncludeQtWidgets>$(QT5DIR)\include\QtWidgets</MBIncludeQtWidgets>
+    <MBIncludeQtOpenGL>$(QT5DIR)\include\QtOpenGL</MBIncludeQtOpenGL>
+    <MBIncludeQtNetwork>$(QT5DIR)\include\QtNetwork</MBIncludeQtNetwork>
+    <MBIncludeQtWebKit>$(QT5DIR)\include\QtWebKit</MBIncludeQtWebKit>
+    <MBIncludeQtWebKitWidgets>$(QT5DIR)\include\QtWebKitWidgets</MBIncludeQtWebKitWidgets>
+    <MBIncludeQtMultiMedia>$(QT5DIR)\include\QtMultiMedia</MBIncludeQtMultiMedia>
+    <MBIncludeQtMultiMediaWidgets>$(QT5DIR)\include\QtMultiMediaWidgets</MBIncludeQtMultiMediaWidgets>
     <MBQtCoreLib>Qt5Core.lib</MBQtCoreLib>
     <MBQtGuiLib>Qt5Gui.lib</MBQtGuiLib>
     <MBQtWidgetsLib>Qt5Widgets.lib</MBQtWidgetsLib>
+    <MBQtOpenGLLib>Qt5OpenGL.lib</MBQtOpenGLLib>
+    <MBQtNetworkLib>Qt5Network.lib</MBQtNetworkLib>
+    <MBQtWebKitLib>Qt5WebKit.lib</MBQtWebKitLib>
+    <MBQtWebKitWidgetsLib>Qt5WebKitWidgets.lib</MBQtWebKitWidgetsLib>
+    <MBQtMultiMediaLib>Qt5MultiMedia.lib</MBQtMultiMediaLib>
+    <MBQtMultiMediaWidgetsLib>Qt5MultiMediaWidgets.lib</MBQtMultiMediaWidgetsLib>
     <MBQtLibDir>$(QT5DIR)\lib</MBQtLibDir>
     <MocDir>$(IntDir)moc\</MocDir>
   </PropertyGroup>
