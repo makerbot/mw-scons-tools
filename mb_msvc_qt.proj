@@ -8,7 +8,7 @@
   </ItemDefinitionGroup>
   <!-- To use this Target create 'Moc' Items in an ItemGroup,
        they will have moc run on them and the resulting file will be added to the ClCompile step. -->
-  <Target Name="RunMoc" BeforeTargets="ClCompile" Inputs="@(Moc)" Outputs="@(Moc->'%(OutputFileName);fakefile')">
+  <Target Name="RunMoc" BeforeTargets="ClCompile" Inputs="@(Moc)" Outputs="@(Moc->'%(OutputFileName)')">
     <!-- Make sure the MocDir exists -->
     <MakeDir Directories="$(MocDir)" Condition="!Exists('$(MocDir)')"/>
     <Message Text="Running moc on '%(Moc.FileName)%(Moc.Extension)'" Importance="high" />
