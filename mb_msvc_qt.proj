@@ -28,6 +28,7 @@
     <MBQtMultiMediaWidgetsLib>Qt5MultiMediaWidgets$(debugSuffix).lib</MBQtMultiMediaWidgetsLib>
     <MBQtLibDir>$(QT5DIR)\lib</MBQtLibDir>
     <MocDir>$(IntDir)moc\</MocDir>
+    <QrcDir>$(IntDir)qrc\</QrcDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="true">
     <!-- Add the Moc.OutputFileName property to all files in an
@@ -35,6 +36,11 @@
     <Moc>
       <OutputFileName>$(MocDir)moc_%(FileName).cc</OutputFileName>
     </Moc>
+    <!-- Add the Qrc.OutputFileName property to all files in an
+         ItemGroup included with the tag <Qrc Include="..." /> -->
+    <Qrc>
+      <OutputFileName>$(QrcDir)qrc_%(FileName).cc</OutputFileName>
+    </Qrc>
   </ItemDefinitionGroup>
   <!-- To use this Target create 'Moc' Items in an ItemGroup,
        they will have moc run on them and the resulting file will be added to the ClCompile step. -->
@@ -46,6 +52,18 @@
     <ItemGroup>
       <!-- Add the produced file to the compilation step -->
       <ClCompile Include="%(Moc.OutputFileName)" />
+    </ItemGroup>
+  </Target>
+  <!-- To use this Target create 'Qrc' Items in an ItemGroup,
+       they will have rcc run on them and the resulting file will be added to the ClCompile step. -->
+  <Target Name="RunQrc" BeforeTargets="ClCompile" Inputs="@(Qrc)" Outputs="@(Qrc->'%(OutputFileName)')">
+    <!-- Make sure the QrcDir exists -->
+    <MakeDir Directories="$(QrcDir)" Condition="!Exists('$(QrcDir)')"/>
+    <Message Text="Running rcc on '%(Qrc.FileName)%(Qrc.Extension)'" Importance="high" />
+    <Exec Command="$(QT5DIR)\bin\rcc.exe -o %(Qrc.OutputFileName) %(Qrc.FullPath)" />
+    <ItemGroup>
+      <!-- Add the produced file to the compilation step -->
+      <ClCompile Include="%(Qrc.OutputFileName)" />
     </ItemGroup>
   </Target>
 </Project>
