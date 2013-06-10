@@ -60,7 +60,7 @@
     <!-- Make sure the QrcDir exists -->
     <MakeDir Directories="$(QrcDir)" Condition="!Exists('$(QrcDir)')"/>
     <Message Text="Running rcc on '%(Qrc.FileName)%(Qrc.Extension)'" Importance="high" />
-    <Exec Command="$(QT5DIR)\bin\rcc.exe -o %(Qrc.OutputFileName) %(Qrc.FullPath)" />
+    <Exec Command="$(QT5DIR)\bin\rcc.exe -o %(Qrc.OutputFileName) -name %(Qrc.FileName) %(Qrc.FullPath)" />
     <ItemGroup>
       <!-- Add the produced file to the compilation step -->
       <ClCompile Include="%(Qrc.OutputFileName)" />
