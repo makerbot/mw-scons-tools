@@ -30,6 +30,7 @@
   <PropertyGroup Condition="'$(MBIsDebug)'!=''">
     <!-- Debug-specific properties -->
     <MBOptimization>Disabled</MBOptimization>
+    <underscoreDebug>_DEBUG;</underscoreDebug>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MBIsRelease)'!=''">
     <!-- Release-specific properties -->
@@ -38,6 +39,11 @@
     <MBIntrinsicFunctions>true</MBIntrinsicFunctions>
     <MBEnableCOMDATFolding>true</MBEnableCOMDATFolding>
     <MBOptimizeReferences>true</MBOptimizeReferences>
+    <nDebug>NDEBUG;</nDebug>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!--  -->
+    <MBCommonPreprocessorDefs>$(underscoreDebug)$(nDebug)</MBCommonPreprocessorDefs>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="true">
     <ClCompile>
