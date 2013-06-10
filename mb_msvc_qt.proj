@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Always include this AFTER mb_msvc_common.proj -->
+  <PropertyGroup Condition="'$(MBIsDebug)'!=''">
+    <debugSuffix>d</debugSuffix>
+  </PropertyGroup>
   <PropertyGroup Condition="true">
+    <!-- include paths -->
     <MBIncludeQtBase>$(QT5DIR)\include</MBIncludeQtBase>
     <MBIncludeQtCore>$(QT5DIR)\include\QtCore</MBIncludeQtCore>
     <MBIncludeQtGui>$(QT5DIR)\include\QtGui</MBIncludeQtGui>
@@ -12,15 +16,16 @@
     <MBIncludeQtWebKitWidgets>$(QT5DIR)\include\QtWebKitWidgets</MBIncludeQtWebKitWidgets>
     <MBIncludeQtMultiMedia>$(QT5DIR)\include\QtMultiMedia</MBIncludeQtMultiMedia>
     <MBIncludeQtMultiMediaWidgets>$(QT5DIR)\include\QtMultiMediaWidgets</MBIncludeQtMultiMediaWidgets>
-    <MBQtCoreLib>Qt5Core.lib</MBQtCoreLib>
-    <MBQtGuiLib>Qt5Gui.lib</MBQtGuiLib>
-    <MBQtWidgetsLib>Qt5Widgets.lib</MBQtWidgetsLib>
-    <MBQtOpenGLLib>Qt5OpenGL.lib</MBQtOpenGLLib>
-    <MBQtNetworkLib>Qt5Network.lib</MBQtNetworkLib>
-    <MBQtWebKitLib>Qt5WebKit.lib</MBQtWebKitLib>
-    <MBQtWebKitWidgetsLib>Qt5WebKitWidgets.lib</MBQtWebKitWidgetsLib>
-    <MBQtMultiMediaLib>Qt5MultiMedia.lib</MBQtMultiMediaLib>
-    <MBQtMultiMediaWidgetsLib>Qt5MultiMediaWidgets.lib</MBQtMultiMediaWidgetsLib>
+    <!-- libs, with debug optionally appended -->
+    <MBQtCoreLib>Qt5Core$(debugSuffix).lib</MBQtCoreLib>
+    <MBQtGuiLib>Qt5Gui$(debugSuffix).lib</MBQtGuiLib>
+    <MBQtWidgetsLib>Qt5Widgets$(debugSuffix).lib</MBQtWidgetsLib>
+    <MBQtOpenGLLib>Qt5OpenGL$(debugSuffix).lib;opengl32.lib</MBQtOpenGLLib>
+    <MBQtNetworkLib>Qt5Network$(debugSuffix).lib</MBQtNetworkLib>
+    <MBQtWebKitLib>Qt5WebKit$(debugSuffix).lib</MBQtWebKitLib>
+    <MBQtWebKitWidgetsLib>Qt5WebKitWidgets$(debugSuffix).lib</MBQtWebKitWidgetsLib>
+    <MBQtMultiMediaLib>Qt5MultiMedia$(debugSuffix).lib</MBQtMultiMediaLib>
+    <MBQtMultiMediaWidgetsLib>Qt5MultiMediaWidgets$(debugSuffix).lib</MBQtMultiMediaWidgetsLib>
     <MBQtLibDir>$(QT5DIR)\lib</MBQtLibDir>
     <MocDir>$(IntDir)moc\</MocDir>
   </PropertyGroup>
