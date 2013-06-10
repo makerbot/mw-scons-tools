@@ -9,17 +9,11 @@
   </PropertyGroup>
     <PropertyGroup Condition="true">
     <!-- *** Some properties for referring to other projects *** -->
-    <!-- For switching between dllexport and dllimport -->
     <MBUseJsonDLL>JSON_DLL</MBUseJsonDLL>
-    <MBBuildJsonDLL>JSON_DLL_BUILD</MBBuildJsonDLL>
     <MBUseJsonRpcDLL>JSONRPC_DLL</MBUseJsonRpcDLL>
-    <MBBuildJsonRpcDLL>JSONRPC_DLL_BUILD</MBBuildJsonRpcDLL>
     <MBUseConveyorDLL>CONVEYOR_DLL</MBUseConveyorDLL>
-    <MBBuildConveyorDLL>CONVEYOR_DLL_BUILD</MBBuildConveyorDLL>
     <MBUseConveyorUiDLL>CONVEYOR_UI_DLL</MBUseConveyorUiDLL>
-    <MBBuildConveyorUiDLL>CONVEYOR_UI_DLL_BUILD</MBBuildConveyorUiDLL>
     <MBUseThingDLL>THING_DLL</MBUseThingDLL>
-    <MBBuildThingDLL>THING_DLL_BUILD</MBBuildThingDLL>
     <!-- Include directories -->
     <MBIncludeJson>..\..\..\..\json-cpp\include</MBIncludeJson>
     <MBIncludeJsonRpc>..\..\..\..\jsonrpc\src\main\include</MBIncludeJsonRpc>
@@ -41,8 +35,14 @@
     <MBOptimizeReferences>true</MBOptimizeReferences>
     <nDebug>NDEBUG;</nDebug>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MBIsDLL)'!=''">
+    <MBBuildJsonDLL>JSON_DLL_BUILD</MBBuildJsonDLL>
+    <MBBuildJsonRpcDLL>JSONRPC_DLL_BUILD</MBBuildJsonRpcDLL>
+    <MBBuildConveyorDLL>CONVEYOR_DLL_BUILD</MBBuildConveyorDLL>
+    <MBBuildConveyorUiDLL>CONVEYOR_UI_DLL_BUILD</MBBuildConveyorUiDLL>
+    <MBBuildThingDLL>THING_DLL_BUILD</MBBuildThingDLL>
+  </PropertyGroup>
   <PropertyGroup>
-    <!--  -->
     <MBCommonPreprocessorDefs>$(underscoreDebug)$(nDebug)</MBCommonPreprocessorDefs>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="true">
