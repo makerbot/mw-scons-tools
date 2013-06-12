@@ -37,7 +37,7 @@
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <MBIsRelease>true</MBIsRelease>
   </PropertyGroup>
-  <PropertyGroup Condition="true">
+  <PropertyGroup Condition="'$(Configuration)'=='Debug' Or '$(Configuration)'=='Release'">
     <MBIsApp>true</MBIsApp>
   </PropertyGroup>
 </Project>
