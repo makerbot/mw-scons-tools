@@ -20,11 +20,31 @@
     <MBIncludeConveyor>..\..\..\..\conveyor\include</MBIncludeConveyor>
     <MBIncludeConveyorUi>..\..\..\..\conveyor-ui\include</MBIncludeConveyorUi>
     <MBIncludeThing>..\..\..\..\libthing-surprise\include</MBIncludeThing>
+    <!-- Adds a bunch of stuff to the path for debugging. -->
+
+    <!--
+
+    TODO:
+    we're going to change the folders into which things are dumped
+    Everything will go into obj\$(Platform)\
+    Implement a naming convention such that libs are prefixed with 'lib'
+    and debug things are suffixed with 'd'
+
+    the LDE can then work as below
+
+    -->
+
+    <ldeStart>..\..\..\..\</ldeStart>
+    <ldeEnd>\obj\$(Platform)\$(Configuration)\</ldeEnd>
+    <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\bin;$(ldeStart)json-cpp$(ldeEnd);$(ldeStart)jsonrpc$(ldeEnd);$(ldeStart)conveyor$(ldeEnd);$(ldeStart)conveyor-ui$(ldeEnd);$(ldeStart)libthing-surprise$(ldeEnd);$(ldeStart)Prototype$(ldeEnd);
+      $(LocalDebuggerEnvironment)
+    </LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MBIsDebug)'!=''">
     <!-- Debug-specific properties -->
     <MBOptimization>Disabled</MBOptimization>
     <underscoreDebug>_DEBUG;</underscoreDebug>
+    <debugSuffix>d</debugSuffix>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MBIsRelease)'!=''">
     <!-- Release-specific properties -->
@@ -35,6 +55,9 @@
     <MBOptimizeReferences>true</MBOptimizeReferences>
     <nDebug>NDEBUG;</nDebug>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(MBIsLib)'!=''">
+    <libPrefix>lib</libPrefix>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(MBIsDLL)'!=''">
     <MBBuildJsonDLL>JSON_DLL_BUILD</MBBuildJsonDLL>
     <MBBuildJsonRpcDLL>JSONRPC_DLL_BUILD</MBBuildJsonRpcDLL>
@@ -44,6 +67,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <MBCommonPreprocessorDefs>$(underscoreDebug)$(nDebug)</MBCommonPreprocessorDefs>
+    <TargetName>$(libPrefix)$(ProjectName)$(debugSuffix)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="true">
     <ClCompile>
