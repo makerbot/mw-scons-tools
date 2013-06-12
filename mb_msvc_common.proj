@@ -4,7 +4,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Condition="true">
-    <OutDir>$(ProjectDir)..\..\..\obj\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(ProjectDir)..\..\..\obj\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)$(Platform)_Int\$(Configuration)_Int\</IntDir>
   </PropertyGroup>
     <PropertyGroup Condition="true">
@@ -21,19 +21,6 @@
     <MBIncludeConveyorUi>..\..\..\..\conveyor-ui\include</MBIncludeConveyorUi>
     <MBIncludeThing>..\..\..\..\libthing-surprise\include</MBIncludeThing>
     <!-- Adds a bunch of stuff to the path for debugging. -->
-
-    <!--
-
-    TODO:
-    we're going to change the folders into which things are dumped
-    Everything will go into obj\$(Platform)\
-    Implement a naming convention such that libs are prefixed with 'lib'
-    and debug things are suffixed with 'd'
-
-    the LDE can then work as below
-
-    -->
-
     <ldeStart>..\..\..\..\</ldeStart>
     <ldeEnd>\obj\$(Platform)\$(Configuration)\</ldeEnd>
     <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\bin;$(ldeStart)json-cpp$(ldeEnd);$(ldeStart)jsonrpc$(ldeEnd);$(ldeStart)conveyor$(ldeEnd);$(ldeStart)conveyor-ui$(ldeEnd);$(ldeStart)libthing-surprise$(ldeEnd);$(ldeStart)Prototype$(ldeEnd);
