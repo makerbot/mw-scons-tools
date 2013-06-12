@@ -22,7 +22,7 @@
     <MBIncludeThing>..\..\..\..\libthing-surprise\include</MBIncludeThing>
     <!-- Adds a bunch of stuff to the path for debugging. -->
     <ldeStart>..\..\..\..\</ldeStart>
-    <ldeEnd>\obj\$(Platform)\$(Configuration)\</ldeEnd>
+    <ldeEnd>\obj\$(Platform)\</ldeEnd>
     <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\bin;$(ldeStart)json-cpp$(ldeEnd);$(ldeStart)jsonrpc$(ldeEnd);$(ldeStart)conveyor$(ldeEnd);$(ldeStart)conveyor-ui$(ldeEnd);$(ldeStart)libthing-surprise$(ldeEnd);$(ldeStart)Prototype$(ldeEnd);
       $(LocalDebuggerEnvironment)
     </LocalDebuggerEnvironment>
