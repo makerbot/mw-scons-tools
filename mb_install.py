@@ -62,7 +62,7 @@ def mb_install_lib(env, source, name, dest=''):
                                    ';ln -sf ' +
                                    os.path.join('Versions', current_dir, name)
                                              + ' ' + name))
-    
+
     else:
         if dest is not None and dest != '':
             targetpath = os.path.join(env['MB_LIB_DIR'], dest)
@@ -131,9 +131,9 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
                 + ' ' + toplink))
 
         env[symlink_env_name] = True
-        
+
     else:
-        targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'], 
+        targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'],
                                             os.path.join(dest, name)),
                                source)
 
@@ -215,13 +215,13 @@ def set_default_prefix(env):
                 config_prefix = '/etc'
             else:
                 config_prefix = os.path.join(prefix, 'etc')
-        
+
     if prefix == '':
         if sys.platform == 'linux2':
             if config_prefix == '':
                 config_prefix = '/etc'
             prefix = '/usr'
-            
+
         elif sys.platform == 'win32':
             if os.path.exists('c:/Program Files (x86)'):
                 prefix = 'c:/Program Files (x86)/MakerBot'
@@ -237,7 +237,7 @@ def set_default_prefix(env):
 
 def set_install_paths(env):
     prefix = env['MB_PREFIX']
-    
+
     #setup sdk locations
     if sys.platform == 'linux2':
         lib_dir = prefix + '/lib'
@@ -276,7 +276,7 @@ def set_install_paths(env):
                        MB_CONFIG_DIR = os.path.join(prefix, 'etc'),
                        MB_EGG_DIR = os.path.join(prefix,
                                                  'share', 'makerbot', 'python'),
-                       MB_SYSTEM_EGG_DIR = os.path.join('/', 'usr', 'share', 
+                       MB_SYSTEM_EGG_DIR = os.path.join('/', 'usr', 'share',
                                                          'makerbot', 'python'))
     elif sys.platform == 'darwin':
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'Library', 'MakerBot'),
@@ -329,7 +329,7 @@ def mb_prepare_boost(env):
         boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
         #get the list of boost versions available
         versions = [(int(match.group('major')), int(match.group('minor')))
-                for match in (boost_version_re.match(a) 
+                for match in (boost_version_re.match(a)
                 for a in os.listdir(include_dir)) if match]
         #sort them by major,minor then pick the latest
         subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
@@ -364,7 +364,7 @@ def mb_set_lib_sym_name(env, name):
         if '-compatibility_version' not in env['LINKFLAGS']:
             env.Append(LINKFLAGS = ['-compatibility_version',
                                     env['MB_VERSION']])
-        
+
 
 
 def generate(env):
