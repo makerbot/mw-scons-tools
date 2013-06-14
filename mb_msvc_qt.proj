@@ -48,7 +48,7 @@
     <!-- Make sure the MocDir exists -->
     <MakeDir Directories="$(MocDir)" Condition="!Exists('$(MocDir)')"/>
     <Message Text="Running moc on '%(Moc.FileName)%(Moc.Extension)'" Importance="high" />
-    <Exec Command="$(QT5DIR)\bin\moc.exe -o%(Moc.OutputFileName) %(Moc.FullPath)" />
+    <Exec Command="$(QT5DIR)\bin\moc.exe -o&quot;%(Moc.OutputFileName)&quot; &quot;%(Moc.FullPath)&quot;" />
     <ItemGroup>
       <!-- Add the produced file to the compilation step -->
       <ClCompile Include="%(Moc.OutputFileName)" />
@@ -60,7 +60,7 @@
     <!-- Make sure the QrcDir exists -->
     <MakeDir Directories="$(QrcDir)" Condition="!Exists('$(QrcDir)')"/>
     <Message Text="Running rcc on '%(Qrc.FileName)%(Qrc.Extension)'" Importance="high" />
-    <Exec Command="$(QT5DIR)\bin\rcc.exe -o %(Qrc.OutputFileName) -name %(Qrc.FileName) %(Qrc.FullPath)" />
+    <Exec Command="$(QT5DIR)\bin\rcc.exe -o %&quot;(Qrc.OutputFileName)&quot; -name %(Qrc.FileName) &quot;%(Qrc.FullPath)&quot;" />
     <ItemGroup>
       <!-- Add the produced file to the compilation step -->
       <ClCompile Include="%(Qrc.OutputFileName)" />
