@@ -179,6 +179,15 @@ def create_install_target(env):
 def mb_use_devel_libs(env):
     return ARGUMENTS.get('devel_libs', '') is not ''
 
+def mb_debug_build(env):
+    return ARGUMENTS.get('debug_build', '') is not ''
+
+def mb_build_tests(env):
+    return ARGUMENTS.get('build_tests', '') is not ''
+
+def mb_run_tests(env):
+    return ARGUMENTS.get('run_tests', '') is not ''
+
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
         env.Append(CCFLAGS = ['-framework', name])
@@ -393,7 +402,11 @@ def generate(env):
     env.AddMethod(mb_is_linux, 'MBIsLinux')
     env.AddMethod(mb_is_mac, 'MBIsMac')
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
-    
+
+    env.AddMethod(mb_debug_build, 'MBDebugBuild')
+    env.AddMethod(mb_build_tests, 'MBBuildTests')
+    env.AddMethod(mb_run_tests, 'MBRunTests')
+
     env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
 
     env.MBSetDefaultPrefix()
