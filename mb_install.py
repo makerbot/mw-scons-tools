@@ -248,8 +248,8 @@ def set_install_paths(env):
         include_dir = prefix + '/Library/Frameworks/MakerBot.framework/Include'
 
     elif sys.platform == 'win32':
-        lib_dir = prefix + '/SDK/mingw/lib'
-        include_dir = prefix + '/SDK/mingw/include'
+        lib_dir = prefix + '/SDK/msvc10/lib'
+        include_dir = prefix + '/SDK/msvc10/include'
 
     #OSX doesn't use the standard link lines
     if sys.platform == 'darwin':
@@ -365,7 +365,43 @@ def mb_set_lib_sym_name(env, name):
             env.Append(LINKFLAGS = ['-compatibility_version',
                                     env['MB_VERSION']])
 
+def mb_msbuild(env, proj, sources):
+    command = [
+        'msbuild',
+        '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
+        '/p:Platform=Win32',
+        proj
+    ]
 
+    # Horrible hack:
+    # fake the files we expect to come out of this
+    targets = env.Glob('#/obj/Win32/*')
+
+    # add the vxcproj to the sources list
+    # I think this tells scons that if the
+    # vcxproj changes this requires a rebuild
+    sources += [proj]
+
+    return env.Command(targets, sources, ' '.join(command))
+
+def mb_shared_library(env, target, source, *args, **kwargs):
+    if env.MBIsWindows():
+        # Horrible hack:
+        # strip the target name down to the 'base name'
+        # (i.e. without variant dir) and use that as the
+        # name of the vcxproj to build.
+        # I'm also not sure we'll ever get more than one target,
+        # so I'll leave that non-functional until we hit that case.
+        basename = os.path.basename(target)
+        vcxproj = os.path.join(
+            'win',
+            'vcxproj',
+            basename,
+            basename + '.vcxproj')
+
+        return env.MBMSBuild(vcxproj, source)
+    else:
+        return env.SharedLibrary(*args, **kwargs);
 
 def generate(env):
     print "Loading MakerBot install tool"
@@ -406,6 +442,10 @@ def generate(env):
     env.AddMethod(mb_debug_build, 'MBDebugBuild')
     env.AddMethod(mb_build_tests, 'MBBuildTests')
     env.AddMethod(mb_run_tests, 'MBRunTests')
+
+    env.AddMethod(mb_msbuild, 'MBMSBuild')
+
+    env.AddMethod(mb_shared_library, 'MBSharedLibrary')
 
     env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
 
