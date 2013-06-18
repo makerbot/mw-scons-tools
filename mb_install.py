@@ -365,43 +365,57 @@ def mb_set_lib_sym_name(env, name):
             env.Append(LINKFLAGS = ['-compatibility_version',
                                     env['MB_VERSION']])
 
-def mb_msbuild(env, proj, sources):
+def mb_msbuild(env, target, sources, output_types):
+    # Horrible hack:
+    # strip the target name down to the 'base name'
+    # (i.e. without variant dir) and use that as the
+    # name of the vcxproj to build.
+    # I'm also not sure we'll ever get more than one target,
+    # so I'll leave that non-functional until we hit that case.
+    basename = os.path.basename(target)
+    vcxproj = os.path.join(
+        'win',
+        'vcxproj',
+        basename,
+        basename + '.vcxproj')
+
     command = [
         'msbuild',
         '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
         '/p:Platform=Win32',
-        proj
+        vcxproj
     ]
 
     # Horrible hack:
     # fake the files we expect to come out of this
-    targets = env.Glob('#/obj/Win32/*')
+    targets = []
+    for type in output_types:
+        targets.append('#/obj/Win32/*.' + type)
 
     # add the vxcproj to the sources list
     # I think this tells scons that if the
     # vcxproj changes this requires a rebuild
-    sources += [proj]
+    sources += [vcxproj]
 
     return env.Command(targets, sources, ' '.join(command))
 
+def mb_program(env, target, source, *args, **kwargs):
+    if env.MBIsWindows():
+        return env.MBMSBuild(target, source, ['exe'])
+    else:
+        return env.Program(target, source, *args, **kwargs);
+
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        # Horrible hack:
-        # strip the target name down to the 'base name'
-        # (i.e. without variant dir) and use that as the
-        # name of the vcxproj to build.
-        # I'm also not sure we'll ever get more than one target,
-        # so I'll leave that non-functional until we hit that case.
-        basename = os.path.basename(target)
-        vcxproj = os.path.join(
-            'win',
-            'vcxproj',
-            basename,
-            basename + '.vcxproj')
-
-        return env.MBMSBuild(vcxproj, source)
+        return env.MBMSBuild(target, source, ['dll'])
     else:
         return env.SharedLibrary(target, source, *args, **kwargs)
+
+def mb_static_library(env, target, source, *args, **kwargs):
+    if env.MBIsWindows():
+        return env.MBMSBuild(target, source, ['lib'])
+    else:
+        return env.StaticLibrary(target, source, *args, **kwargs)
 
 def generate(env):
     print "Loading MakerBot install tool"
@@ -446,6 +460,8 @@ def generate(env):
     env.AddMethod(mb_msbuild, 'MBMSBuild')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
+    env.AddMethod(mb_shared_library, 'MBStaticLibrary')
+    env.AddMethod(mb_program, 'MBProgram')
 
     env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
 
