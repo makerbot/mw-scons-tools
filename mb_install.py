@@ -401,7 +401,7 @@ def mb_shared_library(env, target, source, *args, **kwargs):
 
         return env.MBMSBuild(vcxproj, source)
     else:
-        return env.SharedLibrary(*args, **kwargs);
+        return env.SharedLibrary(target, source, *args, **kwargs)
 
 def generate(env):
     print "Loading MakerBot install tool"
