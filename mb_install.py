@@ -388,9 +388,10 @@ def mb_msbuild(env, target, sources, output_types):
 
     # Horrible hack:
     # fake the files we expect to come out of this
+    # There is an optional prefix and suffix to be accounted for
     targets = []
     for type in output_types:
-        targets.append('#/obj/Win32/*.' + type)
+        targets.append('#/obj/Win32/*' + basename + '*.' + type)
 
     # add the vxcproj to the sources list
     # I think this tells scons that if the
