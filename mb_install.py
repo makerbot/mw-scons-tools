@@ -365,7 +365,11 @@ def mb_set_lib_sym_name(env, name):
             env.Append(LINKFLAGS = ['-compatibility_version',
                                     env['MB_VERSION']])
 
-def mb_msbuild(env, target, sources, output_types):
+kProgramType = 'exe'
+kStaticLibraryType = 'lib'
+kDynamicLibraryType = 'dll'
+
+def mb_msbuild(env, target, sources, target_type):
     # Horrible hack:
     # strip the target name down to the 'base name'
     # (i.e. without variant dir) and use that as the
@@ -388,10 +392,20 @@ def mb_msbuild(env, target, sources, output_types):
 
     # Horrible hack:
     # fake the files we expect to come out of this
-    # There is an optional prefix and suffix to be accounted for
-    targets = []
-    for type in output_types:
-        targets.append('#/obj/Win32/*' + basename + '*.' + type)
+    expandedname = basename
+    if env.MBDebugBuild():
+        expandedname += 'd'
+
+    if target_type == kStaticLibraryType:
+        expandedname = 'lib' + expandedname
+
+    targets = [
+        '#/obj/Win32/' + expandedname + '.' + target_type,
+        '#/obj/Win32/' + expandedname + '.pdb'
+    ]
+
+    if target_type == kDynamicLibraryType:
+        targets.append('#/obj/Win32/' + expandedname + '.lib')
 
     # add the vxcproj to the sources list
     # I think this tells scons that if the
@@ -402,19 +416,19 @@ def mb_msbuild(env, target, sources, output_types):
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, ['exe'])
+        return env.MBMSBuild(target, source, kProgramType)
     else:
         return env.Program(target, source, *args, **kwargs);
 
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, ['dll'])
+        return env.MBMSBuild(target, source, kDynamicLibraryType)
     else:
         return env.SharedLibrary(target, source, *args, **kwargs)
 
 def mb_static_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, ['lib'])
+        return env.MBMSBuild(target, source, kStaticLibraryType)
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
 
