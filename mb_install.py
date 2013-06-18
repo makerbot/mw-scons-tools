@@ -461,7 +461,7 @@ def generate(env):
     env.AddMethod(mb_msbuild, 'MBMSBuild')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
-    env.AddMethod(mb_shared_library, 'MBStaticLibrary')
+    env.AddMethod(mb_static_library, 'MBStaticLibrary')
     env.AddMethod(mb_program, 'MBProgram')
 
     env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
