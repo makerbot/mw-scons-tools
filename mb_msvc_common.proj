@@ -1,51 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="PropertySheets" Condition="true">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <PropertyGroup Condition="true">
-    <OutDir>$(ProjectDir)..\..\..\obj\$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)$(Platform)_Int\$(Configuration)_Int\</IntDir>
-  </PropertyGroup>
-    <PropertyGroup Condition="true">
-    <!-- *** Some properties for referring to other projects *** -->
+  <!-- Some conventions used in this file:
+        * Properties we define that may be useful outside this file begin with
+          capital 'MB'
+        * Properties that are defined/used by imported msbuild files directly
+          start with capitals.
+        * Properties used only intended for use within this file start with
+          lowercase.
+  -->
+    <!-- Project configurations -->
+    <ItemGroup Label="ProjectConfigurations" Condition="'$(MBCanBeLib)' == 'true'">
+    <ProjectConfiguration Include="Debug_Lib|Win32">
+      <Configuration>Debug_Lib</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_Lib|x64">
+      <Configuration>Debug_Lib</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_Lib|Win32">
+      <Configuration>Release_Lib</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_Lib|x64">
+      <Configuration>Release_Lib</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+    <ItemGroup Label="ProjectConfigurations" Condition="'$(MBCanBeDLL)' == 'true'">
+    <ProjectConfiguration Include="Debug_DLL|Win32">
+      <Configuration>Debug_DLL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_DLL|x64">
+      <Configuration>Debug_DLL</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_DLL|Win32">
+      <Configuration>Release_DLL</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_DLL|x64">
+      <Configuration>Release_DLL</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+    <ItemGroup Label="ProjectConfigurations" Condition="'$(MBCanBeApp)' == 'true'">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <!-- Unconditional properties -->
+  <PropertyGroup>
+    <MBRepoRoot>$(ProjectDir)..\..\..\</MBRepoRoot>
+    <MBToolchainFolder>$(MBRepoRoot)..\</MBToolchainFolder>
+    <!-- Standard things used by msbuild -->
+    <PlatformToolset>v100</PlatformToolset>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <!-- Preprocessor flags for importing dll symbols -->
     <MBUseJsonDLL>JSON_DLL</MBUseJsonDLL>
     <MBUseJsonRpcDLL>JSONRPC_DLL</MBUseJsonRpcDLL>
     <MBUseConveyorDLL>CONVEYOR_DLL</MBUseConveyorDLL>
     <MBUseConveyorUiDLL>CONVEYOR_UI_DLL</MBUseConveyorUiDLL>
     <MBUseThingDLL>THING_DLL</MBUseThingDLL>
+    <!-- expected locations of different repos -->
+    <MBJsonRepo>$(MBToolchainFolder)\json-cpp\</MBJsonRepo>
+    <MBJsonRpcRepo>$(MBToolchainFolder)\jsonrpc\</MBJsonRpcRepo>
+    <MBConveyorRepo>$(MBToolchainFolder)\conveyor\</MBConveyorRepo>
+    <MBConveyorUiRepo>$(MBToolchainFolder)\conveyor-ui\</MBConveyorUiRepo>
+    <MBThingRepo>$(MBToolchainFolder)\libthing-surprise\</MBThingRepo>
+    <MBMakerWareRepo>$(MBToolchainFolder)\Prototype\</MBMakerWareRepo>
     <!-- Include directories -->
-    <MBIncludeJson>..\..\..\..\json-cpp\include</MBIncludeJson>
-    <MBIncludeJsonRpc>..\..\..\..\jsonrpc\src\main\include</MBIncludeJsonRpc>
-    <MBIncludeConveyor>..\..\..\..\conveyor\include</MBIncludeConveyor>
-    <MBIncludeConveyorUi>..\..\..\..\conveyor-ui\include</MBIncludeConveyorUi>
-    <MBIncludeThing>..\..\..\..\libthing-surprise\include</MBIncludeThing>
+    <MBIncludeJson>$(MBJsonRepo)\include</MBIncludeJson>
+    <MBIncludeJsonRpc>$(MBJsonRpcRepo)\src\main\include</MBIncludeJsonRpc>
+    <MBIncludeConveyor>$(MBConveyorRepo)\include</MBIncludeConveyor>
+    <MBIncludeConveyorUi>$(MBConveyorUiRepo)\include</MBIncludeConveyorUi>
+    <MBIncludeThing>$(MBThingRepo)\include</MBIncludeThing>
+    <!-- Qt include directories -->
+    <MBIncludeQtBase>$(QT5DIR)\include</MBIncludeQtBase>
+    <MBIncludeQtCore>$(QT5DIR)\include\QtCore</MBIncludeQtCore>
+    <MBIncludeQtGui>$(QT5DIR)\include\QtGui</MBIncludeQtGui>
+    <MBIncludeQtWidgets>$(QT5DIR)\include\QtWidgets</MBIncludeQtWidgets>
+    <MBIncludeQtOpenGL>$(QT5DIR)\include\QtOpenGL</MBIncludeQtOpenGL>
+    <MBIncludeQtNetwork>$(QT5DIR)\include\QtNetwork</MBIncludeQtNetwork>
+    <MBIncludeQtWebKit>$(QT5DIR)\include\QtWebKit</MBIncludeQtWebKit>
+    <MBIncludeQtWebKitWidgets>$(QT5DIR)\include\QtWebKitWidgets</MBIncludeQtWebKitWidgets>
+    <MBIncludeQtMultiMedia>$(QT5DIR)\include\QtMultiMedia</MBIncludeQtMultiMedia>
+    <MBIncludeQtMultiMediaWidgets>$(QT5DIR)\include\QtMultiMediaWidgets</MBIncludeQtMultiMediaWidgets>
+    <!-- Set up default configuration properties before calling Microsoft.Cpp.Default.props -->
+    <typeSuffix Condition="'$(MBDefaultConfigurationType)' == 'Application'"></typeSuffix>
+    <typeSuffix Condition="'$(MBDefaultConfigurationType)' == 'DynamicLibrary'">_DLL</typeSuffix>
+    <typeSuffix Condition="'$(MBDefaultConfigurationType)' == 'StaticLibrary'">_Lib</typeSuffix>
+    <Configuration Condition="'$(MBConfiguration)' == 'Debug'">Debug$(typeSuffix)</Configuration>
+    <Configuration Condition="'$(MBConfiguration)' == 'Release'">Release$(typeSuffix)</Configuration>
+    <!-- If still not set and MBConfiguration is set, use it-->
+    <Configuration Condition="'$(Configuration)' == '' And '$(MBConfiguration)' != ''">$(MBConfiguration)</Configuration>
+    <!-- If STILL not set, debug -->
+    <Configuration Condition="'$(Configuration)' == ''">Debug$(typeSuffix)</Configuration>
+    <!-- Set up configuration type properties before calling Microsoft.Cpp.Default.props -->
+  </PropertyGroup>
+  <!-- Let msbuild set up its defaults -->
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <!-- These seem to be empty on my system? -->
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <!-- More properties that depend on values set by Microsoft.Cpp.Default.props -->
+  <PropertyGroup>
+    <!-- Standard things used by msbuild -->
+    <outputSuffix>obj\$(Platform)\</outputSuffix>
+    <OutDir>$(MBRepoRoot)$(outputSuffix)</OutDir>
+    <IntDir>$(SolutionDir)$(Platform)_Int\$(Configuration)_Int\</IntDir>
+    <MocDir>$(IntDir)moc\</MocDir>
+    <QrcDir>$(IntDir)qrc\</QrcDir>
+    <!-- Some properties based on the Configuration -->
+    <MBIsDebug Condition="'$(Configuration)' == 'Debug_Lib' Or '$(Configuration)' == 'Debug_DLL' Or '$(Configuration)' == 'Debug'">true</MBIsDebug>
+    <MBIsRelease Condition="'$(Configuration)' == 'Release_Lib' Or '$(Configuration)' == 'Release_DLL' Or '$(Configuration)' == 'Release'">true</MBIsRelease>
+    <MBIsLib Condition="'$(Configuration)' == 'Debug_Lib' Or '$(Configuration)' == 'Release_Lib'">true</MBIsLib>
+    <MBIsDLL Condition="'$(Configuration)' == 'Debug_DLL' Or '$(Configuration)' == 'Release_DLL'">true</MBIsDLL>
+    <MBIsApp Condition="'$(Configuration)' == 'Debug' Or '$(Configuration)' == 'Release'">true</MBIsApp>
+    <MBIsDebug Condition="'$(MBIsDebug)' == ''">false</MBIsDebug>
+    <MBIsRelease Condition="'$(MBIsRelease)' == ''">false</MBIsRelease>
+    <MBIsLib Condition="'$(MBIsLib)' == ''">false</MBIsLib>
+    <MBIsDLL Condition="'$(MBIsDLL)' == ''">false</MBIsDLL>
+    <MBIsApp Condition="'$(MBIsApp)' == ''">false</MBIsApp>
+    <!-- Some things msbuild cares about -->
+    <ConfigurationType Condition="'$(MBIsLib)' == 'true'">StaticLibrary</ConfigurationType>
+    <ConfigurationType Condition="'$(MBIsDLL)' == 'true'">DynamicLibrary</ConfigurationType>
+    <ConfigurationType Condition="'$(MBIsApp)' == 'true'">Application</ConfigurationType>
+    <UseDebugLibraries>$(MBIsDebug)</UseDebugLibraries>
     <!-- Adds a bunch of stuff to the path for debugging. -->
-    <ldeStart>..\..\..\..\</ldeStart>
-    <ldeEnd>\obj\$(Platform)\</ldeEnd>
-    <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\bin;$(ldeStart)json-cpp$(ldeEnd);$(ldeStart)jsonrpc$(ldeEnd);$(ldeStart)conveyor$(ldeEnd);$(ldeStart)conveyor-ui$(ldeEnd);$(ldeStart)libthing-surprise$(ldeEnd);$(ldeStart)Prototype$(ldeEnd);
+    <LocalDebuggerEnvironment>
+    PATH=%PATH%;$(QT5DIR)\bin;$(MBJsonRepo)$(outputSuffix);$(MBJsonRpcRepo)$(outputSuffix);$(MBConveyorRepo)$(outputSuffix);$(MBConveyorUiRepo)$(outputSuffix);$(MBThingRepo)$(outputSuffix);$(MBMakerWareRepo)$(outputSuffix)
       $(LocalDebuggerEnvironment)
     </LocalDebuggerEnvironment>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MBIsDebug)'!=''">
-    <!-- Debug-specific properties -->
-    <MBOptimization>Disabled</MBOptimization>
+  <!-- Debug-specific properties -->
+  <PropertyGroup Condition="'$(MBIsDebug)' == 'true'">
+    <optimization>Disabled</optimization>
     <underscoreDebug>_DEBUG;</underscoreDebug>
-    <debugSuffix>d</debugSuffix>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MBIsRelease)'!=''">
-    <!-- Release-specific properties -->
-    <MBOptimization>MaxSpeed</MBOptimization>
-    <MBFunctionLevelLinking>true</MBFunctionLevelLinking>
-    <MBIntrinsicFunctions>true</MBIntrinsicFunctions>
-    <MBEnableCOMDATFolding>true</MBEnableCOMDATFolding>
-    <MBOptimizeReferences>true</MBOptimizeReferences>
+  <!-- Release-specific properties -->
+  <PropertyGroup Condition="'$(MBIsRelease)' == 'true'">
+    <optimization>MaxSpeed</optimization>
     <nDebug>NDEBUG;</nDebug>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MBIsLib)'!=''">
-    <libPrefix>lib</libPrefix>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(MBIsDLL)'!=''">
+  <!-- If we're doing a dll build turn on the dll export preprocessor defines -->
+  <PropertyGroup Condition="'$(MBIsDLL)' == 'true'">
     <MBBuildJsonDLL>JSON_DLL_BUILD</MBBuildJsonDLL>
     <MBBuildJsonRpcDLL>JSONRPC_DLL_BUILD</MBBuildJsonRpcDLL>
     <MBBuildConveyorDLL>CONVEYOR_DLL_BUILD</MBBuildConveyorDLL>
@@ -53,22 +168,73 @@
     <MBBuildThingDLL>THING_DLL_BUILD</MBBuildThingDLL>
   </PropertyGroup>
   <PropertyGroup>
-    <MBCommonPreprocessorDefs>$(underscoreDebug)$(nDebug)</MBCommonPreprocessorDefs>
+    <!-- Set up the target name with our naming convention  -->
+    <libPrefix Condition="'$(MBIsLib)' == 'true'">lib</libPrefix>
+    <debugSuffix Condition="'$(MBIsDebug)' == 'true'">d</debugSuffix>
     <TargetName>$(libPrefix)$(ProjectName)$(debugSuffix)</TargetName>
+    <!-- Common preprocessor definitions -->
+    <MBCommonPreprocessorDefs>$(underscoreDebug)$(nDebug)</MBCommonPreprocessorDefs>
+    <!-- Qt libraries, with qtDebugSuffix optionally appended-->
+    <qtDebugSuffix Condition="'$(MBIsDebug)' == 'true'">d</qtDebugSuffix>
+    <MBQtLibDir>$(QT5DIR)\lib</MBQtLibDir>
+    <MBQtCoreLib>Qt5Core$(debugSuffix).lib</MBQtCoreLib>
+    <MBQtGuiLib>Qt5Gui$(debugSuffix).lib</MBQtGuiLib>
+    <MBQtWidgetsLib>Qt5Widgets$(debugSuffix).lib</MBQtWidgetsLib>
+    <MBQtOpenGLLib>Qt5OpenGL$(debugSuffix).lib;opengl32.lib</MBQtOpenGLLib>
+    <MBQtNetworkLib>Qt5Network$(debugSuffix).lib</MBQtNetworkLib>
+    <MBQtWebKitLib>Qt5WebKit$(debugSuffix).lib</MBQtWebKitLib>
+    <MBQtWebKitWidgetsLib>Qt5WebKitWidgets$(debugSuffix).lib</MBQtWebKitWidgetsLib>
+    <MBQtMultiMediaLib>Qt5MultiMedia$(debugSuffix).lib</MBQtMultiMediaLib>
+    <MBQtMultiMediaWidgetsLib>Qt5MultiMediaWidgets$(debugSuffix).lib</MBQtMultiMediaWidgetsLib>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="true">
+  <ItemDefinitionGroup>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>$(MBOptimization)</Optimization>
+      <Optimization>$(optimization)</Optimization>
       <SDLCheck>true</SDLCheck>
-      <FunctionLevelLinking>$(MBFunctionLevelLinking)</FunctionLevelLinking>
-      <IntrinsicFunctions>$(MBIntrinsicFunctions)</IntrinsicFunctions>
+      <FunctionLevelLinking>$(MBIsRelease)</FunctionLevelLinking>
+      <IntrinsicFunctions>$(MBIsRelease)</IntrinsicFunctions>
       <ProgramDataBaseFileName>$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>$(MBEnableCOMDATFolding)</EnableCOMDATFolding>
-      <OptimizeReferences>$(MBOptimizeReferences)</OptimizeReferences>
+      <EnableCOMDATFolding>$(MBIsRelease)</EnableCOMDATFolding>
+      <OptimizeReferences>$(MBIsRelease)</OptimizeReferences>
     </Link>
+    <!-- Add the Moc.OutputFileName property to all files in an
+         ItemGroup included with the tag <Moc Include="..." /> -->
+    <Moc>
+      <OutputFileName>$(MocDir)moc_%(FileName).cc</OutputFileName>
+    </Moc>
+    <!-- Add the Qrc.OutputFileName property to all files in an
+         ItemGroup included with the tag <Qrc Include="..." /> -->
+    <Qrc>
+      <OutputFileName>$(QrcDir)qrc_%(FileName).cc</OutputFileName>
+    </Qrc>
   </ItemDefinitionGroup>
+  <!-- To use this Target create 'Moc' Items in an ItemGroup,
+       they will have moc run on them and the resulting file will be added to the ClCompile step. -->
+  <Target Name="RunMoc" BeforeTargets="ClCompile" Inputs="@(Moc)" Outputs="@(Moc->'%(OutputFileName)')">
+    <!-- Make sure the MocDir exists -->
+    <MakeDir Directories="$(MocDir)" Condition="!Exists('$(MocDir)')"/>
+    <Message Text="Running moc on '%(Moc.FileName)%(Moc.Extension)'" Importance="high" />
+    <Exec Command="$(QT5DIR)\bin\moc.exe -o&quot;%(Moc.OutputFileName)&quot; &quot;%(Moc.FullPath)&quot;" />
+    <ItemGroup>
+      <!-- Add the produced file to the compilation step -->
+      <ClCompile Include="%(Moc.OutputFileName)" />
+    </ItemGroup>
+  </Target>
+  <!-- To use this Target create 'Qrc' Items in an ItemGroup,
+       they will have rcc run on them and the resulting file will be added to the ClCompile step. -->
+  <Target Name="RunQrc" BeforeTargets="ClCompile" Inputs="@(Qrc)" Outputs="@(Qrc->'%(OutputFileName)')">
+    <!-- Make sure the QrcDir exists -->
+    <MakeDir Directories="$(QrcDir)" Condition="!Exists('$(QrcDir)')"/>
+    <Message Text="Running rcc on '%(Qrc.FileName)%(Qrc.Extension)'" Importance="high" />
+    <Exec Command="$(QT5DIR)\bin\rcc.exe -o &quot;%(Qrc.OutputFileName)&quot; -name %(Qrc.FileName) &quot;%(Qrc.FullPath)&quot;" />
+    <ItemGroup>
+      <!-- Add the produced file to the compilation step -->
+      <ClCompile Include="%(Qrc.OutputFileName)" />
+    </ItemGroup>
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
 </Project>
