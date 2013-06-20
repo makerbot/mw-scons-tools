@@ -90,6 +90,12 @@
     <MBIncludeConveyor>$(MBConveyorRepo)\include</MBIncludeConveyor>
     <MBIncludeConveyorUi>$(MBConveyorUiRepo)\include</MBIncludeConveyorUi>
     <MBIncludeThing>$(MBThingRepo)\include</MBIncludeThing>
+    <!-- Project locations for each project to be used outside its repo -->
+    <MBJsonProject>$(MBJsonRepo)\win\vcxproj\jsoncpp\jsoncpp.vcxproj</MBJsonProject>
+    <MBJsonRpcProject>$(MBJsonRpcRepo)\win\vcxproj\jsonrpc\jsonrpc.vcxproj</MBJsonRpcProject>
+    <MBConveyorProject>$(MBConveyorRepo)\win\vcxproj\conveyor\conveyor.vcxproj</MBConveyorProject>
+    <MBConveyorUiProject>$(MBConveyorUiRepo)\win\vcxproj\conveyor-ui\conveyor-ui.vcxproj</MBConveyorUiProject>
+    <MBThingProject>$(MBThingRepo)\win\vcxproj\thing\thing.vcxproj</MBThingProject>
     <!-- Qt include directories -->
     <MBIncludeQtBase>$(QT5DIR)\include</MBIncludeQtBase>
     <MBIncludeQtCore>$(QT5DIR)\include\QtCore</MBIncludeQtCore>
