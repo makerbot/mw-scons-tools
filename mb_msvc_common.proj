@@ -68,7 +68,7 @@
     <MBRepoRoot>$(ProjectDir)..\..\..\</MBRepoRoot>
     <MBToolchainFolder>$(MBRepoRoot)..\</MBToolchainFolder>
     <!-- Standard things used by msbuild -->
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v110</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <!-- Preprocessor flags for importing dll symbols -->
