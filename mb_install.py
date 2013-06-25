@@ -386,7 +386,7 @@ def mb_msbuild(env, target, sources, target_type):
     command = [
         'msbuild',
         '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
-        '/p:Platform=Win32',
+        '/p:Platform=x64',
         vcxproj
     ]
 
