@@ -248,8 +248,8 @@ def set_install_paths(env):
         include_dir = prefix + '/Library/Frameworks/MakerBot.framework/Include'
 
     elif sys.platform == 'win32':
-        lib_dir = prefix + '/SDK/msvc10/lib'
-        include_dir = prefix + '/SDK/msvc10/include'
+        lib_dir = prefix + '/SDK/msvc11/lib'
+        include_dir = prefix + '/SDK/msvc11/include'
 
     #OSX doesn't use the standard link lines
     if sys.platform == 'darwin':
@@ -400,12 +400,12 @@ def mb_msbuild(env, target, sources, target_type):
         expandedname = 'lib' + expandedname
 
     targets = [
-        '#/obj/Win32/' + expandedname + '.' + target_type,
-        '#/obj/Win32/' + expandedname + '.pdb'
+        '#/obj/x64/' + expandedname + '.' + target_type,
+        '#/obj/x64/' + expandedname + '.pdb'
     ]
 
     if target_type == kDynamicLibraryType:
-        targets.append('#/obj/Win32/' + expandedname + '.lib')
+        targets.append('#/obj/x64/' + expandedname + '.lib')
 
     # add the vxcproj to the sources list
     # I think this tells scons that if the
