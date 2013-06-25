@@ -63,12 +63,15 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <!-- Unconditional properties -->
+  <!-- Properties -->
   <PropertyGroup>
     <MBRepoRoot>$(ProjectDir)..\..\..\</MBRepoRoot>
     <MBToolchainFolder>$(MBRepoRoot)..\</MBToolchainFolder>
+    <MBMSVCVersion>11</MBMSVCVersion>
+    <MBPlatformX Condition="'$(Platform)' == 'x64'">x64</MBPlatformX>
+    <MBPlatformX Condition="'$(Platform)' == 'Win32'">x86</MBPlatformX>
     <!-- Standard things used by msbuild -->
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v$(MBMSVCVersion)0</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <!-- Preprocessor flags for importing dll symbols -->
