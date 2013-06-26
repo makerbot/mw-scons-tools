@@ -390,7 +390,7 @@ kProgramType = 'exe'
 kStaticLibraryType = 'lib'
 kDynamicLibraryType = 'dll'
 
-def mb_msbuild(env, target, sources, target_type):
+def mb_msbuild(env, target, sources, target_type, *args, **kwargs):
     # Horrible hack:
     # strip the target name down to the 'base name'
     # (i.e. without variant dir) and use that as the
@@ -404,10 +404,15 @@ def mb_msbuild(env, target, sources, target_type):
         basename,
         basename + '.vcxproj')
 
+    if 'platform' in kwargs:
+        platform = kwargs['platform']
+    else:
+        platform = 'x64'
+
     command = [
         'msbuild',
         '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
-        '/p:Platform=x64',
+        '/p:Platform=' + platform,
         vcxproj
     ]
 
@@ -421,12 +426,12 @@ def mb_msbuild(env, target, sources, target_type):
         expandedname = 'lib' + expandedname
 
     targets = [
-        '#/obj/x64/' + expandedname + '.' + target_type,
-        '#/obj/x64/' + expandedname + '.pdb'
+        '#/obj/' + platform + '/' + expandedname + '.' + target_type,
+        '#/obj/' + platform + '/' + expandedname + '.pdb'
     ]
 
     if target_type == kDynamicLibraryType:
-        targets.append('#/obj/x64/' + expandedname + '.lib')
+        targets.append('#/obj/' + platform + '/' + expandedname + '.lib')
 
     # add the vxcproj to the sources list
     # I think this tells scons that if the
@@ -437,19 +442,19 @@ def mb_msbuild(env, target, sources, target_type):
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kProgramType)
+        return env.MBMSBuild(target, source, kProgramType, *args, **kwargs)
     else:
         return env.Program(target, source, *args, **kwargs);
 
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kDynamicLibraryType)
+        return env.MBMSBuild(target, source, kDynamicLibraryType, *args, **kwargs)
     else:
         return env.SharedLibrary(target, source, *args, **kwargs)
 
 def mb_static_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kStaticLibraryType)
+        return env.MBMSBuild(target, source, kStaticLibraryType, *args, **kwargs)
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
 

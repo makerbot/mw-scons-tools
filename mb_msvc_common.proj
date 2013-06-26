@@ -69,7 +69,7 @@
     <MBToolchainFolder>$(MBRepoRoot)..\</MBToolchainFolder>
     <MBMSVCVersion>11</MBMSVCVersion>
     <MBPlatformX Condition="'$(Platform)' == 'x64'">x64</MBPlatformX>
-    <MBPlatformX Condition="'$(Platform)' == 'Win32'">x86</MBPlatformX>
+    <MBPlatformX Condition="'$(Platform)' == 'Win32' Or '$(Platform)' == 'x86'">x86</MBPlatformX>
     <!-- Standard things used by msbuild -->
     <PlatformToolset>v$(MBMSVCVersion)0</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
