@@ -966,6 +966,7 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
 
         # Add path to all Qt frameworks
         self.AppendUnique(FRAMEWORKPATH='$QT5DIR/lib')
+        self.AppendUnique(CCFLAGS=['-I$QT5DIR/include'])
 
         # Each module adds an include path and a framework link option
         for m in modules:
