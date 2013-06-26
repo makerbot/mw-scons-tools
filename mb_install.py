@@ -350,7 +350,10 @@ def mb_set_compiler_flags(env):
         env.Append(CXXFLAGS='-arch x86_64 -arch i386 '+
                    '-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.6 '+
                    '-I/usr/local/clang/include '+
-                   '-I/usr/local/clang/include/c++/v1')
+                   '-I/usr/local/clang/include/c++/v1 ' +
+                   # Disabling this warning since this extension is
+                   # used a lot in Qt header files
+                   '-Wno-nested-anon-types')
         env.Append(CCFLAGS='-arch x86_64 -arch i386 '+
                    '-stdlib=libc++ -mmacosx-version-min=10.6 '+
                    '-I/usr/local/clang/include')
