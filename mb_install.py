@@ -343,6 +343,24 @@ def mb_prepare_boost(env):
         print lib
         print ''
 
+def mb_set_compiler_flags(env):
+    if env.MBIsMac():
+        env.Replace(CC='clang')
+        env.Replace(CXX='clang++')
+        env.Append(CXXFLAGS='-arch x86_64 -arch i386 '+
+                   '-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.6 '+
+                   '-I/usr/local/clang/include '+
+                   '-I/usr/local/clang/include/c++/v1')
+        env.Append(CCFLAGS='-arch x86_64 -arch i386 '+
+                   '-stdlib=libc++ -mmacosx-version-min=10.6 '+
+                   '-I/usr/local/clang/include')
+        env.Append(LINKFLAGS='-arch x86_64 -arch i386 -stdlib=libc++ '+
+                   '-mmacosx-version-min=10.6 -L/usr/local/clang/lib')
+        env.Append(FRAMEWORKS='CoreFoundation')
+    elif env.MBIsLinux():
+        env.Append(CXXFLAGS='-std=c++11')
+        env.Append(LINKFLAGS='-std=c++11')
+
 def mb_set_lib_sym_name(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
         libpath = os.path.join('/',
@@ -479,10 +497,12 @@ def generate(env):
     env.AddMethod(mb_program, 'MBProgram')
 
     env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
+    env.AddMethod(mb_set_compiler_flags, 'MBSetCompilerFlags')
 
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
     env.MBPrepareBoost()
+    env.MBSetCompilerFlags()
 
 def exists(env) :
     return True
