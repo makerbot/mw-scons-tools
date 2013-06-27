@@ -153,9 +153,9 @@
     <ConfigurationType Condition="'$(MBIsApp)' == 'true'">Application</ConfigurationType>
     <UseDebugLibraries>$(MBIsDebug)</UseDebugLibraries>
     <!-- Adds a bunch of stuff to the path for debugging. -->
-    <LocalDebuggerEnvironment>
-    PATH=%PATH%;$(QT5DIR)\bin;$(MBJsonRepo)$(outputSuffix);$(MBJsonRpcRepo)$(outputSuffix);$(MBConveyorRepo)$(outputSuffix);$(MBConveyorUiRepo)$(outputSuffix);$(MBThingRepo)$(outputSuffix);$(MBMakerWareRepo)$(outputSuffix)
-      $(LocalDebuggerEnvironment)
+    <!-- formatting matters a lot here -->
+    <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\bin;$(MBJsonRepo)$(outputSuffix);$(MBJsonRpcRepo)$(outputSuffix);$(MBConveyorRepo)$(outputSuffix);$(MBConveyorUiRepo)$(outputSuffix);$(MBThingRepo)$(outputSuffix);$(MBMakerWareRepo)$(outputSuffix)
+$(LocalDebuggerEnvironment)
     </LocalDebuggerEnvironment>
   </PropertyGroup>
   <!-- Debug-specific properties -->
