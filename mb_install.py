@@ -190,8 +190,7 @@ def mb_run_tests(env):
 
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
-        env.Append(CCFLAGS = ['-framework', name])
-        env.Append(LINKFLAGS = ['-framework', name])
+        env.Append(FRAMEWORKS = name)
     else:
         env.Append(LIBS = name)
 
