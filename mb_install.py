@@ -112,7 +112,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         if symlink_env_name + framework_name not in env:
             env[symlink_env_name + framework_name] = False
 
-        if make_current_link and not env[symlink_env_name + framework_name]:
+        if make_current_link and not env[symlink_env_name + name]:
             current_link = env.Command(os.path.join(framework, 'Versions',
                                                     current_dir),
                                        headers,
@@ -125,7 +125,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         #make a relative symlink for the current headers
         toplink = os.path.join(framework, 'Headers')
         target_path = os.path.join(framework, toplink)
-        if not env[symlink_env_name + framework_name]:
+        if not env[symlink_env_name + name]:
             targets.append(env.Command(
                 target_path,
                 targets, 'cd ' + framework +
@@ -134,7 +134,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
                                           'Headers')
                 + ' ' + toplink))
 
-        env[symlink_env_name + framework_name] = True
+        env[symlink_env_name + name] = True
 
     else:
         targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'],
