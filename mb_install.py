@@ -110,7 +110,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         current_dir = 'Current'
 
         if symlink_env_name + framework_name not in env:
-            env[symlink_env_name + framework_name] = False
+            env[symlink_env_name + name] = False
 
         if make_current_link and not env[symlink_env_name + name]:
             current_link = env.Command(os.path.join(framework, 'Versions',
