@@ -1,11 +1,14 @@
 from SCons.Script import ARGUMENTS
-#from SCons.FS import Dir
 import sys, os
 import glob
 import string
 import re
 
 symlink_env_name = 'MB_MAC_FRAMEWORK_HEADER_SYMLINK_DONE'
+
+_is_windows = ('win32' == sys.platform)
+_is_linux = (sys.platform.startswith('linux'))
+_is_mac = ('darwin' == sys.platform)
 
 def rInstall(env, dest, src):
     if not hasattr(src, '__iter__'):
@@ -209,24 +212,24 @@ def set_default_prefix(env):
 
     #if the user doesn't set either prefix, put configs in /etc
     if config_prefix == '':
-        if sys.platform == 'linux2':
+        if _is_linux:
             if prefix == '':
                 config_prefix = '/etc'
             else:
                 config_prefix = os.path.join(prefix, 'etc')
 
     if prefix == '':
-        if sys.platform == 'linux2':
+        if _is_linux:
             if config_prefix == '':
                 config_prefix = '/etc'
             prefix = '/usr'
 
-        elif sys.platform == 'win32':
+        elif _is_windows:
             if os.path.exists('c:/Program Files (x86)'):
                 prefix = 'c:/Program Files (x86)/MakerBot'
             else:
                 prefix = 'c:/Program Files/MakerBot'
-        elif sys.platform == 'darwin':
+        elif _is_mac:
             prefix = '/'
 
     env.SetDefault(MB_PREFIX = prefix)
@@ -238,20 +241,20 @@ def set_install_paths(env):
     prefix = env['MB_PREFIX']
 
     #setup sdk locations
-    if sys.platform == 'linux2':
+    if _is_linux:
         lib_dir = prefix + '/lib'
         include_dir = prefix + '/include'
 
-    elif sys.platform == 'darwin':
+    elif _is_mac:
         lib_dir = prefix + '/Library/Frameworks/MakerBot.framework/Libraries'
         include_dir = prefix + '/Library/Frameworks/MakerBot.framework/Include'
 
-    elif sys.platform == 'win32':
+    elif _is_windows:
         lib_dir = prefix + '/SDK/msvc11/lib'
         include_dir = prefix + '/SDK/msvc11/include'
 
     #OSX doesn't use the standard link lines
-    if sys.platform == 'darwin':
+    if _is_mac:
         #add the fake root frameworks path
         env['MB_FRAMEWORK_DIR'] = os.path.join(prefix, 'Library/Frameworks')
 
@@ -267,7 +270,7 @@ def set_install_paths(env):
 
     #setup other install locations
 
-    if sys.platform == 'linux2':
+    if _is_linux:
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'bin'),
                        MB_APP_DIR = os.path.join(prefix, 'bin'),
                        MB_RESOURCE_DIR = os.path.join(prefix,
@@ -277,7 +280,7 @@ def set_install_paths(env):
                                                  'share', 'makerbot', 'python'),
                        MB_SYSTEM_EGG_DIR = os.path.join('/', 'usr', 'share',
                                                          'makerbot', 'python'))
-    elif sys.platform == 'darwin':
+    elif _is_mac:
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'Library', 'MakerBot'),
                        MB_RESOURCE_DIR = os.path.join(prefix,
                                                       'Library', 'MakerBot'),
@@ -286,7 +289,7 @@ def set_install_paths(env):
                        MB_APP_DIR = os.path.join(prefix, 'Applications'),
                        MB_EGG_DIR = os.path.join(prefix, 'Library', 'MakerBot',
                                                  'python'))
-    elif sys.platform == 'win32':
+    elif _is_windows:
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_APP_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_RESOURCE_DIR = os.path.join(prefix, 'MakerWare'),
@@ -303,10 +306,6 @@ def set_install_paths(env):
     #make sure LIBS is initialized
     if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
         env['LIBS'] = []
-
-_is_windows = ('win32' == sys.platform)
-_is_linux = (sys.platform.startswith('linux'))
-_is_mac = ('darwin' == sys.platform)
 
 def mb_is_windows(env):
   return _is_windows
