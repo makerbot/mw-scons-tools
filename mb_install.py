@@ -364,7 +364,10 @@ def mb_set_compiler_flags(env):
                    '-mmacosx-version-min=10.6 -L/usr/local/clang/lib')
         env.Append(FRAMEWORKS='CoreFoundation')
     elif env.MBIsLinux():
-        env.Append(CXXFLAGS='-std=c++11')
+        env.Append(CXXFLAGS='-std=c++11 ' +
+                   # Disabling this warning since some of Eigen3's
+                   # headers cause it to happen in our code
+                   '-Wno-unused-local-typedefs')
         env.Append(LINKFLAGS='-std=c++11')
 
 def mb_set_lib_sym_name(env, name):
