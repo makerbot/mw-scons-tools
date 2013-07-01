@@ -197,6 +197,9 @@ def mb_add_lib(env, name):
     else:
         env.Append(LIBS = name)
 
+def mb_add_include_paths(env, paths):
+    env.Prepend(CPPPATH=paths)
+
 def add_devel_lib_path(env, path):
     if ARGUMENTS.get('devel_libs', '') is not '':
         env.Prepend(LIBPATH = [str(env.Dir(path))])
@@ -484,6 +487,7 @@ def generate(env):
     env.AddMethod(add_devel_lib_path, 'MBAddDevelLibPath')
     env.AddMethod(add_devel_include_path, 'MBAddDevelIncludePath')
     env.AddMethod(mb_add_lib, 'MBAddLib')
+    env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
     env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
     env.AddMethod(mb_glob, 'MBGlob')
 
