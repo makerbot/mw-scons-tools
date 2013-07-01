@@ -111,7 +111,11 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
 
         #make relative symlinks between Current and the new version
         current_dir = 'Current'
-        if make_current_link and not env[symlink_env_name]:
+
+        if symlink_env_name + framework_name not in env:
+            env[symlink_env_name + name] = False
+
+        if make_current_link and not env[symlink_env_name + name]:
             current_link = env.Command(os.path.join(framework, 'Versions',
                                                     current_dir),
                                        headers,
@@ -124,7 +128,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         #make a relative symlink for the current headers
         toplink = os.path.join(framework, 'Headers')
         target_path = os.path.join(framework, toplink)
-        if not env[symlink_env_name]:
+        if not env[symlink_env_name + name]:
             targets.append(env.Command(
                 target_path,
                 targets, 'cd ' + framework +
@@ -133,7 +137,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
                                           'Headers')
                 + ' ' + toplink))
 
-        env[symlink_env_name] = True
+        env[symlink_env_name + name] = True
 
     else:
         targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'],
@@ -362,7 +366,10 @@ def mb_set_compiler_flags(env):
                    '-mmacosx-version-min=10.6 -L/usr/local/clang/lib')
         env.Append(FRAMEWORKS='CoreFoundation')
     elif env.MBIsLinux():
-        env.Append(CXXFLAGS='-std=c++11')
+        env.Append(CXXFLAGS='-std=c++11 ' +
+                   # Disabling this warning since some of Eigen3's
+                   # headers cause it to happen in our code
+                   '-Wno-unused-local-typedefs')
         env.Append(LINKFLAGS='-std=c++11')
 
 def mb_set_lib_sym_name(env, name):
