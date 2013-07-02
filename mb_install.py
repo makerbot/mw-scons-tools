@@ -413,6 +413,21 @@ def mb_set_lib_sym_name(env, name):
             env.Append(LINKFLAGS = ['-compatibility_version',
                                     env['MB_VERSION']])
 
+def mb_depends_on_json_cpp(env):
+    env.MBAddLib('jsoncpp')
+    env.MBAddDevelLibPath('#/../json-cpp/obj')
+    env.MBAddDevelIncludePath('#/../json-cpp/include')
+
+def mb_depends_on_json_rpc(env):
+    env.MBAddLib('jsonrpc')
+    env.MBAddDevelLibPath('#/../jsonrpc/obj')
+    env.MBAddDevelIncludePath('#/../jsonrpc/src/main/include')
+
+def mb_depends_on_conveyor(env):
+    env.MBAddLib('conveyor')
+    env.MBAddDevelLibPath('#/../conveyor/obj')
+    env.MBAddDevelIncludePath('#/../conveyor/include')
+
 kProgramType = 'exe'
 kStaticLibraryType = 'lib'
 kDynamicLibraryType = 'dll'
@@ -522,6 +537,10 @@ def generate(env):
     env.AddMethod(mb_is_linux, 'MBIsLinux')
     env.AddMethod(mb_is_mac, 'MBIsMac')
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
+
+    env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
+    env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
+    env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
 
     env.AddMethod(mb_debug_build, 'MBDebugBuild')
     env.AddMethod(mb_build_tests, 'MBBuildTests')
