@@ -205,6 +205,24 @@ def mb_add_lib(env, name):
 def mb_add_include_paths(env, paths):
     env.Prepend(CPPPATH=paths)
 
+def mb_add_standard_compiler_flags(env):
+    if not _is_windows:
+        flags = [
+            '-pedantic',
+            '-Wall',
+            '-Wextra',
+            '-Wno-variadic-macros',
+            '-Wno-long-long'
+        ]
+        debug_flags = [
+            '-g'
+        ]
+
+        env.Append(CCFLAGS=flags)
+
+        if env.MBDebugBuild():
+            env.Append(CCFLAGS=debug_flags)
+
 def add_devel_lib_path(env, path):
     if ARGUMENTS.get('devel_libs', '') is not '':
         env.Prepend(LIBPATH = [str(env.Dir(path))])
@@ -495,6 +513,7 @@ def generate(env):
     env.AddMethod(add_devel_lib_path, 'MBAddDevelLibPath')
     env.AddMethod(add_devel_include_path, 'MBAddDevelIncludePath')
     env.AddMethod(mb_add_lib, 'MBAddLib')
+    env.AddMethod(mb_add_standard_compiler_flags, 'MBAddStandardCompilerFlags')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
     env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
     env.AddMethod(mb_glob, 'MBGlob')
