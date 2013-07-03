@@ -414,17 +414,17 @@ def mb_set_lib_sym_name(env, name):
                                     env['MB_VERSION']])
 
 def mb_depends_on_json_cpp(env):
-    env.MBAddLib('jsoncpp')
+    env.MBAddLib(['jsoncpp'])
     env.MBAddDevelLibPath('#/../json-cpp/obj')
     env.MBAddDevelIncludePath('#/../json-cpp/include')
 
 def mb_depends_on_json_rpc(env):
-    env.MBAddLib('jsonrpc')
+    env.MBAddLib(['jsonrpc'])
     env.MBAddDevelLibPath('#/../jsonrpc/obj')
     env.MBAddDevelIncludePath('#/../jsonrpc/src/main/include')
 
 def mb_depends_on_conveyor(env):
-    env.MBAddLib('conveyor')
+    env.MBAddLib(['conveyor'])
     env.MBAddDevelLibPath('#/../conveyor/obj')
     env.MBAddDevelIncludePath('#/../conveyor/include')
 
