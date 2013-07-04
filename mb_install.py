@@ -1,4 +1,4 @@
-from SCons.Script import ARGUMENTS
+from SCons.Script import AddOption, GetOption
 import sys, os
 import glob
 import string
@@ -185,16 +185,16 @@ def create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
 def mb_use_devel_libs(env):
-    return ARGUMENTS.get('devel_libs', '') is not ''
+    return GetOption('devel_libs')
 
 def mb_debug_build(env):
-    return ARGUMENTS.get('debug_build', '') is not ''
+    return GetOption('debug_build')
 
 def mb_build_tests(env):
-    return ARGUMENTS.get('build_tests', '') is not ''
+    return GetOption('build_tests')
 
 def mb_run_tests(env):
-    return ARGUMENTS.get('run_tests', '') is not ''
+    return GetOption('run_tests')
 
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
@@ -224,17 +224,17 @@ def mb_add_standard_compiler_flags(env):
             env.Append(CCFLAGS=debug_flags)
 
 def add_devel_lib_path(env, path):
-    if ARGUMENTS.get('devel_libs', '') is not '':
+    if env.MBUseDevelLibs():
         env.Prepend(LIBPATH = [str(env.Dir(path))])
 
 def add_devel_include_path(env, path):
-    if ARGUMENTS.get('devel_libs', '') is not '':
+    if env.MBUseDevelLibs():
         env.Prepend(CPPPATH = [str(env.Dir(path))])
 
 def set_default_prefix(env):
     #setup the default install root
-    prefix = ARGUMENTS.get('install_prefix', '')
-    config_prefix = ARGUMENTS.get('config_prefix', '')
+    prefix = GetOption('install_prefix')
+    config_prefix = GetOption('config_prefix')
 
     #if the user doesn't set either prefix, put configs in /etc
     if config_prefix == '':
@@ -500,8 +500,56 @@ def mb_static_library(env, target, source, *args, **kwargs):
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
 
+def mb_common_arguments():
+    AddOption(
+        '--debug-build',
+        dest='debug_build',
+        action='store_true',
+        help='Builds in debug mode')
+
+    AddOption(
+        '--devel-libs',
+        dest='devel_libs',
+        action='store_true',
+        help='Uses sibling repositories for libraries, rather than using installed libs.')
+
+    AddOption(
+        '--build-tests',
+        dest='build_tests',
+        action='store_true',
+        help='Builds the test suite (if one exists)')
+
+    AddOption(
+        '--run-tests',
+        dest='run_tests',
+        action='store_true',
+        help='Runs the test suite (if one exists). Does not imply --build-tests.')
+
+    # TODO(ted):
+    # For these next two, I'd like to set it up so that mb_install can give us the default locations
+    # that it uses, so we can include them in the help message
+    AddOption(
+        '--install-prefix',
+        dest='install_prefix',
+        nargs=1,
+        type='string',
+        action='store',
+        default='',
+        help='Sets the location to install everything to. (someone should fill in the defaults here).')
+
+    AddOption(
+        '--config-prefix',
+        dest='config_prefix',
+        nargs=1,
+        type='string',
+        action='store',
+        default='',
+        help='Sets the location to install configs to. (someone should fill in the defaults here).')
+
+
 def generate(env):
     print "Loading MakerBot install tool"
+
 
     env['MB_INSTALL_TARGETS'] = []
 
@@ -554,6 +602,8 @@ def generate(env):
 
     env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
     env.AddMethod(mb_set_compiler_flags, 'MBSetCompilerFlags')
+
+    mb_common_arguments()
 
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
