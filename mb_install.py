@@ -1,4 +1,5 @@
 from SCons.Script import AddOption, GetOption
+from optparse import OptionConflictError
 import sys, os
 import glob
 import string
@@ -500,51 +501,56 @@ def mb_static_library(env, target, source, *args, **kwargs):
         return env.StaticLibrary(target, source, *args, **kwargs)
 
 def mb_common_arguments():
-    AddOption(
-        '--debug-build',
-        dest='debug_build',
-        action='store_true',
-        help='Builds in debug mode')
+    # This is pretty silly, but because we load this tool multiple times
+    # these options can be loaded twice, which raises an error.
+    # This error can be safely ignored.
+    try:
+        AddOption(
+            '--debug-build',
+            dest='debug_build',
+            action='store_true',
+            help='Builds in debug mode')
 
-    AddOption(
-        '--devel-libs',
-        dest='devel_libs',
-        action='store_true',
-        help='Uses sibling repositories for libraries, rather than using installed libs.')
+        AddOption(
+            '--devel-libs',
+            dest='devel_libs',
+            action='store_true',
+            help='Uses sibling repositories for libraries, rather than using installed libs.')
 
-    AddOption(
-        '--build-tests',
-        dest='build_tests',
-        action='store_true',
-        help='Builds the test suite (if one exists)')
+        AddOption(
+            '--build-tests',
+            dest='build_tests',
+            action='store_true',
+            help='Builds the test suite (if one exists)')
 
-    AddOption(
-        '--run-tests',
-        dest='run_tests',
-        action='store_true',
-        help='Runs the test suite (if one exists). Does not imply --build-tests.')
+        AddOption(
+            '--run-tests',
+            dest='run_tests',
+            action='store_true',
+            help='Runs the test suite (if one exists). Does not imply --build-tests.')
 
-    # TODO(ted):
-    # For these next two, I'd like to set it up so that mb_install can give us the default locations
-    # that it uses, so we can include them in the help message
-    AddOption(
-        '--install-prefix',
-        dest='install_prefix',
-        nargs=1,
-        type='string',
-        action='store',
-        default='',
-        help='Sets the location to install everything to. (someone should fill in the defaults here).')
+        # TODO(ted):
+        # For these next two, I'd like to set it up so that mb_install can give us the default locations
+        # that it uses, so we can include them in the help message
+        AddOption(
+            '--install-prefix',
+            dest='install_prefix',
+            nargs=1,
+            type='string',
+            action='store',
+            default='',
+            help='Sets the location to install everything to. (someone should fill in the defaults here).')
 
-    AddOption(
-        '--config-prefix',
-        dest='config_prefix',
-        nargs=1,
-        type='string',
-        action='store',
-        default='',
-        help='Sets the location to install configs to. (someone should fill in the defaults here).')
-
+        AddOption(
+            '--config-prefix',
+            dest='config_prefix',
+            nargs=1,
+            type='string',
+            action='store',
+            default='',
+            help='Sets the location to install configs to. (someone should fill in the defaults here).')
+    except OptionConflictError:
+        pass
 
 def generate(env):
     print "Loading MakerBot install tool"
