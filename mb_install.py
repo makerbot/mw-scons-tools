@@ -214,14 +214,13 @@ def mb_add_standard_compiler_flags(env):
             '-Wno-variadic-macros',
             '-Wno-long-long'
         ]
-        debug_flags = [
-            '-g'
-        ]
 
         env.Append(CCFLAGS=flags)
 
         if env.MBDebugBuild():
-            env.Append(CCFLAGS=debug_flags)
+            env.Append(CCFLAGS=['-g'])
+        else:
+            env.Append(CCFLAGS=['-O2'])
 
 def add_devel_lib_path(env, path):
     if env.MBUseDevelLibs():
@@ -446,8 +445,8 @@ def mb_msbuild(env, target, sources, target_type, *args, **kwargs):
         basename,
         basename + '.vcxproj')
 
-    if 'platform' in kwargs:
-        platform = kwargs['platform']
+    if 'windows_platform' in kwargs:
+        platform = kwargs['windows_platform']
     else:
         platform = 'x64'
 
