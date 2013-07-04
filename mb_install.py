@@ -446,8 +446,8 @@ def mb_msbuild(env, target, sources, target_type, *args, **kwargs):
         basename,
         basename + '.vcxproj')
 
-    if 'platform' in kwargs:
-        platform = kwargs['platform']
+    if 'windows_platform' in kwargs:
+        platform = kwargs['windows_platform']
     else:
         platform = 'x64'
 
