@@ -19,9 +19,6 @@ def RecursiveFileGlob(env, root, pattern):
                     path_without_first_component(os.path.join(parent, filename))))
     return matches
 
-
-    env.AddMethod(RecursiveFileGlob, 'RecursiveFileGlob')
-
 def generate(env):
     env.AddMethod(RecursiveFileGlob, 'RecursiveFileGlob')
 
