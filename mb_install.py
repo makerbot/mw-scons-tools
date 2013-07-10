@@ -464,86 +464,47 @@ def mb_depends_on_json_cpp(env):
     env.MBAddLib(['jsoncpp'])
     env.MBAddDevelLibPath('#/../json-cpp/obj')
     env.MBAddDevelIncludePath('#/../json-cpp/include')
+    env.MBAddWindowsSiblingDependency('#/../json-cpp/obj/jsoncpp.vcxproj')
 
 def mb_depends_on_json_rpc(env):
     env.MBAddLib(['jsonrpc'])
     env.MBAddDevelLibPath('#/../jsonrpc/obj')
     env.MBAddDevelIncludePath('#/../jsonrpc/src/main/include')
+    env.MBAddWindowsSiblingDependency('#/../jsonrpc/obj/jsonrpc.vcxproj')
 
 def mb_depends_on_conveyor(env):
     env.MBAddLib(['conveyor'])
     env.MBAddDevelLibPath('#/../conveyor/obj')
     env.MBAddDevelIncludePath('#/../conveyor/include')
-
-kProgramType = 'exe'
-kStaticLibraryType = 'lib'
-kDynamicLibraryType = 'dll'
-
-def mb_msbuild(env, target, sources, target_type, *args, **kwargs):
-    # Horrible hack:
-    # strip the target name down to the 'base name'
-    # (i.e. without variant dir) and use that as the
-    # name of the vcxproj to build.
-    # I'm also not sure we'll ever get more than one target,
-    # so I'll leave that non-functional until we hit that case.
-    basename = os.path.basename(target)
-    vcxproj = os.path.join(
-        'win',
-        'vcxproj',
-        basename,
-        basename + '.vcxproj')
-
-    if 'windows_platform' in kwargs:
-        platform = kwargs['windows_platform']
-    else:
-        platform = 'x64'
-
-    command = [
-        'msbuild',
-        '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
-        '/p:Platform=' + platform,
-        vcxproj
-    ]
-
-    # Horrible hack:
-    # fake the files we expect to come out of this
-    expandedname = basename
-    if env.MBDebugBuild():
-        expandedname += 'd'
-
-    if target_type == kStaticLibraryType:
-        expandedname = 'lib' + expandedname
-
-    targets = [
-        '#/obj/' + platform + '/' + expandedname + '.' + target_type,
-        '#/obj/' + platform + '/' + expandedname + '.pdb'
-    ]
-
-    if target_type == kDynamicLibraryType:
-        targets.append('#/obj/' + platform + '/' + expandedname + '.lib')
-
-    # add the vxcproj to the sources list
-    # I think this tells scons that if the
-    # vcxproj changes this requires a rebuild
-    sources += [vcxproj]
-
-    return env.Command(targets, sources, ' '.join(command))
+    env.MBAddWindowsSiblingDependency('#/../conveyor/obj/conveyor.vcxproj')
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kProgramType, *args, **kwargs)
+        env.MBWindowsDefaultToProgram()
+        env.MBSetWindowsProjectName(target)
+        vcxproj = env.MBGenVcxproj(target, source)
+        program = env.MBBuildVcxproj(target, vcxproj)
+        return program
     else:
         return env.Program(target, source, *args, **kwargs);
 
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kDynamicLibraryType, *args, **kwargs)
+        env.MBWindowsDefaultToSharedLib()
+        env.MBSetWindowsProjectName(target)
+        vcxproj = env.MBGenVcxproj(target, source)
+        program = env.MBBuildVcxproj(target, vcxproj)
+        return program
     else:
         return env.SharedLibrary(target, source, *args, **kwargs)
 
 def mb_static_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kStaticLibraryType, *args, **kwargs)
+        env.MBWindowsDefaultToStaticLib()
+        env.MBSetWindowsProjectName(target)
+        vcxproj = env.MBGenVcxproj(target, source)
+        program = env.MBBuildVcxproj(target, vcxproj)
+        return program
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
 
@@ -602,6 +563,7 @@ def mb_common_arguments():
 def generate(env):
     print "Loading MakerBot install tool"
 
+    env.Tool('vcxproj')
 
     env['MB_INSTALL_TARGETS'] = []
 
@@ -647,8 +609,6 @@ def generate(env):
     env.AddMethod(mb_debug_build, 'MBDebugBuild')
     env.AddMethod(mb_build_tests, 'MBBuildTests')
     env.AddMethod(mb_run_tests, 'MBRunTests')
-
-    env.AddMethod(mb_msbuild, 'MBMSBuild')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
