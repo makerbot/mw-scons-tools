@@ -1,16 +1,11 @@
 from SCons.Script import AddOption, GetOption
 import SCons
 from optparse import OptionConflictError
-import sys, os
-import glob
+import os
 import string
 import re
 
 symlink_env_name = 'MB_MAC_FRAMEWORK_HEADER_SYMLINK_DONE'
-
-_is_windows = ('win32' == sys.platform)
-_is_linux = (sys.platform.startswith('linux'))
-_is_mac = ('darwin' == sys.platform)
 
 def rInstall(env, dest, src):
     if not hasattr(src, '__iter__'):
@@ -37,10 +32,6 @@ def rInstall(env, dest, src):
                                                 filenames)))
 
     return installs
-
-def mb_glob(env, path):
-    (head, tail) = os.path.split(path)
-    return glob.glob(os.path.join(str(env.Dir(head)), tail))
 
 def mb_install_lib(env, source, name, dest=''):
     targets = []
@@ -227,18 +218,6 @@ def mb_install_system(env, source, dest):
 def create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
-def mb_use_devel_libs(env):
-    return GetOption('devel_libs')
-
-def mb_debug_build(env):
-    return GetOption('debug_build')
-
-def mb_build_tests(env):
-    return GetOption('build_tests')
-
-def mb_run_tests(env):
-    return GetOption('run_tests')
-
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
         env.Append(FRAMEWORKS = name)
@@ -249,7 +228,7 @@ def mb_add_include_paths(env, paths):
     env.Prepend(CPPPATH=paths)
 
 def mb_add_standard_compiler_flags(env):
-    if not _is_windows:
+    if not env.MBIsWindows():
         flags = [
             '-pedantic',
             '-Wall',
@@ -280,24 +259,24 @@ def set_default_prefix(env):
 
     #if the user doesn't set either prefix, put configs in /etc
     if config_prefix == '':
-        if _is_linux:
+        if env.MBIsLinux():
             if prefix == '':
                 config_prefix = '/etc'
             else:
                 config_prefix = os.path.join(prefix, 'etc')
 
     if prefix == '':
-        if _is_linux:
+        if env.MBIsLinux():
             if config_prefix == '':
                 config_prefix = '/etc'
             prefix = '/usr'
 
-        elif _is_windows:
+        elif env.MBIsWindows():
             if os.path.exists('c:/Program Files (x86)'):
                 prefix = 'c:/Program Files (x86)/MakerBot'
             else:
                 prefix = 'c:/Program Files/MakerBot'
-        elif _is_mac:
+        elif env.MBIsMac():
             prefix = '/'
 
     env.SetDefault(MB_PREFIX = prefix)
@@ -309,20 +288,20 @@ def set_install_paths(env):
     prefix = env['MB_PREFIX']
 
     #setup sdk locations
-    if _is_linux:
+    if env.MBIsLinux():
         lib_dir = prefix + '/lib'
         include_dir = prefix + '/include'
 
-    elif _is_mac:
+    elif env.MBIsMac():
         lib_dir = prefix + '/Library/Frameworks/MakerBot.framework/Libraries'
         include_dir = prefix + '/Library/Frameworks/MakerBot.framework/Include'
 
-    elif _is_windows:
+    elif env.MBIsWindows():
         lib_dir = prefix + '/SDK/msvc11/lib'
         include_dir = prefix + '/SDK/msvc11/include'
 
     #OSX doesn't use the standard link lines
-    if _is_mac:
+    if env.MBIsMac():
         #add the fake root frameworks path
         env['MB_FRAMEWORK_DIR'] = os.path.join(prefix, 'Library/Frameworks')
 
@@ -338,7 +317,7 @@ def set_install_paths(env):
 
     #setup other install locations
 
-    if _is_linux:
+    if env.MBIsLinux():
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'bin'),
                        MB_APP_DIR = os.path.join(prefix, 'bin'),
                        MB_RESOURCE_DIR = os.path.join(prefix,
@@ -348,7 +327,7 @@ def set_install_paths(env):
                                                  'share', 'makerbot', 'python'),
                        MB_SYSTEM_EGG_DIR = os.path.join('/', 'usr', 'share',
                                                          'makerbot', 'python'))
-    elif _is_mac:
+    elif env.MBIsMac():
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'Library', 'MakerBot'),
                        MB_RESOURCE_DIR = os.path.join(prefix,
                                                       'Library', 'MakerBot'),
@@ -357,7 +336,7 @@ def set_install_paths(env):
                        MB_APP_DIR = os.path.join(prefix, 'Applications'),
                        MB_EGG_DIR = os.path.join(prefix, 'Library', 'MakerBot',
                                                  'python'))
-    elif _is_windows:
+    elif env.MBIsWindows():
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_APP_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_THIRD_PARTY_DIR = os.path.join(prefix, 'MakerWare'),
@@ -375,15 +354,6 @@ def set_install_paths(env):
     #make sure LIBS is initialized
     if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
         env['LIBS'] = []
-
-def mb_is_windows(env):
-  return _is_windows
-
-def mb_is_linux(env):
-  return _is_linux
-
-def mb_is_mac(env):
-  return _is_mac
 
 def mb_prepare_boost(env):
     boost_dir = os.environ.get('MB_BOOST_DIR')
@@ -514,35 +484,11 @@ def mb_static_library(env, target, source, *args, **kwargs):
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
 
-def mb_common_arguments():
+def common_arguments():
     # This is pretty silly, but because we load this tool multiple times
     # these options can be loaded twice, which raises an error.
     # This error can be safely ignored.
     try:
-        AddOption(
-            '--debug-build',
-            dest='debug_build',
-            action='store_true',
-            help='Builds in debug mode')
-
-        AddOption(
-            '--devel-libs',
-            dest='devel_libs',
-            action='store_true',
-            help='Uses sibling repositories for libraries, rather than using installed libs.')
-
-        AddOption(
-            '--build-tests',
-            dest='build_tests',
-            action='store_true',
-            help='Builds the test suite (if one exists)')
-
-        AddOption(
-            '--run-tests',
-            dest='run_tests',
-            action='store_true',
-            help='Runs the test suite (if one exists). Does not imply --build-tests.')
-
         # TODO(ted):
         # For these next two, I'd like to set it up so that mb_install can give us the default locations
         # that it uses, so we can include them in the help message
@@ -566,9 +512,11 @@ def mb_common_arguments():
     except OptionConflictError:
         pass
 
-def generate(env):
-    print "Loading MakerBot install tool"
 
+def generate(env):
+    common_arguments()
+
+    env.Tool('common')
     env.Tool('vcxproj')
 
     env['MB_INSTALL_TARGETS'] = []
@@ -600,21 +548,12 @@ def generate(env):
     env.AddMethod(mb_add_standard_compiler_flags, 'MBAddStandardCompilerFlags')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
     env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
-    env.AddMethod(mb_glob, 'MBGlob')
-
-    env.AddMethod(mb_is_windows, 'MBIsWindows')
-    env.AddMethod(mb_is_linux, 'MBIsLinux')
-    env.AddMethod(mb_is_mac, 'MBIsMac')
-    env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
 
     env.AddMethod(mb_depends_on_mb_core_utils, 'MBDependsOnMBCoreUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
 
-    env.AddMethod(mb_debug_build, 'MBDebugBuild')
-    env.AddMethod(mb_build_tests, 'MBBuildTests')
-    env.AddMethod(mb_run_tests, 'MBRunTests')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
@@ -622,8 +561,6 @@ def generate(env):
 
     env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
     env.AddMethod(mb_set_compiler_flags, 'MBSetCompilerFlags')
-
-    mb_common_arguments()
 
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
