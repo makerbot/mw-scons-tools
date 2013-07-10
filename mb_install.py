@@ -1,13 +1,20 @@
-from SCons.Script import AddOption, GetOption
 import SCons
 from optparse import OptionConflictError
 import os
 import string
 import re
 
+# Some conventions to keep this sane:
+#  * function definitions are in lowercase_with_underscores
+#  * if the function is exported by the tool, it starts with mb_
+#  * functions/builders are exported in camelcase, including the initial MB
+#  * functions are added in the same order as they appear in this file
+# Feel free to change the conventions if you think they're wrong,
+# just make sure to update everything to match those conventions
+
 symlink_env_name = 'MB_MAC_FRAMEWORK_HEADER_SYMLINK_DONE'
 
-def rInstall(env, dest, src):
+def recursive_install(env, dest, src):
     if not hasattr(src, '__iter__'):
         srcs = [src]
     else:
@@ -94,11 +101,11 @@ def mb_install_lib(env, source, name, dest=''):
                         createdlink = os.path.join(targetpath, vername)
                         createdlink = os.path.abspath(createdlink)
                         linkpath = os.path.relpath(
-                                os.path.join(targetpath, sourcename), 
+                                os.path.join(targetpath, sourcename),
                                 os.path.dirname(createdlink))
                         print 'Linking', os.path.basename(createdlink),\
                                 'from', linkpath
-                        targets.append(env.Command(createdlink, source, 
+                        targets.append(env.Command(createdlink, source,
                                 'ln -sf -T %s %s' % (linkpath, createdlink)))
                 else:
                     pass
@@ -108,7 +115,8 @@ def mb_install_lib(env, source, name, dest=''):
     return targets
 
 def mb_install_third_party(env, source, name, dest=''):
-    return env.rInstall(
+    return recursive_install(
+            env,
             os.path.join(env['MB_THIRD_PARTY_DIR'], os.path.join(dest, name)),
             source)
 
@@ -140,7 +148,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         version_dir = os.path.join('Versions', env['MB_VERSION'])
         include_dir = os.path.join(version_dir, 'Headers', include_subdir)
 
-        headers = env.rInstall(os.path.join(framework, include_dir), source)
+        headers = recursive_install(env, os.path.join(framework, include_dir), source)
         targets += headers
 
         #make relative symlinks between Current and the new version
@@ -175,7 +183,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         env[symlink_key] = True
 
     else:
-        targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'],
+        targets = recursive_install(env, os.path.join(env['MB_INCLUDE_DIR'],
                                             os.path.join(dest, name)),
                                source)
 
@@ -188,7 +196,7 @@ def mb_install_bin(env, source):
     return target
 
 def mb_install_resources(env, source, subdir=''):
-    targets = env.rInstall(os.path.join(env['MB_RESOURCE_DIR'], subdir), source)
+    targets = recursive_install(env, os.path.join(env['MB_RESOURCE_DIR'], subdir), source)
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
 
@@ -215,8 +223,9 @@ def mb_install_system(env, source, dest):
     env.Append(MB_INSTALL_TARGETS = target)
     return target
 
-def create_install_target(env):
+def mb_create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
+
 
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
@@ -244,15 +253,15 @@ def mb_add_standard_compiler_flags(env):
         else:
             env.Append(CCFLAGS=['-O2'])
 
-def add_devel_lib_path(env, path):
+def mb_add_devel_lib_path(env, path):
     if env.MBUseDevelLibs():
         env.Prepend(LIBPATH = [str(env.Dir(path))])
 
-def add_devel_include_path(env, path):
+def mb_add_devel_include_path(env, path):
     if env.MBUseDevelLibs():
         env.Prepend(CPPPATH = [str(env.Dir(path))])
 
-def set_default_prefix(env):
+def mb_set_default_prefix(env):
     #setup the default install root
     prefix = GetOption('install_prefix')
     config_prefix = GetOption('config_prefix')
@@ -284,7 +293,7 @@ def set_default_prefix(env):
         env.SetDefault(MB_CONFIG_DIR = config_prefix)
 
 
-def set_install_paths(env):
+def mb_set_install_paths(env):
     prefix = env['MB_PREFIX']
 
     #setup sdk locations
@@ -523,26 +532,26 @@ def generate(env):
     # doing the symlink step.
     env[symlink_env_name] = False
 
-    env.AddMethod(rInstall, 'rInstall')
-
     env.AddMethod(mb_install_lib, 'MBInstallLib')
     env.AddMethod(mb_install_third_party, 'MBInstallThirdParty')
     env.AddMethod(mb_install_headers, 'MBInstallHeaders')
     env.AddMethod(mb_install_bin, 'MBInstallBin')
     env.AddMethod(mb_install_resources, 'MBInstallResources')
+    env.AddMethod(mb_install_config, 'MBInstallConfig')
     env.AddMethod(mb_install_app, 'MBInstallApp')
     env.AddMethod(mb_install_egg, 'MBInstallEgg')
-    env.AddMethod(mb_install_config, 'MBInstallConfig')
     env.AddMethod(mb_install_system, 'MBInstallSystem')
+    env.AddMethod(mb_create_install_target, 'MBCreateInstallTarget')
 
-    env.AddMethod(set_default_prefix, 'MBSetDefaultPrefix')
-    env.AddMethod(set_install_paths, 'MBSetInstallPaths')
-    env.AddMethod(create_install_target, 'MBCreateInstallTarget')
-    env.AddMethod(add_devel_lib_path, 'MBAddDevelLibPath')
-    env.AddMethod(add_devel_include_path, 'MBAddDevelIncludePath')
     env.AddMethod(mb_add_lib, 'MBAddLib')
-    env.AddMethod(mb_add_standard_compiler_flags, 'MBAddStandardCompilerFlags')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
+    env.AddMethod(mb_add_standard_compiler_flags, 'MBAddStandardCompilerFlags')
+    env.AddMethod(mb_add_devel_lib_path, 'MBAddDevelLibPath')
+    env.AddMethod(mb_add_devel_include_path, 'MBAddDevelIncludePath')
+
+    env.AddMethod(mb_set_default_prefix, 'MBSetDefaultPrefix')
+    env.AddMethod(mb_set_install_paths, 'MBSetInstallPaths')
+    env.AddMethod(mb_set_compiler_flags, 'MBSetCompilerFlags')
     env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
 
     env.AddMethod(mb_depends_on_mb_core_utils, 'MBDependsOnMBCoreUtils')
@@ -551,12 +560,9 @@ def generate(env):
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
 
-
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
     env.AddMethod(mb_program, 'MBProgram')
-
-    env.AddMethod(mb_set_compiler_flags, 'MBSetCompilerFlags')
 
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
