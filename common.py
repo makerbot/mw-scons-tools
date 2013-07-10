@@ -28,7 +28,7 @@ def common_arguments():
             help='Builds in debug mode')
 
         AddOption(
-            '--devel-libs',
+            '--no-devel-libs',
             dest='devel_libs',
             action='store_true',
             help='Uses sibling repositories for libraries, rather than using installed libs.')
@@ -50,7 +50,7 @@ def common_arguments():
 
 # Accessors for the common arguments
 def mb_use_devel_libs(env):
-    return GetOption('devel_libs')
+    return not GetOption('no_devel_libs')
 
 def mb_debug_build(env):
     return GetOption('debug_build')
