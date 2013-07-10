@@ -1,5 +1,6 @@
 from SCons.Script import AddOption, GetOption
 from optparse import OptionConflictError
+import fnmatch
 import glob
 import os
 import sys
@@ -78,6 +79,23 @@ def mb_glob(env, path):
     (head, tail) = os.path.split(path)
     return glob.glob(os.path.join(str(env.Dir(head)), tail))
 
+# This is a special glob made by NicholasBishop
+def mb_recursive_file_glob(env, root, pattern):
+    '''Recursively search in 'root' for files matching 'pattern'
+
+    Returns a list of matches of type SCons.Node.FS.File'''
+    def path_without_first_component(path):
+        return os.sep.join(path.split(os.sep)[1:])
+
+    matches = []
+    if root.startswith('#'):
+        raise Exception('Directories starting with "#" not supported yet')
+    for parent, dirnames, filenames in os.walk(os.path.join('..', root)):
+        for filename in fnmatch.filter(filenames, pattern):
+            matches.append(env.File(
+                    path_without_first_component(os.path.join(parent, filename))))
+    return matches
+
 
 def generate(env):
     tool_exists = 'MB_COMMON_TOOL_LOADED'
@@ -98,6 +116,7 @@ def generate(env):
     env.AddMethod(mb_is_mac, 'MBIsMac')
 
     env.AddMethod(mb_glob, 'MBGlob')
+    env.AddMethod(mb_recursive_file_glob, 'MBRecursiveFileGlob')
 
 
 def exists(env) :
