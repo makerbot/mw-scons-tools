@@ -5,13 +5,15 @@ import glob
 import os
 import sys
 
-# Some conventions to keep this sane:
-#  * function definitions are in lowercase_with_underscores
-#  * if the function is exported by the tool, it starts with mb_
-#  * functions/builders are exported in camelcase, including the initial MB
-#  * functions are added in the same order as they appear in this file
-# Feel free to change the conventions if you think they're wrong,
-# just make sure to update everything to match those conventions
+'''
+Some conventions to keep this sane:
+  * function definitions are in lowercase_with_underscores
+  * if the function is exported by the tool, it starts with mb_
+  * functions/builders are exported in camelcase, including the initial MB
+  * functions are added in the same order as they appear in this file
+Feel free to change the conventions if you think they're wrong,
+just make sure to update everything to match those conventions
+'''
 
 # Set up command line args used by every scons script
 def common_arguments():
