@@ -464,19 +464,25 @@ def mb_depends_on_json_cpp(env):
     env.MBAddLib(['jsoncpp'])
     env.MBAddDevelLibPath('#/../json-cpp/obj')
     env.MBAddDevelIncludePath('#/../json-cpp/include')
-    env.MBAddWindowsSiblingDependency('#/../json-cpp/obj/jsoncpp.vcxproj')
+    env.MBAddWindowsDependency('../json-cpp/obj/jsoncpp.vcxproj')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='JSON_DLL')
 
 def mb_depends_on_json_rpc(env):
     env.MBAddLib(['jsonrpc'])
     env.MBAddDevelLibPath('#/../jsonrpc/obj')
     env.MBAddDevelIncludePath('#/../jsonrpc/src/main/include')
-    env.MBAddWindowsSiblingDependency('#/../jsonrpc/obj/jsonrpc.vcxproj')
+    env.MBAddWindowsDependency('../jsonrpc/obj/jsonrpc.vcxproj')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='JSONRPC_DLL')
 
 def mb_depends_on_conveyor(env):
     env.MBAddLib(['conveyor'])
     env.MBAddDevelLibPath('#/../conveyor/obj')
     env.MBAddDevelIncludePath('#/../conveyor/include')
-    env.MBAddWindowsSiblingDependency('#/../conveyor/obj/conveyor.vcxproj')
+    env.MBAddWindowsDependency('../conveyor/obj/conveyor.vcxproj')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='CONVEYOR_DLL')
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():

@@ -1,6 +1,6 @@
 # Copyright 2013 MakerBot Industries
 
-import os
+import os, re
 import xml.etree.ElementTree as ET
 
 # environment keys
@@ -12,17 +12,22 @@ kCanBeStatic = 'MB_WINDOWS_CONFIGURATION_CAN_BE_STATIC'
 
 kPlatformBitness = 'MB_WINDOWS_PLATFROM_BITNESS'
 
-kSiblingDependencies = 'MB_WINDOWS_PROJECT_DEPENDENCIES'
+kDependencies = 'MB_WINDOWS_PROJECT_DEPENDENCIES'
 
 kProjectName = 'MB_WINDOWS_PROJECT_NAME'
 
 # Adds dependecies on sibling projects
-def mb_add_windows_sibling_depencies(env, paths):
-    env.Append(WINDOWS_PROJECT_DEPENDENCIES = paths)
+def mb_add_windows_depencies(env, paths):
+    env.Append(MB_WINDOWS_PROJECT_DEPENDENCIES = paths)
 
 # Lots of things need a base name for the project
 def mb_set_windows_project_name(env, name):
     env[kProjectName] = name
+
+# So, this should really only be called once,
+# but we're not going to enforce that
+def mb_add_windows_dll_build_flag(env, flag):
+    env.Append(CPPDEFINES = flag)
 
 # we want to make sure the guids are always the same per project name
 def make_guid(project_name):
@@ -31,19 +36,12 @@ def make_guid(project_name):
     project_guid = guid_base[0:8]+'-'+guid_base[8:12]+'-'+guid_base[12:16]+'-'+guid_base[16:20]+'-'+guid_base[20:32]
     return project_guid
 
-# don't put in an empty reference list
-def project_references(dependencies):
-    if 0 == len(dependencies):
-        return ''
-    else:
-        return '    <ProjectReference Include="..\\' + ';..\\'.join(dependencies) + '" />'
+# if any path starts with obj, remove the obj
+def strip_obj(paths):
+  return [re.sub('^(\\\\|/)*obj(\\\\|/)*', '', path) for path in paths]
 
 def one_per_line(prefix, stringlist, suffix):
-    if 0 == len(stringlist):
-        return ''
-    else:
-        return '\n'.join([prefix + s + suffix for s in stringlist])
-
+    return '\n'.join([prefix + s + suffix for s in stringlist])
 
 # this contains the template where the blanks can be filled in
 def fill_in_the_blanks(project_name,
@@ -82,17 +80,16 @@ def fill_in_the_blanks(project_name,
         '        %(PreprocessorDefinitions)',
         '      </PreprocessorDefinitions>',
         '      <AdditionalIncludeDirectories>',
-        one_per_line('        ', include_paths, ';'),
+        one_per_line('        ', strip_obj(include_paths), ';'),
         '        %(AdditionalIncludeDirectories)',
         '      </AdditionalIncludeDirectories>',
         '    </ClCompile>',
         '  </ItemDefinitionGroup>',
         '  <ItemGroup>',
-        one_per_line('    <ClCompile Include="..\\', sources, '" />'),
+        one_per_line('    <ClCompile Include="', strip_obj(sources), '" />'),
         '  </ItemGroup>',
         '  <ItemGroup>',
-        '    <!-- Any references to other projects go here -->',
-        project_references(project_dependencies),
+        one_per_line('    <ProjectReference Include="..\\', project_dependencies, '" />'),
         '  </ItemGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />',
         '</Project>'])
@@ -134,7 +131,7 @@ def mb_gen_vcxproj(target, source, env):
             preprocessor_defines = env['CPPDEFINES'],
             include_paths = [str(x) for x in env['CPPPATH']],
             sources = [str(x) for x in source],
-            project_dependencies = env[kSiblingDependencies]))
+            project_dependencies = env[kDependencies]))
 
 # Set default project configuration
 def mb_windows_default_to_program(env):
@@ -186,8 +183,8 @@ def mb_build_vcxproj(env, target, source):
 
 def generate(env):
     # make sure that some necessary env variables exist
-    if kSiblingDependencies not in env:
-        env[kSiblingDependencies] = []
+    if kDependencies not in env:
+        env[kDependencies] = []
 
     if kPlatformBitness not in env:
         env[kPlatformBitness] = 'x64'
@@ -201,9 +198,11 @@ def generate(env):
     if kCanBeStatic not in env:
         env[kCanBeStatic] = False
 
-    env.AddMethod(mb_add_windows_sibling_depencies, 'MBAddWindowsSiblingDependency')
+    env.AddMethod(mb_add_windows_depencies, 'MBAddWindowsDependency')
 
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
+
+    env.AddMethod(mb_add_windows_dll_build_flag, 'MBAddWindowsDLLBuildFlag')
 
     env.AddMethod(mb_windows_default_to_program, 'MBWindowsDefaultToProgram')
     env.AddMethod(mb_windows_default_to_static_lib, 'MBWindowsDefaultToStaticLib')
