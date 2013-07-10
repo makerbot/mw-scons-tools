@@ -562,9 +562,5 @@ def generate(env):
     env.MBSetInstallPaths()
     env.MBSetCompilerFlags()
 
-
-    # remove this from here, add it to the projects that use boost
-    env.MBDependsOnBoost()
-
 def exists(env) :
     return True
