@@ -36,7 +36,14 @@ def project_references(dependencies):
     if 0 == len(dependencies):
         return ''
     else:
-        return '    <ProjectReference Include="' + ';$(MBRepoRoot)\\'.join(dependencies) + '" />'
+        return '    <ProjectReference Include="..\\' + ';..\\'.join(dependencies) + '" />'
+
+def one_per_line(prefix, stringlist, suffix):
+    if 0 == len(stringlist):
+        return ''
+    else:
+        return '\n'.join([prefix + s + suffix for s in stringlist])
+
 
 # this contains the template where the blanks can be filled in
 def fill_in_the_blanks(project_name,
@@ -53,28 +60,35 @@ def fill_in_the_blanks(project_name,
         '<?xml version="1.0" encoding="utf-8"?>',
         '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
         '  <PropertyGroup Label="Globals">',
-        '    <!-- Insert a GUID here. Visual Studio can make them for you -->',
         '    <ProjectGuid>{' + make_guid(project_name) + '}</ProjectGuid>',
         '    <RootNamespace>' + project_name + '</RootNamespace>',
         '  </PropertyGroup>',
-        '  <!-- define these before importing mb_msvc_common -->',
         '  <PropertyGroup>',
         '    <MBCanBeLib>' + ('true' if can_be_static else 'false') + '</MBCanBeLib>',
         '    <MBCanBeDLL>' + ('true' if can_be_shared else 'false') + '</MBCanBeDLL>',
         '    <MBCanBeApp>' + ('true' if can_be_program else 'false') + '</MBCanBeApp>',
         '    <MBDefaultConfigurationType>' + default_configuration + '</MBDefaultConfigurationType>',
         '  </PropertyGroup>',
-        '  <!-- All kinds of suff is hidden in here -->',
         '  <Import Project="..\submodules\mw-scons-tools\mb_msvc_common.proj" />',
         '  <ItemDefinitionGroup>',
         '    <ClCompile>',
-        '      <AdditionalOptions>' + ' '.join(compiler_flags) + ' %(AdditionalOptions)</AdditionalOptions>',
-        '      <PreprocessorDefinitions>$(MBCommonPreprocessorDefs);' + ';'.join(preprocessor_defines) + ';%(PreprocessorDefinitions)</PreprocessorDefinitions>',
-        '      <AdditionalIncludeDirectories>..\\' + ';..\\'.join(include_paths) + ';%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>',
+        '      <AdditionalOptions>',
+        one_per_line('        ', compiler_flags, ''),
+        '        %(AdditionalOptions)',
+        '      </AdditionalOptions>',
+        '      <PreprocessorDefinitions>',
+        '        $(MBCommonPreprocessorDefs);',
+        one_per_line('        ', preprocessor_defines, ';'),
+        '        %(PreprocessorDefinitions)',
+        '      </PreprocessorDefinitions>',
+        '      <AdditionalIncludeDirectories>',
+        one_per_line('        ', include_paths, ';'),
+        '        %(AdditionalIncludeDirectories)',
+        '      </AdditionalIncludeDirectories>',
         '    </ClCompile>',
         '  </ItemDefinitionGroup>',
         '  <ItemGroup>',
-        '    <ClCompile Include="..\\' + ';..\\'.join(sources) + '" />',
+        one_per_line('    <ClCompile Include="..\\', sources, '" />'),
         '  </ItemGroup>',
         '  <ItemGroup>',
         '    <!-- Any references to other projects go here -->',
