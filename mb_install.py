@@ -355,31 +355,6 @@ def set_install_paths(env):
     if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
         env['LIBS'] = []
 
-def mb_prepare_boost(env):
-    boost_dir = os.environ.get('MB_BOOST_DIR')
-    if boost_dir is None:
-        print '\n======================================================='
-        print 'MB_BOOST_DIR not specified'
-        print ''
-    else:
-        include_dir = os.path.join(boost_dir, 'include')
-        boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
-        #get the list of boost versions available
-        versions = [(int(match.group('major')), int(match.group('minor')))
-                for match in (boost_version_re.match(a)
-                for a in os.listdir(include_dir)) if match]
-        #sort them by major,minor then pick the latest
-        subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
-        include = os.path.join(include_dir, subdir)
-        lib = os.path.join(boost_dir, 'lib')
-        env.Append(CPPPATH = [include])
-        env.Append(LIBPATH = lib)
-        print '\n======================================================='
-        print 'Boost directories: '
-        print include
-        print lib
-        print ''
-
 def mb_set_compiler_flags(env):
     if env.MBIsMac():
         env.Replace(CC='clang')
@@ -453,6 +428,27 @@ def mb_depends_on_conveyor(env):
     env.MBAddWindowsDependency('../conveyor/obj/conveyor.vcxproj')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='CONVEYOR_DLL')
+
+def mb_depends_on_boost(env):
+    boost_dir = os.environ.get('MB_BOOST_DIR')
+    if boost_dir is None:
+        class BoostDirUnspecified(Exception):
+            pass
+
+        raise BoostDirUnspecified("No boost dir specified! export MB_BOOST_DIR environment variable.")
+    else:
+        include_dir = os.path.join(boost_dir, 'include')
+        boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
+        #get the list of boost versions available
+        versions = [(int(match.group('major')), int(match.group('minor')))
+                for match in (boost_version_re.match(a)
+                for a in os.listdir(include_dir)) if match]
+        #sort them by major,minor then pick the latest
+        subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
+        include = os.path.join(include_dir, subdir)
+        lib = os.path.join(boost_dir, 'lib')
+        env.Append(CPPPATH = [include])
+        env.Append(LIBPATH = lib)
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
@@ -553,19 +549,22 @@ def generate(env):
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
+    env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
 
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
     env.AddMethod(mb_program, 'MBProgram')
 
-    env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
     env.AddMethod(mb_set_compiler_flags, 'MBSetCompilerFlags')
 
     env.MBSetDefaultPrefix()
     env.MBSetInstallPaths()
-    env.MBPrepareBoost()
     env.MBSetCompilerFlags()
+
+
+    # remove this from here, add it to the projects that use boost
+    env.MBDependsOnBoost()
 
 def exists(env) :
     return True
