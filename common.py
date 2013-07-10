@@ -80,6 +80,12 @@ def mb_glob(env, path):
 
 
 def generate(env):
+    tool_exists = 'MB_COMMON_TOOL_LOADED'
+    if env.get(tool_exists, False):
+        print 'tool "common" being loaded multiple times'
+    else:
+        env[tool_exists] = True
+
     common_arguments()
 
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
