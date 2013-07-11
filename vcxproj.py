@@ -1,5 +1,7 @@
 # Copyright 2013 MakerBot Industries
 
+from SCons.Script import AddOption, GetOption
+from optparse import OptionConflictError
 import os, re
 import xml.etree.ElementTree as ET
 
@@ -184,9 +186,9 @@ def mb_build_vcxproj(env, target, source):
         'msbuild',
         '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
         '/p:MBRepoRoot=' + str(env.Dir('#/.')) + '\\',
-        '/p:Platform=' + env[kPlatformBitness],
-        '$SOURCE'
-    ]
+        '/p:Platform=' + env[kPlatformBitness]]
+    command += ['/p:' + property for property in vcxproj_properties()]
+    command += ['$SOURCE']
 
     msbuild = env.Command(target, source, ' '.join(command))
 
@@ -199,7 +201,29 @@ def mb_windows_program(env, target, source, *args, **kwargs):
     program = env.MBBuildVcxproj(target, vcxproj)
     return program
 
+# Set up command line args used by every scons script
+def common_arguments():
+    # This is pretty silly, but because we load this tool multiple times
+    # these options can be loaded twice, which raises an error.
+    # This error can be safely ignored.
+    try:
+        AddOption(
+            '--vcxproj-property',
+            dest='vcxproj_properties',
+            metavar='PROPERTY',
+            type='string',
+            action='append',
+            help='Passes the given property=value pair to msbuild when building the project.')
+
+    except OptionConflictError:
+        pass
+
+def vcxproj_properties():
+    return GetOption('vcxproj_properties')
+
 def generate(env):
+    common_arguments()
+
     # make sure that some necessary env variables exist
     if kDependencies not in env:
         env[kDependencies] = []
