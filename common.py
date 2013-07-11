@@ -33,6 +33,7 @@ def common_arguments():
             '--no-devel-libs',
             dest='devel_libs',
             action='store_false',
+            default=True,
             help='Uses sibling repositories for libraries, rather than using installed libs.')
 
         AddOption(
