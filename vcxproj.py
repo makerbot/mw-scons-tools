@@ -135,6 +135,24 @@ def mb_gen_vcxproj(target, source, env):
     configuration = ('Application' if default_to_program else
         ('DynamicLibrary' if default_to_shared else 'StaticLibrary'))
 
+    # clean up the CPPDEFINES, which can be strings, 1-tuples, 2-tuples, or dicts
+    cppdefines = []
+    for define in env['CPPDEFINES']:
+        if isinstance(define, tuple):
+            try:
+                # 2-tuple
+                cppdefines.append(define[0] + '=' + str(define[1]))
+            except IndexError:
+                # 1-tuple
+                cppdefines.append(define[0])
+        elif isinstance(define, dict):
+            # dict
+            for item in define.items():
+                cppdefines.append(item[0] + '=' + str(item[1]))
+        else:
+            # string
+            cppdefines.append(define)
+
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
             project_name = env[kProjectName],
@@ -143,7 +161,7 @@ def mb_gen_vcxproj(target, source, env):
             can_be_static = env[kCanBeStatic],
             default_configuration = configuration,
             compiler_flags = env['CCFLAGS'],
-            preprocessor_defines = env['CPPDEFINES'],
+            preprocessor_defines = cppdefines,
             include_paths = [str(x) for x in env['CPPPATH']],
             sources = [str(x) for x in source],
             project_dependencies = env[kDependencies]))
