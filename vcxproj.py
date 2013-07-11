@@ -182,6 +182,14 @@ def mb_build_vcxproj(env, target, source):
 
     msbuild = env.Command(target, source, ' '.join(command))
 
+this_file = os.path.abspath(__file__)
+def mb_windows_program(env, target, source, *args, **kwargs):
+    env.MBSetWindowsProjectName(target)
+    vcxproj = env.MBGenVcxproj(target, source)
+    env.Depends(vcxproj, this_file)
+    program = env.MBBuildVcxproj(target, vcxproj)
+    return program
+
 def generate(env):
     # make sure that some necessary env variables exist
     if kDependencies not in env:
@@ -218,6 +226,8 @@ def generate(env):
                 source_scanner = SCons.Tool.SourceFileScanner)})
 
     env.AddMethod(mb_build_vcxproj, 'MBBuildVcxproj')
+
+    env.AddMethod(mb_windows_program, 'MBWindowsProgram')
 
 def exists(env):
     return True

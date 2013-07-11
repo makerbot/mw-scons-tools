@@ -464,9 +464,7 @@ def mb_depends_on_boost(env):
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         env.MBWindowsDefaultToProgram()
-        env.MBSetWindowsProjectName(target)
-        vcxproj = env.MBGenVcxproj(target, source)
-        program = env.MBBuildVcxproj(target, vcxproj)
+        program = env.MBWindowsProgram(target, source, *args, **kwargs)
         return program
     else:
         return env.Program(target, source, *args, **kwargs);
@@ -474,9 +472,7 @@ def mb_program(env, target, source, *args, **kwargs):
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         env.MBWindowsDefaultToSharedLib()
-        env.MBSetWindowsProjectName(target)
-        vcxproj = env.MBGenVcxproj(target, source)
-        program = env.MBBuildVcxproj(target, vcxproj)
+        program = env.MBWindowsProgram(target, source, *args, **kwargs)
         return program
     else:
         return env.SharedLibrary(target, source, *args, **kwargs)
@@ -484,9 +480,7 @@ def mb_shared_library(env, target, source, *args, **kwargs):
 def mb_static_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         env.MBWindowsDefaultToStaticLib()
-        env.MBSetWindowsProjectName(target)
-        vcxproj = env.MBGenVcxproj(target, source)
-        program = env.MBBuildVcxproj(target, vcxproj)
+        program = env.MBWindowsProgram(target, source, *args, **kwargs)
         return program
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
