@@ -5,6 +5,16 @@ from optparse import OptionConflictError
 import os, re
 import xml.etree.ElementTree as ET
 
+'''
+Some conventions to keep this sane:
+  * function definitions are in lowercase_with_underscores
+  * if the function is exported by the tool, it starts with mb_
+  * functions/builders are exported in camelcase, including the initial MB
+  * functions are added in the same order as they appear in this file
+Feel free to change the conventions if you think they're wrong,
+just make sure to update everything to match those conventions
+'''
+
 # environment keys
 kDefaultConfiguration = 'MB_WINDOWS_DEFAULT_CONFIGURATION'
 

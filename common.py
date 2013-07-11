@@ -1,3 +1,5 @@
+# Copyright 2013 MakerBot Industries
+
 from SCons.Script import AddOption, GetOption
 from optparse import OptionConflictError
 import fnmatch
