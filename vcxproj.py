@@ -156,7 +156,7 @@ def mb_gen_vcxproj(target, source, env):
     # Special handling of include_paths containing $ENVIRONMENT_VARIABLES
     # because something replaces those correctly for other platforms
     # but not on windows. $QT5DIR is the only one I've seen so far.
-    cpppath = [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', path) for path in env['CPPPATH']]
+    cpppath = [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', str(path)) for path in env['CPPPATH']]
 
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
