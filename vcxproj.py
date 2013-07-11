@@ -223,6 +223,7 @@ def common_arguments():
             metavar='PROPERTY',
             type='string',
             action='append',
+            default=[],
             help='Passes the given property=value pair to msbuild when building the project.')
 
     except OptionConflictError:
