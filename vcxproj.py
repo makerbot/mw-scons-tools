@@ -228,6 +228,7 @@ def mb_build_vcxproj(env, target, source):
     command = [
         'msbuild',
         '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
+        '/p:MBRepoRoot=' + str(env.Dir('#/.')) + '\\',
         '/p:Platform=' + env[kPlatformBitness]]
     command += ['/p:' + property for property in vcxproj_properties()]
     command += ['$SOURCE']
