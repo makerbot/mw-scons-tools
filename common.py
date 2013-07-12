@@ -1,7 +1,5 @@
 # Copyright 2013 MakerBot Industries
 
-from SCons.Script import AddOption, GetOption
-from optparse import OptionConflictError
 import fnmatch
 import glob
 import os
@@ -18,51 +16,45 @@ just make sure to update everything to match those conventions
 '''
 
 # Set up command line args used by every scons script
-def common_arguments():
-    # This is pretty silly, but because we load this tool multiple times
-    # these options can be loaded twice, which raises an error.
-    # This error can be safely ignored.
-    try:
-        AddOption(
-            '--debug-build',
-            dest='debug_build',
-            action='store_true',
-            help='Builds in debug mode')
+def common_arguments(env):
+    env.MBAddOption(
+        '--debug-build',
+        dest='debug_build',
+        action='store_true',
+        help='Builds in debug mode')
 
-        AddOption(
-            '--no-devel-libs',
-            dest='devel_libs',
-            action='store_false',
-            default=True,
-            help='Uses sibling repositories for libraries, rather than using installed libs.')
+    env.MBAddOption(
+        '--no-devel-libs',
+        dest='devel_libs',
+        action='store_false',
+        default=True,
+        help='Uses sibling repositories for libraries, rather than using installed libs.')
 
-        AddOption(
-            '--build-tests',
-            dest='build_tests',
-            action='store_true',
-            help='Builds the test suite (if one exists)')
+    env.MBAddOption(
+        '--build-tests',
+        dest='build_tests',
+        action='store_true',
+        help='Builds the test suite (if one exists)')
 
-        AddOption(
-            '--run-tests',
-            dest='run_tests',
-            action='store_true',
-            help='Runs the test suite (if one exists). Does not imply --build-tests.')
+    env.MBAddOption(
+        '--run-tests',
+        dest='run_tests',
+        action='store_true',
+        help='Runs the test suite (if one exists). Does not imply --build-tests.')
 
-    except OptionConflictError:
-        pass
 
 # Accessors for the common arguments
 def mb_use_devel_libs(env):
-    return GetOption('devel_libs')
+    return env.MBGetOption('devel_libs')
 
 def mb_debug_build(env):
-    return GetOption('debug_build')
+    return env.MBGetOption('debug_build')
 
 def mb_build_tests(env):
-    return GetOption('build_tests')
+    return env.MBGetOption('build_tests')
 
 def mb_run_tests(env):
-    return GetOption('run_tests')
+    return env.MBGetOption('run_tests')
 
 
 # Utilities for detecting platform
@@ -109,7 +101,9 @@ def generate(env):
     else:
         env[tool_exists] = True
 
-    common_arguments()
+    env.Tool('options')
+
+    common_arguments(env)
 
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
     env.AddMethod(mb_debug_build, 'MBDebugBuild')

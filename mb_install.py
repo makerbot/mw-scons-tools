@@ -1,5 +1,3 @@
-import SCons
-from optparse import OptionConflictError
 import os
 import string
 import re
@@ -270,8 +268,8 @@ def mb_add_devel_include_path(env, path):
 
 def mb_set_default_prefix(env):
     #setup the default install root
-    prefix = GetOption('install_prefix')
-    config_prefix = GetOption('config_prefix')
+    prefix = env.MBGetOption('install_prefix')
+    config_prefix = env.MBGetOption('config_prefix')
 
     #if the user doesn't set either prefix, put configs in /etc
     if config_prefix == '':
@@ -487,37 +485,33 @@ def mb_static_library(env, target, source, *args, **kwargs):
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
 
-def common_arguments():
-    # This is pretty silly, but because we load this tool multiple times
-    # these options can be loaded twice, which raises an error.
-    # This error can be safely ignored.
-    try:
-        # TODO(ted):
-        # For these next two, I'd like to set it up so that mb_install can give us the default locations
-        # that it uses, so we can include them in the help message
-        AddOption(
-            '--install-prefix',
-            dest='install_prefix',
-            nargs=1,
-            type='string',
-            action='store',
-            default='',
-            help='Sets the location to install everything to. (someone should fill in the defaults here).')
+def common_arguments(env):
+    # TODO(ted):
+    # For these two, I'd like to set it up so that mb_install can give us the default locations
+    # that it uses, so we can include them in the help message
+    env.MBAddOption(
+        '--install-prefix',
+        dest='install_prefix',
+        nargs=1,
+        type='string',
+        action='store',
+        default='',
+        help='Sets the location to install everything to. (someone should fill in the defaults here).')
 
-        AddOption(
-            '--config-prefix',
-            dest='config_prefix',
-            nargs=1,
-            type='string',
-            action='store',
-            default='',
-            help='Sets the location to install configs to. (someone should fill in the defaults here).')
-    except OptionConflictError:
-        pass
+    env.MBAddOption(
+        '--config-prefix',
+        dest='config_prefix',
+        nargs=1,
+        type='string',
+        action='store',
+        default='',
+        help='Sets the location to install configs to. (someone should fill in the defaults here).')
 
 
 def generate(env):
-    common_arguments()
+    env.Tool('options')
+
+    common_arguments(env)
 
     env.Tool('common')
     env.Tool('vcxproj')
