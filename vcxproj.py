@@ -25,6 +25,9 @@ kPlatformBitness = 'MB_WINDOWS_PLATFROM_BITNESS'
 
 kProjectName = 'MB_WINDOWS_PROJECT_NAME'
 
+kDefaultUseSDLCheck = True
+kUseSDLCheck = 'MB_WINDOWS_USE_SDL_CHECK'
+
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
     if None == platform:
@@ -34,10 +37,14 @@ def mb_add_windows_devel_lib_path(env, path, platform = None):
 def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
     env[kProjectName] = name
+
 def mb_add_windows_dll_build_flag(env, flag):
     ''' So, this should really only be called once,
         but we're not going to enforce that '''
     env.Append(CPPDEFINES = flag)
+
+def mb_set_windows_use_sdl_check(env, use_sdl):
+    env[kUseSDLCheck] = use_sdl
 
 def make_guid(project_name):
     ''' We want to make sure the guids are always the same per project name.
@@ -68,6 +75,7 @@ def fill_in_the_blanks(project_name,
                        can_be_static,
                        default_configuration,
                        preprocessor_defines,
+                       use_sdl_check,
                        compiler_flags,
                        include_paths,
                        sources,
@@ -90,6 +98,7 @@ def fill_in_the_blanks(project_name,
         '  <Import Project="..\site_scons\site_tools\mb_msvc_common.proj" />',
         '  <ItemDefinitionGroup>',
         '    <ClCompile>',
+        '      <SDLCheck>' + ('true' if use_sdl_check else 'false') + '</SDLCheck>'
         '      <AdditionalOptions>',
         one_per_line('        ', compiler_flags, ''),
         '        %(AdditionalOptions)',
@@ -191,6 +200,7 @@ def mb_gen_vcxproj(target, source, env):
             default_configuration = configuration,
             compiler_flags = env['CCFLAGS'],
             preprocessor_defines = cppdefines,
+            use_sdl_check = env[kUseSDLCheck],
             include_paths = cpppath,
             sources = desconsify(source),
             libs = desconsify(env['LIBS']),
@@ -279,6 +289,9 @@ def common_arguments(env):
 def vcxproj_properties(env):
     return env.MBGetOption('vcxproj_properties')
 
+def add_common_defines(env):
+    env.Append(CPPDEFINES = ['_CRT_SECURE_NO_WARNINGS'])
+
 def generate(env):
     env.Tool('options')
     env.Tool('log')
@@ -288,6 +301,9 @@ def generate(env):
     # make sure that some necessary env variables exist
     if kPlatformBitness not in env:
         env[kPlatformBitness] = kDefaultPlatformBitness
+
+    if kUseSDLCheck not in env:
+        env[kUseSDLCheck] = kDefaultUseSDLCheck
 
     if kCanBeProgram not in env:
         env[kCanBeProgram] = False
@@ -299,10 +315,9 @@ def generate(env):
         env[kCanBeStatic] = False
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
-
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
-
     env.AddMethod(mb_add_windows_dll_build_flag, 'MBAddWindowsDLLBuildFlag')
+    env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
 
     env.AddMethod(mb_windows_default_to_program, 'MBWindowsDefaultToProgram')
     env.AddMethod(mb_windows_default_to_static_lib, 'MBWindowsDefaultToStaticLib')
@@ -319,6 +334,8 @@ def generate(env):
     env.AddMethod(mb_build_vcxproj, 'MBBuildVcxproj')
 
     env.AddMethod(mb_windows_program, 'MBWindowsProgram')
+
+    add_common_defines(env)
 
 def exists(env):
     return True
