@@ -231,7 +231,9 @@ def mb_create_install_target(env):
 
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
-        env.Append(FRAMEWORKS = name)
+        env.Append(FRAMEWORKS = [name])
+    elif env.MBIsWindows():
+        env.Append(LIBS = name + '.lib')
     else:
         env.Append(LIBS = name)
 
@@ -257,7 +259,10 @@ def mb_add_standard_compiler_flags(env):
 
 def mb_add_devel_lib_path(env, path):
     if env.MBUseDevelLibs():
-        env.Prepend(LIBPATH = [str(env.Dir(path))])
+        if env.MBIsWindows():
+            env.MBAddWindowsDevelLibPath(path)
+        else:
+            env.Prepend(LIBPATH = [str(env.Dir(path))])
 
 def mb_add_devel_include_path(env, path):
     if env.MBUseDevelLibs():
@@ -417,26 +422,23 @@ def mb_depends_on_mb_core_utils(env):
     env.MBAddDevelIncludePath('#/../MBCoreUtils/cpp/include')
 
 def mb_depends_on_json_cpp(env):
-    env.MBAddLib(['jsoncpp'])
+    env.MBAddLib('jsoncpp')
     env.MBAddDevelLibPath('#/../json-cpp/obj')
     env.MBAddDevelIncludePath('#/../json-cpp/include')
-    env.MBAddWindowsDependency('../json-cpp/obj/jsoncpp.vcxproj')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='JSON_DLL')
 
 def mb_depends_on_json_rpc(env):
-    env.MBAddLib(['jsonrpc'])
+    env.MBAddLib('jsonrpc')
     env.MBAddDevelLibPath('#/../jsonrpc/obj')
     env.MBAddDevelIncludePath('#/../jsonrpc/src/main/include')
-    env.MBAddWindowsDependency('../jsonrpc/obj/jsonrpc.vcxproj')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='JSONRPC_DLL')
 
 def mb_depends_on_conveyor(env):
-    env.MBAddLib(['conveyor'])
+    env.MBAddLib('conveyor')
     env.MBAddDevelLibPath('#/../conveyor/obj')
     env.MBAddDevelIncludePath('#/../conveyor/include')
-    env.MBAddWindowsDependency('../conveyor/obj/conveyor.vcxproj')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='CONVEYOR_DLL')
 

@@ -22,15 +22,16 @@ kCanBeProgram = 'MB_WINDOWS_CONFIGURATION_CAN_BE_PROGRAM'
 kCanBeShared = 'MB_WINDOWS_CONFIGURATION_CAN_BE_SHARED'
 kCanBeStatic = 'MB_WINDOWS_CONFIGURATION_CAN_BE_STATIC'
 
+kDefaultPlatformBitness = 'x64'
 kPlatformBitness = 'MB_WINDOWS_PLATFROM_BITNESS'
-
-kDependencies = 'MB_WINDOWS_PROJECT_DEPENDENCIES'
 
 kProjectName = 'MB_WINDOWS_PROJECT_NAME'
 
-def mb_add_windows_depencies(env, paths):
-    ''' Adds dependecies on other .vcxprojs '''
-    env.Append(MB_WINDOWS_PROJECT_DEPENDENCIES = paths)
+def mb_add_windows_devel_lib_path(env, path, platform = None):
+    ''' Adds dependecies on other projects' output '''
+    if None == platform:
+        platform = env[kPlatformBitness]
+    env.Prepend(LIBPATH = [str(env.Dir(os.path.join(path, platform)))])
 
 def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
@@ -68,7 +69,8 @@ def fill_in_the_blanks(project_name,
                        compiler_flags,
                        include_paths,
                        sources,
-                       project_dependencies):
+                       libs,
+                       lib_paths):
     ''' this contains the template where the blanks can be filled in '''
     vcxproj_contents = '\n'.join([
         '<?xml version="1.0" encoding="utf-8"?>',
@@ -83,7 +85,7 @@ def fill_in_the_blanks(project_name,
         '    <MBCanBeApp>' + ('true' if can_be_program else 'false') + '</MBCanBeApp>',
         '    <MBDefaultConfigurationType>' + default_configuration + '</MBDefaultConfigurationType>',
         '  </PropertyGroup>',
-        '  <Import Project="$(MBRepoRoot)\site_scons\site_tools\mb_msvc_common.proj" />',
+        '  <Import Project="..\site_scons\site_tools\mb_msvc_common.proj" />',
         '  <ItemDefinitionGroup>',
         '    <ClCompile>',
         '      <AdditionalOptions>',
@@ -100,12 +102,19 @@ def fill_in_the_blanks(project_name,
         '        %(AdditionalIncludeDirectories)',
         '      </AdditionalIncludeDirectories>',
         '    </ClCompile>',
+        '    <Link>',
+        '      <AdditionalDependencies>',
+        one_per_line('        ', libs, ';'),
+        '        %(AdditionalDependencies)',
+        '      </AdditionalDependencies>',
+        '      <AdditionalLibraryDirectories>',
+        one_per_line('        ', lib_paths, ';'),
+        '        %(AdditionalLibraryDirectories)',
+        '      </AdditionalLibraryDirectories>',
+        '    </Link>',
         '  </ItemDefinitionGroup>',
         '  <ItemGroup>',
         one_per_line('    <ClCompile Include="', strip_obj(sources), '" />'),
-        '  </ItemGroup>',
-        '  <ItemGroup>',
-        one_per_line('    <ProjectReference Include="..\\', project_dependencies, '" />'),
         '  </ItemGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />',
         '</Project>'])
@@ -169,7 +178,8 @@ def mb_gen_vcxproj(target, source, env):
             preprocessor_defines = cppdefines,
             include_paths = cpppath,
             sources = [str(x) for x in source],
-            project_dependencies = env[kDependencies]))
+            libs = env['LIBS'],
+            lib_paths = env['LIBPATH']))
 
 def mb_windows_default_to_program(env):
     ''' Set default project configuration to Application/exe '''
@@ -218,7 +228,6 @@ def mb_build_vcxproj(env, target, source):
     command = [
         'msbuild',
         '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
-        '/p:MBRepoRoot=' + str(env.Dir('#/.')) + '\\',
         '/p:Platform=' + env[kPlatformBitness]]
     command += ['/p:' + property for property in vcxproj_properties()]
     command += ['$SOURCE']
@@ -259,11 +268,8 @@ def generate(env):
     common_arguments()
 
     # make sure that some necessary env variables exist
-    if kDependencies not in env:
-        env[kDependencies] = []
-
     if kPlatformBitness not in env:
-        env[kPlatformBitness] = 'x64'
+        env[kPlatformBitness] = kDefaultPlatformBitness
 
     if kCanBeProgram not in env:
         env[kCanBeProgram] = False
@@ -274,7 +280,7 @@ def generate(env):
     if kCanBeStatic not in env:
         env[kCanBeStatic] = False
 
-    env.AddMethod(mb_add_windows_depencies, 'MBAddWindowsDependency')
+    env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
 
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
 
