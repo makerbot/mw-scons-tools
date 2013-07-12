@@ -165,6 +165,19 @@ def mb_gen_vcxproj(target, source, env):
     # but not on windows. $QT5DIR is the only one I've seen so far.
     cpppath = [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', str(path)) for path in env['CPPPATH']]
 
+    env.MBLogSpam(
+        'project_name = ' + str(env[kProjectName]) + '\n' +
+        'can_be_program = ' + str(env[kCanBeProgram]) + '\n' +
+        'can_be_shared = ' + str(env[kCanBeShared]) + '\n' +
+        'can_be_static = ' + str(env[kCanBeStatic]) + '\n' +
+        'default_configuration = ' + str(configuration) + '\n' +
+        'compiler_flags = ' + str(env['CCFLAGS']) + '\n' +
+        'preprocessor_defines = ' + str(cppdefines) + '\n' +
+        'include_paths = ' + str(cpppath) + '\n' +
+        'sources = ' + str([str(x) for x in source]) + '\n' +
+        'libs = ' + str(env['LIBS']) + '\n' +
+        'lib_paths = ' + str(env['LIBPATH']))
+
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
             project_name = env[kProjectName],
@@ -259,6 +272,7 @@ def vcxproj_properties(env):
 
 def generate(env):
     env.Tool('options')
+    env.Tool('log')
 
     common_arguments(env)
 
