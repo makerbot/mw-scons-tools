@@ -266,7 +266,7 @@ def mb_add_devel_include_path(env, path):
     if env.MBUseDevelLibs():
         env.Prepend(CPPPATH = [str(env.Dir(path))])
 
-def mb_set_default_prefix(env):
+def set_default_prefix(env):
     #setup the default install root
     prefix = env.MBGetOption('install_prefix')
     config_prefix = env.MBGetOption('config_prefix')
@@ -298,7 +298,7 @@ def mb_set_default_prefix(env):
         env.SetDefault(MB_CONFIG_DIR = config_prefix)
 
 
-def mb_set_install_paths(env):
+def set_install_paths(env):
     prefix = env['MB_PREFIX']
 
     #setup sdk locations
@@ -369,7 +369,7 @@ def mb_set_install_paths(env):
     if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
         env['LIBS'] = []
 
-def mb_set_compiler_flags(env):
+def set_compiler_flags(env):
     if env.MBIsMac():
         env.Replace(CC='clang')
         env.Replace(CXX='clang++')
@@ -541,9 +541,6 @@ def generate(env):
     env.AddMethod(mb_add_devel_lib_path, 'MBAddDevelLibPath')
     env.AddMethod(mb_add_devel_include_path, 'MBAddDevelIncludePath')
 
-    env.AddMethod(mb_set_default_prefix, 'MBSetDefaultPrefix')
-    env.AddMethod(mb_set_install_paths, 'MBSetInstallPaths')
-    env.AddMethod(mb_set_compiler_flags, 'MBSetCompilerFlags')
     env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
 
     env.AddMethod(mb_depends_on_mb_core_utils, 'MBDependsOnMBCoreUtils')
@@ -556,9 +553,9 @@ def generate(env):
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
     env.AddMethod(mb_program, 'MBProgram')
 
-    env.MBSetDefaultPrefix()
-    env.MBSetInstallPaths()
-    env.MBSetCompilerFlags()
+    set_default_prefix(env)
+    set_install_paths(env)
+    set_compiler_flags(env)
 
 def exists(env) :
     return True
