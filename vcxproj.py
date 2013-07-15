@@ -51,6 +51,7 @@ def make_guid(project_name):
         Produces a guid in {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} form
         containing the project name (so don't reuse project names). '''
     fixed_name = project_name.replace('-', '')
+    fixed_name = project_name.replace('_', '')
     guid_base = fixed_name + '1234567890abcdef1234567890abcdef'
     project_guid = guid_base[0:8]+'-'+guid_base[8:12]+'-'+guid_base[12:16]+'-'+guid_base[16:20]+'-'+guid_base[20:32]
     return project_guid
