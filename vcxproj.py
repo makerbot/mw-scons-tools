@@ -98,7 +98,7 @@ def fill_in_the_blanks(project_name,
         '  <Import Project="..\site_scons\site_tools\mb_msvc_common.proj" />',
         '  <ItemDefinitionGroup>',
         '    <ClCompile>',
-        '      <SDLCheck>' + ('true' if use_sdl_check else 'false') + '</SDLCheck>'
+        '      <SDLCheck>' + ('true' if use_sdl_check else 'false') + '</SDLCheck>',
         '      <AdditionalOptions>',
         one_per_line('        ', compiler_flags, ''),
         '        %(AdditionalOptions)',
@@ -186,6 +186,7 @@ def mb_gen_vcxproj(target, source, env):
         'default_configuration = ' + str(configuration) + '\n' +
         'compiler_flags = ' + str(env['CCFLAGS']) + '\n' +
         'preprocessor_defines = ' + str(cppdefines) + '\n' +
+        'use_sdl_check = ' + str(env[kUseSDLCheck]) + '\n' +
         'include_paths = ' + str(cpppath) + '\n' +
         'sources = ' + str(desconsify(source)) + '\n' +
         'libs = ' + str(desconsify(env['LIBS'])) + '\n' +
