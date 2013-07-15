@@ -67,8 +67,14 @@ def desconsify(stuff):
 def one_per_line(prefix, stringlist, suffix):
     ''' Takes each element of a list and puts it on a separate
         line prefixed by 'prefix' and suffixed by 'suffix'.
-        Returns it all as a string'''
+        Returns it all as a string. '''
     return '\n'.join([prefix + s + suffix for s in stringlist])
+
+def scons_to_msbuild_env_substitution(stuff):
+    ''' Special handling of include_paths containing $ENVIRONMENT_VARIABLES
+        because something replaces those correctly for other platforms
+        but not on windows. $QT5DIR is the only one I've seen so far. '''
+    return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', str(thing)) for thing in stuff]
 
 def fill_in_the_blanks(project_name,
                        can_be_program,
@@ -174,10 +180,8 @@ def mb_gen_vcxproj(target, source, env):
             # string
             cppdefines.append(define)
 
-    # Special handling of include_paths containing $ENVIRONMENT_VARIABLES
-    # because something replaces those correctly for other platforms
-    # but not on windows. $QT5DIR is the only one I've seen so far.
-    cpppath = [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', str(path)) for path in env['CPPPATH']]
+    cpppath = scons_to_msbuild_env_substitution(env['CPPPATH'])
+    libpath = scons_to_msbuild_env_substitution(env['LIBPATH'])
 
     env.MBLogSpam(
         'project_name = ' + str(env[kProjectName]) + '\n' +
@@ -206,7 +210,7 @@ def mb_gen_vcxproj(target, source, env):
             include_paths = cpppath,
             sources = desconsify(source),
             libs = desconsify(env['LIBS']),
-            lib_paths = desconsify(env['LIBPATH'])))
+            lib_paths = libpath))
 
 def mb_windows_default_to_program(env):
     ''' Set default project configuration to Application/exe '''
