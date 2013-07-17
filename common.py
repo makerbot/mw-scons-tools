@@ -93,6 +93,15 @@ def mb_recursive_file_glob(env, root, pattern):
                     path_without_first_component(os.path.join(parent, filename))))
     return matches
 
+# I'm not sure who made this, but we use it for all of our python globbing
+def mb_magic_python_glob(env, dir):
+    files = []
+    for curpath, dirnames, filenames in os.walk(str(env.Dir(dir))):
+        files.append(
+            filter(lambda f:
+                (os.path.exists(str(f)) and not os.path.isdir(str(f))),
+                env.Glob(os.path.join(curpath, '*.py'))))
+    return files
 
 def generate(env):
     tool_exists = 'MB_COMMON_TOOL_LOADED'
@@ -116,7 +125,7 @@ def generate(env):
 
     env.AddMethod(mb_glob, 'MBGlob')
     env.AddMethod(mb_recursive_file_glob, 'MBRecursiveFileGlob')
-
+    env.AddMethod(mb_magic_python_glob, 'MBMagicPythonGlob')
 
 def exists(env) :
     return True
