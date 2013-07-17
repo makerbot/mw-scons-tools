@@ -280,12 +280,14 @@ def mb_build_vcxproj(env, target, source):
     target_list = env.Command(target, source, ' '.join(command))
     return target_list[0]
 
-this_file = os.path.abspath(__file__)
 def mb_windows_program(env, target, source, *args, **kwargs):
     ''' Generate a vcxproj and build it '''
     env.MBSetWindowsProjectName(target)
     vcxproj = env.MBGenVcxproj(target, source)
+    this_file = os.path.abspath(__file__)
     env.Depends(vcxproj, this_file)
+    common_file = env.File('site_scons\site_tools\mb_msvc_common.proj')
+    env.Depends(vcxproj, common_file)
     return env.MBBuildVcxproj(target, vcxproj)
 
 # Set up command line args used by every scons script
