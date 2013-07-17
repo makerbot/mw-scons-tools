@@ -233,6 +233,25 @@ def mb_dist_egg(env, egg_name, source, python = 'python', version = '2.7'):
         python + ' -c "import setuptools; execfile(\'setup.py\')" bdist_egg')
     return egg
 
+def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
+    paths = [os.path.join('submodule', 'conveyor_bins', 'python')]
+    if env.MBUseDevelLibs():
+        paths += devel_paths
+    else:
+        if env.MBIsLinux() and 'MB_SYSTEM_EGG_DIR' in env:
+            paths.append(env['MB_SYSTEM_EGG_DIR'])
+        else:
+            paths.append(env['MB_EGG_DIR'])
+
+    # add quoting
+    paths = ['"'+path+'"' for path in paths]
+    virtualenv_args = [os.path.join('.', script)] + paths
+    virtualenv_args = ' '.join(virtualenv_args)
+
+    command = ' '.join([python, virtualenv_args])
+
+    return env.Command(target, script, command)
+
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
         env.Append(FRAMEWORKS = [name])
@@ -546,6 +565,7 @@ def generate(env):
     env.AddMethod(mb_create_install_target, 'MBCreateInstallTarget')
 
     env.AddMethod(mb_dist_egg, 'MBDistEgg')
+    env.AddMethod(mb_setup_virtualenv, 'MBSetupVirtualenv')
 
     env.AddMethod(mb_add_lib, 'MBAddLib')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
