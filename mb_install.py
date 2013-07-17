@@ -226,6 +226,19 @@ def mb_install_system(env, source, dest):
 def mb_create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
+def mb_dist_egg(env, egg_name, source):
+    egg = env.Command(
+        egg_name + '-py2.7.egg',
+        source,
+        'python -c "import setuptools; execfile(\'setup.py\')" bdist_egg')
+    return egg
+
+def mb_dist_egg_two_six(env, egg_name, source):
+    egg = env.Command(
+        egg_name + '-py2.6.egg',
+        source,
+        'python2.6 -c "import setuptools; execfile(\'setup.py\')" bdist_egg')
+    return egg
 
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
@@ -538,6 +551,9 @@ def generate(env):
     env.AddMethod(mb_install_egg, 'MBInstallEgg')
     env.AddMethod(mb_install_system, 'MBInstallSystem')
     env.AddMethod(mb_create_install_target, 'MBCreateInstallTarget')
+
+    env.AddMethod(mb_dist_egg, 'MBDistEgg')
+    env.AddMethod(mb_dist_egg_two_six, 'MBDistEggTwoSix')
 
     env.AddMethod(mb_add_lib, 'MBAddLib')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
