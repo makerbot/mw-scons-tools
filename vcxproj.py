@@ -28,6 +28,9 @@ kProjectName = 'MB_WINDOWS_PROJECT_NAME'
 kDefaultUseSDLCheck = True
 kUseSDLCheck = 'MB_WINDOWS_USE_SDL_CHECK'
 
+# for the --novariant option
+kVariantDir = 'MB_WINDOWS_VARIANT_DIR'
+
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
     if None == platform:
@@ -45,6 +48,9 @@ def mb_add_windows_dll_build_flag(env, flag):
 
 def mb_set_windows_use_sdl_check(env, use_sdl):
     env[kUseSDLCheck] = use_sdl
+
+def mb_set_windows_variant_dir(env, variant_dir):
+    env[kVariantDir] = variant_dir
 
 def make_guid(project_name):
     ''' We want to make sure the guids are always the same per project name.
@@ -102,7 +108,7 @@ def fill_in_the_blanks(project_name,
         '    <MBCanBeApp>' + ('true' if can_be_program else 'false') + '</MBCanBeApp>',
         '    <MBDefaultConfigurationType>' + default_configuration + '</MBDefaultConfigurationType>',
         '  </PropertyGroup>',
-        '  <Import Project="..\site_scons\site_tools\mb_msvc_common.proj" />',
+        '  <Import Project=".\site_scons\site_tools\mb_msvc_common.proj" />',
         '  <ItemDefinitionGroup>',
         '    <ClCompile>',
         '      <SDLCheck>' + ('true' if use_sdl_check else 'false') + '</SDLCheck>',
@@ -265,6 +271,9 @@ def mb_build_vcxproj(env, target, source):
         '/p:MBRepoRoot=' + str(env.Dir('#/.')) + '\\',
         '/p:Platform=' + env[kPlatformBitness]]
     command += ['/p:' + property for property in vcxproj_properties(env)]
+    # only in miracle-grue at the moment
+    if env.GetOption('novariant'):
+      command += ['/p:MBNoVariant=true']
     command += ['$SOURCE']
 
     # scons insists on wrapping everything in a list! why?

@@ -68,7 +68,9 @@
     <!-- Paths -->
     <MBRepoRoot>$(ProjectDir)\..\</MBRepoRoot>
     <MBToolchainFolder>$(MBRepoRoot)\..\</MBToolchainFolder>
-    <outputSuffix>obj\$(Platform)\</outputSuffix>
+    <variantDir Condition="'$(MBNoVariant)' == '' Or '$(MBNoVariant)' == 'false'">.\obj\</variantDir>
+    <variantDir Condition="'$(MBNoVariant)' != ''">.\</variantDir>
+    <outputSuffix>$(variantDir)\$(Platform)\</outputSuffix>
     <!-- Standard things used by msbuild -->
     <PlatformToolset>v110</PlatformToolset>
     <WholeProgramOptimization>false</WholeProgramOptimization>
