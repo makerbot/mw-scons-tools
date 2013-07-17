@@ -272,8 +272,11 @@ def mb_build_vcxproj(env, target, source):
         '/p:Platform=' + env[kPlatformBitness]]
     command += ['/p:' + property for property in vcxproj_properties(env)]
     # only in miracle-grue at the moment
-    if env.GetOption('novariant'):
-      command += ['/p:MBNoVariant=true']
+    try:
+        if env.GetOption('novariant'):
+            command += ['/p:MBNoVariant=true']
+    except AttributeError:
+        pass
     command += ['$SOURCE']
 
     # scons insists on wrapping everything in a list! why?
