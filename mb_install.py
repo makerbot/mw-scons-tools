@@ -392,7 +392,7 @@ def set_install_paths(env):
         quoted = '\"' + env['MB_VERSION'] + '\"'
     else:
         quoted = '\\\"' + env['MB_VERSION'] + '\\\"'
-    env.Append(CPPDEFINES={'MB_VERSION_STR' : quoted})
+    env.Append(CPPDEFINES='MB_VERSION_STR=' + quoted)
 
     #make sure LIBS is initialized
     if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
