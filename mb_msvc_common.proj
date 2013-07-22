@@ -110,6 +110,8 @@
     <MBIncludeQtWebKitWidgets>$(QT5DIR)\include\QtWebKitWidgets</MBIncludeQtWebKitWidgets>
     <MBIncludeQtMultiMedia>$(QT5DIR)\include\QtMultiMedia</MBIncludeQtMultiMedia>
     <MBIncludeQtMultiMediaWidgets>$(QT5DIR)\include\QtMultiMediaWidgets</MBIncludeQtMultiMediaWidgets>
+    <!-- core utils -->
+    <MBIncludeCoreUtils>$(MBToolchainFolder)\MBCoreUtils\cpp\include\</MBIncludeCoreUtils>
     <!-- Set up default configuration properties before calling Microsoft.Cpp.Default.props -->
     <typeSuffix Condition="'$(MBDefaultConfigurationType)' == 'Application'"></typeSuffix>
     <typeSuffix Condition="'$(MBDefaultConfigurationType)' == 'DynamicLibrary'">_DLL</typeSuffix>
