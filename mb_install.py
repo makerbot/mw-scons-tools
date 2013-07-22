@@ -413,6 +413,10 @@ def mb_set_lib_sym_name(env, name):
             env.Append(LINKFLAGS = ['-compatibility_version',
                                     env['MB_VERSION']])
 
+def mb_depends_on_mb_core_utils(env):
+    # MBCoreUtils is currently header-only
+    env.MBAddDevelIncludePath('#/../MBCoreUtils/cpp/include')
+
 def mb_depends_on_json_cpp(env):
     env.MBAddLib(['jsoncpp'])
     env.MBAddDevelLibPath('#/../json-cpp/obj')
@@ -591,6 +595,7 @@ def generate(env):
     env.AddMethod(mb_is_mac, 'MBIsMac')
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
 
+    env.AddMethod(mb_depends_on_mb_core_utils, 'MBDependsOnMBCoreUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
