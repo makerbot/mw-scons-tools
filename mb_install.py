@@ -1,4 +1,5 @@
 from SCons.Script import AddOption, GetOption
+import SCons
 from optparse import OptionConflictError
 import sys, os
 import glob
@@ -75,6 +76,42 @@ def mb_install_lib(env, source, name, dest=''):
         targets.append(env.Install(targetpath, source))
         if env.MBIsWindows():
             targets.append(env.Install(env['MB_BIN_DIR'], source))
+        elif env.MBIsLinux():
+            #make versioned symlinks
+            def proclib(source, targets):
+                if isinstance(source, list):
+                    for elem in source:
+                        proclib(elem, targets)
+                    return
+                elif isinstance(source, SCons.Node.NodeList):
+                    for elem in source:
+                        proclib(elem, targets)
+                    return
+                vre = re.compile('(?P<libname>\S+\.so)(?P<libver>(\.\d+)+)')
+                sourcename = str(source.abspath).split('/')[-1]
+                match = vre.match(sourcename)
+                if None is not match and None is not match.group('libver'):
+                    libname = match.group('libname')
+                    libver = [elem for elem in match.group('libver').split('.')
+                            if elem != '']
+                    #if we have liblib.so.1.2.3
+                    #we will make symbolic links liblib.so.1.2 and liblib.so.1
+                    libsource = source.abspath
+                    for i in xrange(len(libver) - 1, 0, -1):
+                        ver = libver[:i]
+                        vername = '.'.join([libname] + ver)
+                        createdlink = os.path.join(targetpath, vername)
+                        createdlink = os.path.abspath(createdlink)
+                        linkpath = os.path.relpath(
+                                os.path.join(targetpath, sourcename), 
+                                os.path.dirname(createdlink))
+                        print 'Linking', os.path.basename(createdlink),\
+                                'from', linkpath
+                        targets.append(env.Command(createdlink, source, 
+                                'ln -sf -T %s %s' % (linkpath, createdlink)))
+                else:
+                    pass
+            proclib(source, targets)
 
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
