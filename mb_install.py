@@ -79,6 +79,11 @@ def mb_install_lib(env, source, name, dest=''):
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
 
+def mb_install_third_party(env, source, name, dest=''):
+    return env.rInstall(
+            os.path.join(env['MB_THIRD_PARTY_DIR'], os.path.join(dest, name)),
+            source)
+
 def mb_install_headers(env, source, name, dest='', make_current_link=False):
     targets = []
     if env.MBIsMac():
@@ -318,6 +323,7 @@ def set_install_paths(env):
     elif _is_windows:
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_APP_DIR = os.path.join(prefix, 'MakerWare'),
+                       MB_THIRD_PARTY_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_RESOURCE_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_CONFIG_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_EGG_DIR = os.path.join(prefix, 'MakerWare', 'python'))
@@ -571,6 +577,7 @@ def generate(env):
     env.AddMethod(rInstall, 'rInstall')
 
     env.AddMethod(mb_install_lib, 'MBInstallLib')
+    env.AddMethod(mb_install_third_party, 'MBInstallThirdParty')
     env.AddMethod(mb_install_headers, 'MBInstallHeaders')
     env.AddMethod(mb_install_bin, 'MBInstallBin')
     env.AddMethod(mb_install_resources, 'MBInstallResources')
