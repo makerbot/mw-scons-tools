@@ -188,6 +188,10 @@ def mb_gen_vcxproj(target, source, env):
     cpppath = scons_to_msbuild_env_substitution(env['CPPPATH'])
     libpath = scons_to_msbuild_env_substitution(env['LIBPATH'])
 
+    libs = desconsify(env['LIBS'])
+    # manually append '.lib' if it's missing
+    libs = [lib if lib.endswith('.lib') else lib + '.lib' for lib in libs]
+
     env.MBLogSpam(
         'project_name = ' + str(env[kProjectName]) + '\n' +
         'can_be_program = ' + str(env[kCanBeProgram]) + '\n' +
@@ -214,7 +218,7 @@ def mb_gen_vcxproj(target, source, env):
             use_sdl_check = env[kUseSDLCheck],
             include_paths = cpppath,
             sources = desconsify(source),
-            libs = desconsify(env['LIBS']),
+            libs = libs,
             lib_paths = libpath))
 
 def mb_windows_default_to_program(env):
