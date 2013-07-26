@@ -55,7 +55,7 @@ def mb_set_windows_variant_dir(env, variant_dir):
 def make_guid(project_name):
     ''' We want to make sure the guids are always the same per project name.
         Produces a guid in {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} form
-        containing the project name (so don't reuse project names). '''
+        based on the project name (so don't reuse project names). '''
     fixed_name = project_name.replace('-', '')
     fixed_name = project_name.replace('_', '')
     guid_base = fixed_name + '1234567890abcdef1234567890abcdef'
