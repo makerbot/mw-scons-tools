@@ -70,9 +70,18 @@ def strip_obj(paths):
     ''' If any path starts with obj, remove the obj '''
     return [re.sub('^(\\\\|/)*obj(\\\\|/)*', '', path) for path in paths]
 
-def desconsify(stuff):
+def replace_hash(paths):
+    ''' If any path starts with obj, remove the obj '''
+    return [re.sub('^#', '..', path) for path in paths]
+
+def replace_scons_nodes(nodes):
     ''' make all the Files and Nodes and Dirs and what-all into strings '''
-    return [str(x) for x in stuff]
+    return [str(x) for x in nodes]
+
+def desconsify(stuff):
+    stuff = replace_scons_nodes(stuff)
+    stuff = replace_hash(stuff)
+    return stuff
 
 def one_per_line(prefix, stringlist, suffix):
     ''' Takes each element of a list and puts it on a separate
@@ -84,7 +93,7 @@ def scons_to_msbuild_env_substitution(stuff):
     ''' Special handling of include_paths containing $ENVIRONMENT_VARIABLES
         because something replaces those correctly for other platforms
         but not on windows. $QT5DIR is the only one I've seen so far. '''
-    return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', str(thing)) for thing in stuff]
+    return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', thing) for thing in stuff]
 
 def fill_in_the_blanks(project_name,
                        can_be_program,
@@ -189,8 +198,10 @@ def mb_gen_vcxproj(target, source, env):
             # string
             cppdefines.append(define)
 
-    cpppath = scons_to_msbuild_env_substitution(env['CPPPATH'])
-    libpath = scons_to_msbuild_env_substitution(env['LIBPATH'])
+    cpppath = desconsify(env['CPPPATH'])
+    cpppath = scons_to_msbuild_env_substitution(cpppath)
+    libpath = desconsify(env['LIBPATH'])
+    libpath = scons_to_msbuild_env_substitution(libpath)
 
     libs = desconsify(env['LIBS'])
     # manually append '.lib' if it's missing
