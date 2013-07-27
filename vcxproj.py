@@ -204,6 +204,13 @@ def mb_gen_vcxproj(target, source, env):
     libpath = scons_to_msbuild_env_substitution(libpath)
 
     libs = desconsify(env['LIBS'])
+    # If there's a .dll, discard it. we can't link against dlls
+    # and there's probably a .lib in there for it anyway.
+    dllless_libs = []
+    for lib in libs:
+        if not lib.endswith('.dll'):
+            dllless_libs.append(lib)
+    libs = dllless_libs
     # manually append '.lib' if it's missing
     libs = [lib if lib.endswith('.lib') else lib + '.lib' for lib in libs]
 
@@ -263,18 +270,23 @@ def mb_build_vcxproj_emitter(target, source, env):
     if target_type == kStaticLibraryType:
         expandedname = 'lib' + expandedname
 
-    # For .dlls on windows we actually link against
-    # the .lib that's generated, so return that
-    if target_type == kDynamicLibraryType:
-        extension = kStaticLibraryType
-    else:
-        extension = target_type
+    extension = target_type
 
-    target = os.path.join(
+    target = [os.path.join(
         '#',
         'obj',
         env[kPlatformBitness],
-        (expandedname + '.' + extension))
+        (expandedname + '.' + extension))]
+
+    # For .dlls on windows we actually link against
+    # the .lib that's generated, so return that, too
+    if target_type == kDynamicLibraryType:
+        target.append(
+            os.path.join(
+                '#',
+                'obj',
+                env[kPlatformBitness],
+                (expandedname + '.lib')))
 
     return target, source
 
@@ -298,9 +310,8 @@ def mb_build_vcxproj(env, target, source):
         pass
     command += ['$SOURCE']
 
-    # scons insists on wrapping everything in a list! why?
     target_list = env.Command(target, source, ' '.join(command))
-    return target_list[0]
+    return target_list
 
 def mb_windows_program(env, target, source, *args, **kwargs):
     ''' Generate a vcxproj and build it '''
