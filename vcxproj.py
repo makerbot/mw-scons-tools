@@ -227,8 +227,8 @@ def mb_gen_vcxproj(target, source, env):
         'use_sdl_check = ' + str(env[kUseSDLCheck]) + '\n' +
         'include_paths = ' + str(cpppath) + '\n' +
         'sources = ' + str(desconsify(source)) + '\n' +
-        'libs = ' + str(desconsify(env['LIBS'])) + '\n' +
-        'lib_paths = ' + str(env['LIBPATH']))
+        'libs = ' + str(libs) + '\n' +
+        'lib_paths = ' + str(libpath))
 
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
