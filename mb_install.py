@@ -255,8 +255,6 @@ def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
         env.Append(FRAMEWORKS = [name])
-    elif env.MBIsWindows():
-        env.Append(LIBS = name + '.lib')
     else:
         env.Append(LIBS = name)
 
