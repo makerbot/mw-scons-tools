@@ -2,6 +2,7 @@
 
 import os, re
 import xml.etree.ElementTree as ET
+import Scons
 
 '''
 Some conventions to keep this sane:
@@ -79,6 +80,7 @@ def replace_scons_nodes(nodes):
     return [str(x) for x in nodes]
 
 def desconsify(stuff):
+    stuff = SCons.Util.flatten(stuff)
     stuff = replace_scons_nodes(stuff)
     stuff = replace_hash(stuff)
     return stuff
