@@ -462,12 +462,26 @@ def mb_depends_on_json_rpc(env):
     if env.MBIsWindows():
         env.Append(CPPDEFINES='JSONRPC_DLL')
 
+def mb_depends_on_thing(env):
+    env.MBAddLib('thing')
+    env.MBAddDevelLibPath('#/../libthing-surprise/obj')
+    env.MBAddDevelIncludePath('#/../libthing-surprise/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='THING_DLL')
+
 def mb_depends_on_conveyor(env):
     env.MBAddLib('conveyor')
     env.MBAddDevelLibPath('#/../conveyor/obj')
-    env.MBAddDevelIncludePath('#/../conveyor/include')
+    env.MBAddDevelIncludePath('#/../conveyor/obj/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='CONVEYOR_DLL')
+
+def mb_depends_on_conveyor_ui(env):
+    env.MBAddLib('conveyor-ui')
+    env.MBAddDevelLibPath('#/../conveyor-ui/obj')
+    env.MBAddDevelIncludePath('#/../conveyor-ui/obj/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='CONVEYOR_UI_DLL')
 
 def mb_depends_on_boost(env):
     boost_dir = os.environ.get('MB_BOOST_DIR')
@@ -585,7 +599,9 @@ def generate(env):
     env.AddMethod(mb_depends_on_mb_core_utils, 'MBDependsOnMBCoreUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
+    env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
+    env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
