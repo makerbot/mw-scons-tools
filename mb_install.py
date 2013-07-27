@@ -514,6 +514,13 @@ def mb_static_library(env, target, source, *args, **kwargs):
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
 
+def mb_explicit_moc_fixme(env, sources):
+    target = []
+    for source in sources:
+        mocced = env.ExplicitMoc5('moc/moc_${SOURCE.file}.cpp', env.File(source))
+        target.append(mocced)
+    return target
+
 def common_arguments(env):
     # TODO(ted):
     # For these two, I'd like to set it up so that mb_install can give us the default locations
@@ -584,6 +591,8 @@ def generate(env):
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
     env.AddMethod(mb_program, 'MBProgram')
+
+    env.AddMethod(mb_explicit_moc_fixme, 'MBExplicitMocFixme')
 
     set_default_prefix(env)
     set_install_paths(env)
