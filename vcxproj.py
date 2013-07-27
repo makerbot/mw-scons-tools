@@ -21,7 +21,7 @@ kCanBeShared = 'MB_WINDOWS_CONFIGURATION_CAN_BE_SHARED'
 kCanBeStatic = 'MB_WINDOWS_CONFIGURATION_CAN_BE_STATIC'
 
 kDefaultPlatformBitness = 'x64'
-kPlatformBitness = 'MB_WINDOWS_PLATFROM_BITNESS'
+kPlatformBitness = 'MB_WINDOWS_PLATFORM_BITNESS'
 
 kProjectName = 'MB_WINDOWS_PROJECT_NAME'
 
@@ -36,6 +36,10 @@ def mb_add_windows_devel_lib_path(env, path, platform = None):
     if None == platform:
         platform = env[kPlatformBitness]
     env.Prepend(LIBPATH = [str(env.Dir(os.path.join(path, platform)))])
+
+def mb_set_windows_bitness(env, bitness):
+    ''' Toggle between Win32 and x64 '''
+    env[kPlatformBitness] = bitness
 
 def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
@@ -338,6 +342,7 @@ def generate(env):
         env[kCanBeStatic] = False
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
+    env.AddMethod(mb_set_windows_bitness, 'MBSetWindowsBitness')
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
     env.AddMethod(mb_add_windows_dll_build_flag, 'MBAddWindowsDLLBuildFlag')
     env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
