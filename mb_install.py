@@ -256,7 +256,7 @@ def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
         env.Append(FRAMEWORKS = [name])
     else:
-        env.Append(LIBS = name)
+        env.Append(LIBS = [name])
 
 def mb_add_include_paths(env, paths):
     env.Prepend(CPPPATH=paths)
