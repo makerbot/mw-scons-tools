@@ -2,7 +2,7 @@
 
 import os, re
 import xml.etree.ElementTree as ET
-import Scons
+import SCons
 
 '''
 Some conventions to keep this sane:
