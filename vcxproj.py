@@ -298,10 +298,14 @@ def mb_build_vcxproj(env, target, source):
     # can't use an emitter with a Method, so manually call it
     target, source = mb_build_vcxproj_emitter(target, source, env)
 
+    # this supposedly fixes problems with paths containing spaces
+    formatted_repo_root = str(env.Dir('#/.'))
+    formatted_repo_root = re.sub('\\\\', '\\\\\\\\', formatted_repo_root)
+
     command = [
         'msbuild',
         '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
-        '/p:MBRepoRoot=' + str(env.Dir('#/.')) + '\\',
+        '/p:MBRepoRoot="' + formatted_repo_root + '\\\\"',
         '/p:Platform=' + env[kPlatformBitness]]
     command += ['/p:' + property for property in vcxproj_properties(env)]
     # only in miracle-grue at the moment
