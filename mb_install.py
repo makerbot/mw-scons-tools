@@ -484,10 +484,7 @@ def mb_depends_on_conveyor_ui(env):
 def mb_depends_on_boost(env):
     boost_dir = os.environ.get('MB_BOOST_DIR')
     if boost_dir is None:
-        class BoostDirUnspecified(Exception):
-            pass
-
-        raise BoostDirUnspecified("No boost dir specified! export MB_BOOST_DIR environment variable.")
+        env.MBLogSpam('MB_BOOST_DIR not specified.')
     else:
         include_dir = os.path.join(boost_dir, 'include')
         boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
