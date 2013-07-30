@@ -1,19 +1,21 @@
-from SCons.Script import AddOption, GetOption
-import SCons
-from optparse import OptionConflictError
-import sys, os
-import glob
+import os
 import string
 import re
 import SCons
 
+'''
+Some conventions to keep this sane:
+  * function definitions are in lowercase_with_underscores
+  * if the function is exported by the tool, it starts with mb_
+  * functions/builders are exported in camelcase, including the initial MB
+  * functions are added in the same order as they appear in this file
+Feel free to change the conventions if you think they're wrong,
+just make sure to update everything to match those conventions
+'''
+
 symlink_env_name = 'MB_MAC_FRAMEWORK_HEADER_SYMLINK_DONE'
 
-_is_windows = ('win32' == sys.platform)
-_is_linux = (sys.platform.startswith('linux'))
-_is_mac = ('darwin' == sys.platform)
-
-def rInstall(env, dest, src):
+def recursive_install(env, dest, src):
     if not hasattr(src, '__iter__'):
         srcs = [src]
     else:
@@ -38,10 +40,6 @@ def rInstall(env, dest, src):
                                                 filenames)))
 
     return installs
-
-def mb_glob(env, path):
-    (head, tail) = os.path.split(path)
-    return glob.glob(os.path.join(str(env.Dir(head)), tail))
 
 def mb_install_lib(env, source, name, dest=''):
     targets = []
@@ -104,11 +102,11 @@ def mb_install_lib(env, source, name, dest=''):
                         createdlink = os.path.join(targetpath, vername)
                         createdlink = os.path.abspath(createdlink)
                         linkpath = os.path.relpath(
-                                os.path.join(targetpath, sourcename), 
+                                os.path.join(targetpath, sourcename),
                                 os.path.dirname(createdlink))
                         print 'Linking', os.path.basename(createdlink),\
                                 'from', linkpath
-                        targets.append(env.Command(createdlink, source, 
+                        targets.append(env.Command(createdlink, source,
                                 'ln -sf -T %s %s' % (linkpath, createdlink)))
                 else:
                     pass
@@ -118,7 +116,8 @@ def mb_install_lib(env, source, name, dest=''):
     return targets
 
 def mb_install_third_party(env, source, name, dest=''):
-    return env.rInstall(
+    return recursive_install(
+            env,
             os.path.join(env['MB_THIRD_PARTY_DIR'], os.path.join(dest, name)),
             source)
 
@@ -150,7 +149,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         version_dir = os.path.join('Versions', env['MB_VERSION'])
         include_dir = os.path.join(version_dir, 'Headers', include_subdir)
 
-        headers = env.rInstall(os.path.join(framework, include_dir), source)
+        headers = recursive_install(env, os.path.join(framework, include_dir), source)
         targets += headers
 
         #make relative symlinks between Current and the new version
@@ -185,7 +184,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         env[symlink_key] = True
 
     else:
-        targets = env.rInstall(os.path.join(env['MB_INCLUDE_DIR'],
+        targets = recursive_install(env, os.path.join(env['MB_INCLUDE_DIR'],
                                             os.path.join(dest, name)),
                                source)
 
@@ -198,7 +197,7 @@ def mb_install_bin(env, source):
     return target
 
 def mb_install_resources(env, source, subdir=''):
-    targets = env.rInstall(os.path.join(env['MB_RESOURCE_DIR'], subdir), source)
+    targets = recursive_install(env, os.path.join(env['MB_RESOURCE_DIR'], subdir), source)
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
 
@@ -225,32 +224,46 @@ def mb_install_system(env, source, dest):
     env.Append(MB_INSTALL_TARGETS = target)
     return target
 
-def create_install_target(env):
+def mb_create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
-def mb_use_devel_libs(env):
-    return GetOption('devel_libs')
+def mb_dist_egg(env, egg_name, source, python = 'python', version = '2.7'):
+    egg = env.Command(
+        egg_name + '-py' + version + '.egg',
+        source,
+        python + ' -c "import setuptools; execfile(\'setup.py\')" bdist_egg')
+    return egg
 
-def mb_debug_build(env):
-    return GetOption('debug_build')
+def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
+    paths = [os.path.join('submodule', 'conveyor_bins', 'python')]
+    if env.MBUseDevelLibs():
+        paths += devel_paths
+    else:
+        if env.MBIsLinux() and 'MB_SYSTEM_EGG_DIR' in env:
+            paths.append(env['MB_SYSTEM_EGG_DIR'])
+        else:
+            paths.append(env['MB_EGG_DIR'])
 
-def mb_build_tests(env):
-    return GetOption('build_tests')
+    # add quoting
+    paths = ['"'+path+'"' for path in paths]
+    virtualenv_args = [os.path.join('.', script)] + paths
+    virtualenv_args = ' '.join(virtualenv_args)
 
-def mb_run_tests(env):
-    return GetOption('run_tests')
+    command = ' '.join([python, virtualenv_args])
+
+    return env.Command(target, script, command)
 
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
-        env.Append(FRAMEWORKS = name)
+        env.Append(FRAMEWORKS = [name])
     else:
-        env.Append(LIBS = name)
+        env.Append(LIBS = [name])
 
 def mb_add_include_paths(env, paths):
-    env.Prepend(CPPPATH=paths)
+    env.Prepend(CPPPATH=[paths])
 
 def mb_add_standard_compiler_flags(env):
-    if not _is_windows:
+    if not env.MBIsWindows():
         flags = [
             '-pedantic',
             '-Wall',
@@ -266,39 +279,42 @@ def mb_add_standard_compiler_flags(env):
         else:
             env.Append(CCFLAGS=['-O2'])
 
-def add_devel_lib_path(env, path):
+def mb_add_devel_lib_path(env, path):
     if env.MBUseDevelLibs():
-        env.Prepend(LIBPATH = [str(env.Dir(path))])
+        if env.MBIsWindows():
+            env.MBAddWindowsDevelLibPath(path)
+        else:
+            env.Prepend(LIBPATH = [str(env.Dir(path))])
 
-def add_devel_include_path(env, path):
+def mb_add_devel_include_path(env, path):
     if env.MBUseDevelLibs():
         env.Prepend(CPPPATH = [str(env.Dir(path))])
 
 def set_default_prefix(env):
     #setup the default install root
-    prefix = GetOption('install_prefix')
-    config_prefix = GetOption('config_prefix')
+    prefix = env.MBGetOption('install_prefix')
+    config_prefix = env.MBGetOption('config_prefix')
 
     #if the user doesn't set either prefix, put configs in /etc
     if config_prefix == '':
-        if _is_linux:
+        if env.MBIsLinux():
             if prefix == '':
                 config_prefix = '/etc'
             else:
                 config_prefix = os.path.join(prefix, 'etc')
 
     if prefix == '':
-        if _is_linux:
+        if env.MBIsLinux():
             if config_prefix == '':
                 config_prefix = '/etc'
             prefix = '/usr'
 
-        elif _is_windows:
+        elif env.MBIsWindows():
             if os.path.exists('c:/Program Files (x86)'):
                 prefix = 'c:/Program Files (x86)/MakerBot'
             else:
                 prefix = 'c:/Program Files/MakerBot'
-        elif _is_mac:
+        elif env.MBIsMac():
             prefix = '/'
 
     env.SetDefault(MB_PREFIX = prefix)
@@ -310,20 +326,20 @@ def set_install_paths(env):
     prefix = env['MB_PREFIX']
 
     #setup sdk locations
-    if _is_linux:
+    if env.MBIsLinux():
         lib_dir = prefix + '/lib'
         include_dir = prefix + '/include'
 
-    elif _is_mac:
+    elif env.MBIsMac():
         lib_dir = prefix + '/Library/Frameworks/MakerBot.framework/Libraries'
         include_dir = prefix + '/Library/Frameworks/MakerBot.framework/Include'
 
-    elif _is_windows:
+    elif env.MBIsWindows():
         lib_dir = prefix + '/SDK/msvc11/lib'
         include_dir = prefix + '/SDK/msvc11/include'
 
     #OSX doesn't use the standard link lines
-    if _is_mac:
+    if env.MBIsMac():
         #add the fake root frameworks path
         env['MB_FRAMEWORK_DIR'] = os.path.join(prefix, 'Library/Frameworks')
 
@@ -339,7 +355,7 @@ def set_install_paths(env):
 
     #setup other install locations
 
-    if _is_linux:
+    if env.MBIsLinux():
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'bin'),
                        MB_APP_DIR = os.path.join(prefix, 'bin'),
                        MB_RESOURCE_DIR = os.path.join(prefix,
@@ -349,7 +365,7 @@ def set_install_paths(env):
                                                  'share', 'makerbot', 'python'),
                        MB_SYSTEM_EGG_DIR = os.path.join('/', 'usr', 'share',
                                                          'makerbot', 'python'))
-    elif _is_mac:
+    elif env.MBIsMac():
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'Library', 'MakerBot'),
                        MB_RESOURCE_DIR = os.path.join(prefix,
                                                       'Library', 'MakerBot'),
@@ -358,7 +374,7 @@ def set_install_paths(env):
                        MB_APP_DIR = os.path.join(prefix, 'Applications'),
                        MB_EGG_DIR = os.path.join(prefix, 'Library', 'MakerBot',
                                                  'python'))
-    elif _is_windows:
+    elif env.MBIsWindows():
         env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_APP_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_THIRD_PARTY_DIR = os.path.join(prefix, 'MakerWare'),
@@ -371,47 +387,17 @@ def set_install_paths(env):
     env['MB_VERSION'] = version_file.readline()
     version_file.close()
     env['MB_VERSION'] = string.strip(env['MB_VERSION'])
-    env.Append(CPPDEFINES='MB_VERSION_STR=\\\"%s\\\"'%(env['MB_VERSION'],))
+    if env.MBIsWindows():
+        quoted = '\"' + env['MB_VERSION'] + '\"'
+    else:
+        quoted = '\\\"' + env['MB_VERSION'] + '\\\"'
+    env.Append(CPPDEFINES='MB_VERSION_STR=' + quoted)
 
     #make sure LIBS is initialized
     if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
         env['LIBS'] = []
 
-def mb_is_windows(env):
-  return _is_windows
-
-def mb_is_linux(env):
-  return _is_linux
-
-def mb_is_mac(env):
-  return _is_mac
-
-def mb_prepare_boost(env):
-    boost_dir = os.environ.get('MB_BOOST_DIR')
-    if boost_dir is None:
-        print '\n======================================================='
-        print 'MB_BOOST_DIR not specified'
-        print ''
-    else:
-        include_dir = os.path.join(boost_dir, 'include')
-        boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
-        #get the list of boost versions available
-        versions = [(int(match.group('major')), int(match.group('minor')))
-                for match in (boost_version_re.match(a)
-                for a in os.listdir(include_dir)) if match]
-        #sort them by major,minor then pick the latest
-        subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
-        include = os.path.join(include_dir, subdir)
-        lib = os.path.join(boost_dir, 'lib')
-        env.Append(CPPPATH = [include])
-        env.Append(LIBPATH = lib)
-        print '\n======================================================='
-        print 'Boost directories: '
-        print include
-        print lib
-        print ''
-
-def mb_set_compiler_flags(env):
+def set_compiler_flags(env):
     if env.MBIsMac():
         env.Replace(CC='clang')
         env.Replace(CXX='clang++')
@@ -462,147 +448,119 @@ def mb_depends_on_mb_core_utils(env):
     env.MBAddDevelIncludePath('#/../MBCoreUtils/cpp/include')
 
 def mb_depends_on_json_cpp(env):
-    env.MBAddLib(['jsoncpp'])
+    env.MBAddLib('jsoncpp')
     env.MBAddDevelLibPath('#/../json-cpp/obj')
     env.MBAddDevelIncludePath('#/../json-cpp/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='JSON_DLL')
 
 def mb_depends_on_json_rpc(env):
-    env.MBAddLib(['jsonrpc'])
+    env.MBAddLib('jsonrpc')
     env.MBAddDevelLibPath('#/../jsonrpc/obj')
     env.MBAddDevelIncludePath('#/../jsonrpc/src/main/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='JSONRPC_DLL')
+
+def mb_depends_on_thing(env):
+    env.MBAddLib('thing')
+    env.MBAddDevelLibPath('#/../libthing-surprise/obj')
+    env.MBAddDevelIncludePath('#/../libthing-surprise/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='THING_DLL')
 
 def mb_depends_on_conveyor(env):
-    env.MBAddLib(['conveyor'])
+    env.MBAddLib('conveyor')
     env.MBAddDevelLibPath('#/../conveyor/obj')
-    env.MBAddDevelIncludePath('#/../conveyor/include')
+    env.MBAddDevelIncludePath('#/../conveyor/obj/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='CONVEYOR_DLL')
 
-kProgramType = 'exe'
-kStaticLibraryType = 'lib'
-kDynamicLibraryType = 'dll'
+def mb_depends_on_conveyor_ui(env):
+    env.MBAddLib('conveyor-ui')
+    env.MBAddDevelLibPath('#/../conveyor-ui/obj')
+    env.MBAddDevelIncludePath('#/../conveyor-ui/obj/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='CONVEYOR_UI_DLL')
 
-def mb_msbuild(env, target, sources, target_type, *args, **kwargs):
-    # Horrible hack:
-    # strip the target name down to the 'base name'
-    # (i.e. without variant dir) and use that as the
-    # name of the vcxproj to build.
-    # I'm also not sure we'll ever get more than one target,
-    # so I'll leave that non-functional until we hit that case.
-    basename = os.path.basename(target)
-    vcxproj = os.path.join(
-        'win',
-        'vcxproj',
-        basename,
-        basename + '.vcxproj')
-
-    if 'windows_platform' in kwargs:
-        platform = kwargs['windows_platform']
+def mb_depends_on_boost(env):
+    boost_dir = os.environ.get('MB_BOOST_DIR')
+    if boost_dir is None:
+        env.MBLogSpam('MB_BOOST_DIR not specified.')
     else:
-        platform = 'x64'
-
-    command = [
-        'msbuild',
-        '/p:MBConfiguration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
-        '/p:Platform=' + platform,
-        vcxproj
-    ]
-
-    # Horrible hack:
-    # fake the files we expect to come out of this
-    expandedname = basename
-    if env.MBDebugBuild():
-        expandedname += 'd'
-
-    if target_type == kStaticLibraryType:
-        expandedname = 'lib' + expandedname
-
-    targets = [
-        '#/obj/' + platform + '/' + expandedname + '.' + target_type,
-        '#/obj/' + platform + '/' + expandedname + '.pdb'
-    ]
-
-    if target_type == kDynamicLibraryType:
-        targets.append('#/obj/' + platform + '/' + expandedname + '.lib')
-
-    # add the vxcproj to the sources list
-    # I think this tells scons that if the
-    # vcxproj changes this requires a rebuild
-    sources += [vcxproj]
-
-    return env.Command(targets, sources, ' '.join(command))
+        include_dir = os.path.join(boost_dir, 'include')
+        boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
+        #get the list of boost versions available
+        versions = [(int(match.group('major')), int(match.group('minor')))
+                for match in (boost_version_re.match(a)
+                for a in os.listdir(include_dir)) if match]
+        #sort them by major,minor then pick the latest
+        subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
+        include = os.path.join(include_dir, subdir)
+        lib = os.path.join(boost_dir, 'lib')
+        env.Append(CPPPATH = [include])
+        env.Append(LIBPATH = lib)
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kProgramType, *args, **kwargs)
+        env.MBWindowsDefaultToProgram()
+        program = env.MBWindowsProgram(target, source, *args, **kwargs)
+        return program
     else:
         return env.Program(target, source, *args, **kwargs);
 
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kDynamicLibraryType, *args, **kwargs)
+        env.MBWindowsDefaultToSharedLib()
+        program = env.MBWindowsProgram(target, source, *args, **kwargs)
+        return program
     else:
         return env.SharedLibrary(target, source, *args, **kwargs)
 
 def mb_static_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        return env.MBMSBuild(target, source, kStaticLibraryType, *args, **kwargs)
+        env.MBWindowsDefaultToStaticLib()
+        program = env.MBWindowsProgram(target, source, *args, **kwargs)
+        return program
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
 
-def mb_common_arguments():
-    # This is pretty silly, but because we load this tool multiple times
-    # these options can be loaded twice, which raises an error.
-    # This error can be safely ignored.
-    try:
-        AddOption(
-            '--debug-build',
-            dest='debug_build',
-            action='store_true',
-            help='Builds in debug mode')
+def mb_explicit_moc_fixme(env, sources):
+    target = []
+    for source in sources:
+        mocced = env.ExplicitMoc5('moc/moc_${SOURCE.file}.cpp', env.File(source))
+        target.append(mocced)
+    return target
 
-        AddOption(
-            '--devel-libs',
-            dest='devel_libs',
-            action='store_true',
-            help='Uses sibling repositories for libraries, rather than using installed libs.')
+def common_arguments(env):
+    # TODO(ted):
+    # For these two, I'd like to set it up so that mb_install can give us the default locations
+    # that it uses, so we can include them in the help message
+    env.MBAddOption(
+        '--install-prefix',
+        dest='install_prefix',
+        nargs=1,
+        type='string',
+        action='store',
+        default='',
+        help='Sets the location to install everything to. (someone should fill in the defaults here).')
 
-        AddOption(
-            '--build-tests',
-            dest='build_tests',
-            action='store_true',
-            help='Builds the test suite (if one exists)')
+    env.MBAddOption(
+        '--config-prefix',
+        dest='config_prefix',
+        nargs=1,
+        type='string',
+        action='store',
+        default='',
+        help='Sets the location to install configs to. (someone should fill in the defaults here).')
 
-        AddOption(
-            '--run-tests',
-            dest='run_tests',
-            action='store_true',
-            help='Runs the test suite (if one exists). Does not imply --build-tests.')
-
-        # TODO(ted):
-        # For these next two, I'd like to set it up so that mb_install can give us the default locations
-        # that it uses, so we can include them in the help message
-        AddOption(
-            '--install-prefix',
-            dest='install_prefix',
-            nargs=1,
-            type='string',
-            action='store',
-            default='',
-            help='Sets the location to install everything to. (someone should fill in the defaults here).')
-
-        AddOption(
-            '--config-prefix',
-            dest='config_prefix',
-            nargs=1,
-            type='string',
-            action='store',
-            default='',
-            help='Sets the location to install configs to. (someone should fill in the defaults here).')
-    except OptionConflictError:
-        pass
 
 def generate(env):
-    print "Loading MakerBot install tool"
+    env.Tool('options')
 
+    common_arguments(env)
+
+    env.Tool('common')
+    env.Tool('vcxproj')
 
     env['MB_INSTALL_TARGETS'] = []
 
@@ -612,58 +570,45 @@ def generate(env):
     # doing the symlink step.
     env[symlink_env_name] = False
 
-    env.AddMethod(rInstall, 'rInstall')
-
     env.AddMethod(mb_install_lib, 'MBInstallLib')
     env.AddMethod(mb_install_third_party, 'MBInstallThirdParty')
     env.AddMethod(mb_install_headers, 'MBInstallHeaders')
     env.AddMethod(mb_install_bin, 'MBInstallBin')
     env.AddMethod(mb_install_resources, 'MBInstallResources')
+    env.AddMethod(mb_install_config, 'MBInstallConfig')
     env.AddMethod(mb_install_app, 'MBInstallApp')
     env.AddMethod(mb_install_egg, 'MBInstallEgg')
-    env.AddMethod(mb_install_config, 'MBInstallConfig')
     env.AddMethod(mb_install_system, 'MBInstallSystem')
+    env.AddMethod(mb_create_install_target, 'MBCreateInstallTarget')
 
-    env.AddMethod(set_default_prefix, 'MBSetDefaultPrefix')
-    env.AddMethod(set_install_paths, 'MBSetInstallPaths')
-    env.AddMethod(create_install_target, 'MBCreateInstallTarget')
-    env.AddMethod(add_devel_lib_path, 'MBAddDevelLibPath')
-    env.AddMethod(add_devel_include_path, 'MBAddDevelIncludePath')
+    env.AddMethod(mb_dist_egg, 'MBDistEgg')
+    env.AddMethod(mb_setup_virtualenv, 'MBSetupVirtualenv')
+
     env.AddMethod(mb_add_lib, 'MBAddLib')
-    env.AddMethod(mb_add_standard_compiler_flags, 'MBAddStandardCompilerFlags')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
-    env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
-    env.AddMethod(mb_glob, 'MBGlob')
+    env.AddMethod(mb_add_standard_compiler_flags, 'MBAddStandardCompilerFlags')
+    env.AddMethod(mb_add_devel_lib_path, 'MBAddDevelLibPath')
+    env.AddMethod(mb_add_devel_include_path, 'MBAddDevelIncludePath')
 
-    env.AddMethod(mb_is_windows, 'MBIsWindows')
-    env.AddMethod(mb_is_linux, 'MBIsLinux')
-    env.AddMethod(mb_is_mac, 'MBIsMac')
-    env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
+    env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
 
     env.AddMethod(mb_depends_on_mb_core_utils, 'MBDependsOnMBCoreUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
+    env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
-
-    env.AddMethod(mb_debug_build, 'MBDebugBuild')
-    env.AddMethod(mb_build_tests, 'MBBuildTests')
-    env.AddMethod(mb_run_tests, 'MBRunTests')
-
-    env.AddMethod(mb_msbuild, 'MBMSBuild')
+    env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
+    env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
     env.AddMethod(mb_program, 'MBProgram')
 
-    env.AddMethod(mb_prepare_boost, 'MBPrepareBoost')
-    env.AddMethod(mb_set_compiler_flags, 'MBSetCompilerFlags')
+    env.AddMethod(mb_explicit_moc_fixme, 'MBExplicitMocFixme')
 
-    mb_common_arguments()
-
-    env.MBSetDefaultPrefix()
-    env.MBSetInstallPaths()
-    env.MBPrepareBoost()
-    env.MBSetCompilerFlags()
+    set_default_prefix(env)
+    set_install_paths(env)
+    set_compiler_flags(env)
 
 def exists(env) :
     return True
