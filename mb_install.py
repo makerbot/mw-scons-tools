@@ -259,7 +259,7 @@ def mb_add_lib(env, name):
         env.Append(LIBS = [name])
 
 def mb_add_include_paths(env, paths):
-    env.Prepend(CPPPATH=paths)
+    env.Prepend(CPPPATH=[paths])
 
 def mb_add_standard_compiler_flags(env):
     if not env.MBIsWindows():
