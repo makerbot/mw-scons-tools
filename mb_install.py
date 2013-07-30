@@ -5,6 +5,7 @@ import sys, os
 import glob
 import string
 import re
+import SCons
 
 symlink_env_name = 'MB_MAC_FRAMEWORK_HEADER_SYMLINK_DONE'
 
