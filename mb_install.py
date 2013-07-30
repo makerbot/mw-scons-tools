@@ -1,6 +1,7 @@
 import os
 import string
 import re
+import SCons
 
 '''
 Some conventions to keep this sane:
