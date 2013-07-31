@@ -70,7 +70,7 @@
     <WholeProgramOptimization>false</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <!-- If running from scons, some properties may not be set up -->
-    <VCTargetsPath Condition="'$(VCTargetsPath)'==''">C:\ProgramFiles (x86)\MSBuild\Microsoft.Cpp\v4.0\$(PlatformToolset)\</VCTargetsPath>
+    <VCTargetsPath Condition="'$(VCTargetsPath)'==''">C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\$(PlatformToolset)\</VCTargetsPath>
     <!-- Paths -->
     <MBRepoRoot>$(ProjectDir)\..\</MBRepoRoot>
     <MBToolchainFolder>$(MBRepoRoot)\..\</MBToolchainFolder>
