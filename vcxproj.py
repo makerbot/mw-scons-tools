@@ -61,9 +61,11 @@ def make_guid(project_name):
     ''' We want to make sure the guids are always the same per project name.
         Produces a guid in {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} form
         based on the project name (so don't reuse project names). '''
-    fixed_name = project_name.replace('-', '')
-    fixed_name = project_name.replace('_', '')
-    guid_base = fixed_name + '1234567890abcdef1234567890abcdef'
+    # convert project name to something readable as hex
+    fixed_name = ''
+    for char in project_name:
+        fixed_name += str(ord(char))
+    guid_base = fixed_name + 'abcdef1234567890abcdef1234567890'
     project_guid = guid_base[0:8]+'-'+guid_base[8:12]+'-'+guid_base[12:16]+'-'+guid_base[16:20]+'-'+guid_base[20:32]
     return project_guid
 
