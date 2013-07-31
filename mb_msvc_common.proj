@@ -152,5 +152,9 @@
       <OptimizeReferences>$(MBIsRelease)</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
+  <!-- somehow this gets undefined on filipp's system. I'm not sure how or where. -->
+  <PropertyGroup>
+    <VCTargetsPath Condition="'$(VCTargetsPath)'==''">C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\$(PlatformToolset)\</VCTargetsPath>
+  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
 </Project>
