@@ -42,6 +42,12 @@ def mb_set_windows_bitness(env, bitness):
     ''' Toggle between Win32 and x64 '''
     env[kPlatformBitness] = bitness
 
+def mb_windows_is_64_bit(env):
+    return 'x64' == env[kPlatformBitness]
+
+def mb_windows_is_32_bit(env):
+    return 'Win32' == env[kPlatformBitness]
+
 def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
     env[kProjectName] = name
@@ -373,6 +379,8 @@ def generate(env):
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
     env.AddMethod(mb_set_windows_bitness, 'MBSetWindowsBitness')
+    env.AddMethod(mb_windows_is_64_bit, 'MBWindowsIs64Bit')
+    env.AddMethod(mb_windows_is_32_bit, 'MBWindowsIs32Bit')
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
     env.AddMethod(mb_add_windows_dll_build_flag, 'MBAddWindowsDLLBuildFlag')
     env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
