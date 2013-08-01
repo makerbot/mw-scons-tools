@@ -487,22 +487,20 @@ def mb_depends_on_conveyor_ui(env):
         env.Append(CPPDEFINES='CONVEYOR_UI_DLL')
 
 def mb_depends_on_boost(env):
-    boost_dir = os.environ.get('MB_BOOST_DIR')
-    if boost_dir is None:
-        env.MBLogSpam('MB_BOOST_DIR not specified.')
+    if env.MBIsWindows():
+        bitness = '64' if env.MBWindowsIs64Bit() else '32'
+        env.Append(LIBPATH = env.MBGetPath('MB_BOOST_' + bitness + '_LIBPATH'))
     else:
-        include_dir = os.path.join(boost_dir, 'include')
-        boost_version_re = re.compile('^boost-(?P<major>\d+)_(?P<minor>\d+)$')
-        #get the list of boost versions available
-        versions = [(int(match.group('major')), int(match.group('minor')))
-                for match in (boost_version_re.match(a)
-                for a in os.listdir(include_dir)) if match]
-        #sort them by major,minor then pick the latest
-        subdir = 'boost-{}_{}'.format(*(sorted(versions)[-1]))
-        include = os.path.join(include_dir, subdir)
-        lib = os.path.join(boost_dir, 'lib')
-        env.Append(CPPPATH = [include])
-        env.Append(LIBPATH = lib)
+        env.Append(LIBPATH = env.MBGetPath('MB_BOOST_LIBPATH'))
+    env.Append(CPPPATH = env.MBGetPath('MB_BOOST_CPPPATH'))
+
+def mb_depends_on_opencv(env):
+    env.Append(LIBPATH = env.MBGetPath('MB_OPENCV_LIBPATH'))
+    env.Append(CPPPATH = env.MBGetPath('MB_OPENCV_CPPPATH'))
+
+def mb_depends_on_vtk(env):
+    env.Append(LIBPATH = env.MBGetPath('MB_VTK_LIBPATH'))
+    env.Append(CPPPATH = env.MBGetPath('MB_VTK_CPPPATH'))
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
@@ -602,7 +600,10 @@ def generate(env):
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
+
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
+    env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
+    env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
