@@ -125,18 +125,18 @@ def set_third_party_paths(env):
     # SetDefault sets if the variable is not already set.
     if env.MBIsMac():
         env.SetDefault(
-            VTK_CPPPATH = os.path.join('/usr', 'local', 'vtk', 'include', 'vtk-5.10')
-            VTK_LIBPATH = os.path.join('/usr', 'local', 'vtk', 'lib', 'vtk-5.10'),
-            OPENCV_CPPPATH = os.path.join('/usr', 'local', 'opencv', 'include'),
-            OPENCV_LIBPATH = os.path.join('/usr', 'local', 'opencv', 'lib'),
-            BOOST_CPPPATH = os.path.join('/usr', 'local', 'boost', 'include', 'boost-1_53'),
-            BOOST_LIBPATH = os.path.join('/usr', 'local', 'boost', 'lib'))
+            MB_VTK_CPPPATH = os.path.join('/usr', 'local', 'vtk', 'include', 'vtk-5.10')
+            MB_VTK_LIBPATH = os.path.join('/usr', 'local', 'vtk', 'lib', 'vtk-5.10'),
+            MB_OPENCV_CPPPATH = os.path.join('/usr', 'local', 'opencv', 'include'),
+            MB_OPENCV_LIBPATH = os.path.join('/usr', 'local', 'opencv', 'lib'),
+            MB_BOOST_CPPPATH = os.path.join('/usr', 'local', 'boost', 'include', 'boost-1_53'),
+            MB_BOOST_LIBPATH = os.path.join('/usr', 'local', 'boost', 'lib'))
     elif env.MBIsWindows():
         env.SetDefault(
-            BOOST_64_CPPPATH = os.path.join('C:', 'Boost', 'include', 'boost-1_53'),
-            BOOST_64_LIBPATH = os.path.join('C:', 'Boost', 'x64'),
-            BOOST_32_CPPPATH = os.path.join('C:', 'Boost', 'include', 'boost-1_53'),
-            BOOST_32_LIBPATH = os.path.join('C:', 'Boost', 'x86'))
+            MB_BOOST_64_CPPPATH = os.path.join('C:', 'Boost', 'include', 'boost-1_53'),
+            MB_BOOST_64_LIBPATH = os.path.join('C:', 'Boost', 'x64'),
+            MB_BOOST_32_CPPPATH = os.path.join('C:', 'Boost', 'include', 'boost-1_53'),
+            MB_BOOST_32_LIBPATH = os.path.join('C:', 'Boost', 'x86'))
 
 def generate(env):
     tool_exists = 'MB_COMMON_TOOL_LOADED'
