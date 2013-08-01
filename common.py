@@ -4,6 +4,7 @@ import fnmatch
 import glob
 import os
 import sys
+import SCons
 
 '''
 Some conventions to keep this sane:
@@ -104,18 +105,23 @@ def mb_magic_python_glob(env, dir):
     return files
 
 def mb_get_path(env, pathname):
-    ''' Get a variable from the environment interpreted as a path,
-        i.e. as a list of paths. '''
+    ''' Get a variable from the environment interpreted as a path.
+
+        If it's a list return it as-is,
+        If it's a string break it on the path separator (either ':' or ';') '''
     try:
         var = env[pathname]
     except KeyError:
         raise KeyError(
             'This SConscript expects you to have an '
             'environment variable ' + pathname + ' defined.')
-    if env.MBIsWindows:
-        return var.split(';')
+    if SCons.Util.is_List(var):
+        return var
     else:
-        return value.split(':')
+        if env.MBIsWindows:
+            return var.split(';')
+        else:
+            return value.split(':')
 
 def set_third_party_paths(env):
     ''' Sets the default locations for third-party libs and headers.
