@@ -114,7 +114,7 @@ def mb_get_path(env, pathname):
             'environment variable ' + pathname + ' defined.')
     if env.MBIsWindows:
         return var.split(';')
-    else
+    else:
         return value.split(':')
 
 def set_third_party_paths(env):
