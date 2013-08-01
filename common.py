@@ -181,16 +181,16 @@ def set_third_party_paths(env):
         env.SetDefault(
             MB_BOOST_64_CPPPATH =
                 e.get(MB_BOOST_64_CPPPATH,
-                os.path.join('C:', 'Boost', 'x64', 'include', 'boost-1_53')),
+                os.path.join('C:\\', 'Boost', 'x64', 'include', 'boost-1_53')),
             MB_BOOST_64_LIBPATH =
                 e.get(MB_BOOST_64_LIBPATH,
-                os.path.join('C:', 'Boost', 'x64', 'lib')),
+                os.path.join('C:\\', 'Boost', 'x64', 'lib')),
             MB_BOOST_32_CPPPATH =
                 e.get(MB_BOOST_32_CPPPATH,
-                os.path.join('C:', 'Boost', 'x86', 'include', 'boost-1_53')),
+                os.path.join('C:\\', 'Boost', 'x86', 'include', 'boost-1_53')),
             MB_BOOST_32_LIBPATH =
                 e.get(MB_BOOST_32_LIBPATH,
-                os.path.join('C:', 'Boost', 'x86', 'lib')))
+                os.path.join('C:\\', 'Boost', 'x86', 'lib')))
 
 def mb_depends_on_boost(env):
     if env.MBIsWindows():
