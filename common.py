@@ -106,8 +106,12 @@ def mb_magic_python_glob(env, dir):
 def mb_get_path(env, pathname):
     ''' Get a variable from the environment interpreted as a path,
         i.e. as a list of paths. '''
-    # This will raise a key error if the variable isn't set
-    var = env[pathname]
+    try:
+        var = env[pathname]
+    except KeyError:
+        raise KeyError(
+            'This SConscript expects you to have an '
+            'environment variable ' + pathname + ' defined.')
     if env.MBIsWindows:
         return var.split(';')
     else
