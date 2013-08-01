@@ -133,9 +133,10 @@ def set_third_party_paths(env):
             MB_BOOST_LIBPATH = os.path.join('/usr', 'local', 'boost', 'lib'))
     elif env.MBIsWindows():
         env.SetDefault(
-            MB_BOOST_CPPPATH = os.path.join('C:', 'Boost', 'include', 'boost-1_53'),
-            MB_BOOST_64_LIBPATH = os.path.join('C:', 'Boost', 'x64'),
-            MB_BOOST_32_LIBPATH = os.path.join('C:', 'Boost', 'x86'))
+            MB_BOOST_64_CPPPATH = os.path.join('C:', 'Boost', 'x64', 'include', 'boost-1_53'),
+            MB_BOOST_64_LIBPATH = os.path.join('C:', 'Boost', 'x64', 'lib'),
+            MB_BOOST_32_CPPPATH = os.path.join('C:', 'Boost', 'x86', 'include', 'boost-1_53'),
+            MB_BOOST_32_LIBPATH = os.path.join('C:', 'Boost', 'x86', 'lib'))
 
 def generate(env):
     tool_exists = 'MB_COMMON_TOOL_LOADED'

@@ -490,9 +490,10 @@ def mb_depends_on_boost(env):
     if env.MBIsWindows():
         bitness = '64' if env.MBWindowsIs64Bit() else '32'
         env.Append(LIBPATH = env.MBGetPath('MB_BOOST_' + bitness + '_LIBPATH'))
+        env.Append(CPPPATH = env.MBGetPath('MB_BOOST_' + bitness + '_CPPPATH'))
     else:
         env.Append(LIBPATH = env.MBGetPath('MB_BOOST_LIBPATH'))
-    env.Append(CPPPATH = env.MBGetPath('MB_BOOST_CPPPATH'))
+        env.Append(CPPPATH = env.MBGetPath('MB_BOOST_CPPPATH'))
 
 def mb_depends_on_opencv(env):
     env.Append(LIBPATH = env.MBGetPath('MB_OPENCV_LIBPATH'))
