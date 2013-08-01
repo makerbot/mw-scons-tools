@@ -103,6 +103,37 @@ def mb_magic_python_glob(env, dir):
                 env.Glob(os.path.join(curpath, '*.py'))))
     return files
 
+def mb_get_path(env, pathname):
+    ''' Get a variable from the environment interpreted as a path,
+        i.e. as a list of paths. '''
+    # This will raise a key error if the variable isn't set
+    var = env[pathname]
+    if env.MBIsWindows:
+        return var.split(';')
+    else
+        return value.split(':')
+
+def set_third_party_paths(env):
+    ''' Sets the default locations for third-party libs and headers.
+
+        We assume that if anything is in a non-standard location the
+        user has set the appropriate environment variable. '''
+    # SetDefault sets if the variable is not already set.
+    if env.MBIsMac():
+        env.SetDefault(
+            VTK_CPPPATH = os.path.join('/usr', 'local', 'vtk', 'include', 'vtk-5.10')
+            VTK_LIBPATH = os.path.join('/usr', 'local', 'vtk', 'lib', 'vtk-5.10'),
+            OPENCV_CPPPATH = os.path.join('/usr', 'local', 'opencv', 'include'),
+            OPENCV_LIBPATH = os.path.join('/usr', 'local', 'opencv', 'lib'),
+            BOOST_CPPPATH = os.path.join('/usr', 'local', 'boost', 'include', 'boost-1_53'),
+            BOOST_LIBPATH = os.path.join('/usr', 'local', 'boost', 'lib'))
+    elif env.MBIsWindows():
+        env.SetDefault(
+            BOOST_64_CPPPATH = os.path.join('C:', 'Boost', 'include', 'boost-1_53'),
+            BOOST_64_LIBPATH = os.path.join('C:', 'Boost', 'x64'),
+            BOOST_32_CPPPATH = os.path.join('C:', 'Boost', 'include', 'boost-1_53'),
+            BOOST_32_LIBPATH = os.path.join('C:', 'Boost', 'x86'))
+
 def generate(env):
     tool_exists = 'MB_COMMON_TOOL_LOADED'
     if env.get(tool_exists, False):
@@ -126,6 +157,10 @@ def generate(env):
     env.AddMethod(mb_glob, 'MBGlob')
     env.AddMethod(mb_recursive_file_glob, 'MBRecursiveFileGlob')
     env.AddMethod(mb_magic_python_glob, 'MBMagicPythonGlob')
+
+    env.AddMethod(mb_get_path, 'MBGetPath')
+
+    set_third_party_paths(env)
 
 def exists(env) :
     return True
