@@ -398,6 +398,10 @@ def set_install_paths(env):
         env['LIBS'] = []
 
 def set_compiler_flags(env):
+    ''' Sets flags required by all projects.
+
+        Really, this just does things needed by C++ projects,
+        but it won't interfere with the python ones. '''
     if env.MBIsMac():
         env.Replace(CC='clang')
         env.Replace(CXX='clang++')
