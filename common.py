@@ -125,7 +125,7 @@ def set_third_party_paths(env):
     # SetDefault sets if the variable is not already set.
     if env.MBIsMac():
         env.SetDefault(
-            MB_VTK_CPPPATH = os.path.join('/usr', 'local', 'vtk', 'include', 'vtk-5.10')
+            MB_VTK_CPPPATH = os.path.join('/usr', 'local', 'vtk', 'include', 'vtk-5.10'),
             MB_VTK_LIBPATH = os.path.join('/usr', 'local', 'vtk', 'lib', 'vtk-5.10'),
             MB_OPENCV_CPPPATH = os.path.join('/usr', 'local', 'opencv', 'include'),
             MB_OPENCV_LIBPATH = os.path.join('/usr', 'local', 'opencv', 'lib'),
