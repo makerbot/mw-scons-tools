@@ -123,26 +123,91 @@ def mb_get_path(env, pathname):
         else:
             return value.split(':')
 
+MB_VTK_CPPPATH = 'MB_VTK_CPPPATH'
+MB_VTK_LIBPATH = 'MB_VTK_LIBPATH'
+MB_OPENCV_CPPPATH = 'MB_OPENCV_CPPPATH'
+MB_OPENCV_LIBPATH = 'MB_OPENCV_LIBPATH'
+MB_BOOST_CPPPATH = 'MB_BOOST_CPPPATH'
+MB_BOOST_LIBPATH = 'MB_BOOST_LIBPATH'
+MB_BOOST_64_CPPPATH = 'MB_BOOST_64_CPPPATH'
+MB_BOOST_64_LIBPATH = 'MB_BOOST_64_LIBPATH'
+MB_BOOST_32_CPPPATH = 'MB_BOOST_32_CPPPATH'
+MB_BOOST_32_LIBPATH = 'MB_BOOST_32_LIBPATH'
 def set_third_party_paths(env):
     ''' Sets the default locations for third-party libs and headers.
 
         We assume that if anything is in a non-standard location the
         user has set the appropriate environment variable. '''
+
+    def set_default_if_not_none(env, variable, default):
+        ''' This is for things without default values. '''
+        if default:
+            env.SetDefault(**{variable : default})
+
+    e = os.environ
     # SetDefault sets if the variable is not already set.
     if env.MBIsMac():
         env.SetDefault(
-            MB_VTK_CPPPATH = os.path.join('/usr', 'local', 'vtk', 'include', 'vtk-5.10'),
-            MB_VTK_LIBPATH = os.path.join('/usr', 'local', 'vtk', 'lib', 'vtk-5.10'),
-            MB_OPENCV_CPPPATH = os.path.join('/usr', 'local', 'opencv', 'include'),
-            MB_OPENCV_LIBPATH = os.path.join('/usr', 'local', 'opencv', 'lib'),
-            MB_BOOST_CPPPATH = os.path.join('/usr', 'local', 'boost', 'include', 'boost-1_53'),
-            MB_BOOST_LIBPATH = os.path.join('/usr', 'local', 'boost', 'lib'))
+            MB_VTK_CPPPATH =
+                e.get(MB_VTK_CPPPATH,
+                os.path.join('/usr', 'local', 'vtk', 'include', 'vtk-5.10')),
+            MB_VTK_LIBPATH =
+                e.get(MB_VTK_LIBPATH,
+                os.path.join('/usr', 'local', 'vtk', 'lib', 'vtk-5.10')),
+            MB_OPENCV_CPPPATH =
+                e.get(MB_OPENCV_CPPPATH,
+                os.path.join('/usr', 'local', 'opencv', 'include')),
+            MB_OPENCV_LIBPATH =
+                e.get(MB_OPENCV_LIBPATH,
+                os.path.join('/usr', 'local', 'opencv', 'lib')),
+            MB_BOOST_CPPPATH =
+                e.get(MB_BOOST_CPPPATH,
+                os.path.join('/usr', 'local', 'boost', 'include', 'boost-1_53')),
+            MB_BOOST_LIBPATH =
+                e.get(MB_BOOST_LIBPATH,
+                os.path.join('/usr', 'local', 'boost', 'lib')))
+    elif env.MBIsLinux():
+        set_default_if_not_none(env, MB_VTK_CPPPATH, e.get(MB_VTK_CPPPATH))
+        set_default_if_not_none(env, MB_VTK_LIBPATH, e.get(MB_VTK_LIBPATH))
+        set_default_if_not_none(env, MB_OPENCV_CPPPATH, e.get(MB_OPENCV_CPPPATH))
+        set_default_if_not_none(env, MB_OPENCV_LIBPATH, e.get(MB_OPENCV_LIBPATH))
+        set_default_if_not_none(env, MB_BOOST_CPPPATH, e.get(MB_BOOST_CPPPATH))
+        set_default_if_not_none(env, MB_BOOST_LIBPATH, e.get(MB_BOOST_LIBPATH))
     elif env.MBIsWindows():
+        set_default_if_not_none(env, MB_VTK_CPPPATH, e.get(MB_VTK_CPPPATH))
+        set_default_if_not_none(env, MB_VTK_LIBPATH, e.get(MB_VTK_LIBPATH))
+        set_default_if_not_none(env, MB_OPENCV_CPPPATH, e.get(MB_OPENCV_CPPPATH))
+        set_default_if_not_none(env, MB_OPENCV_LIBPATH, e.get(MB_OPENCV_LIBPATH))
         env.SetDefault(
-            MB_BOOST_64_CPPPATH = os.path.join('C:', 'Boost', 'x64', 'include', 'boost-1_53'),
-            MB_BOOST_64_LIBPATH = os.path.join('C:', 'Boost', 'x64', 'lib'),
-            MB_BOOST_32_CPPPATH = os.path.join('C:', 'Boost', 'x86', 'include', 'boost-1_53'),
-            MB_BOOST_32_LIBPATH = os.path.join('C:', 'Boost', 'x86', 'lib'))
+            MB_BOOST_64_CPPPATH =
+                e.get(MB_BOOST_64_CPPPATH,
+                os.path.join('C:', 'Boost', 'x64', 'include', 'boost-1_53')),
+            MB_BOOST_64_LIBPATH =
+                e.get(MB_BOOST_64_LIBPATH,
+                os.path.join('C:', 'Boost', 'x64', 'lib')),
+            MB_BOOST_32_CPPPATH =
+                e.get(MB_BOOST_32_CPPPATH,
+                os.path.join('C:', 'Boost', 'x86', 'include', 'boost-1_53')),
+            MB_BOOST_32_LIBPATH =
+                e.get(MB_BOOST_32_LIBPATH,
+                os.path.join('C:', 'Boost', 'x86', 'lib')))
+
+def mb_depends_on_boost(env):
+    if env.MBIsWindows():
+        bitness = '64' if env.MBWindowsIs64Bit() else '32'
+        env.Append(LIBPATH = env.MBGetPath('MB_BOOST_' + bitness + '_LIBPATH'))
+        env.Append(CPPPATH = env.MBGetPath('MB_BOOST_' + bitness + '_CPPPATH'))
+    else:
+        env.Append(LIBPATH = env.MBGetPath(MB_BOOST_LIBPATH))
+        env.Append(CPPPATH = env.MBGetPath(MB_BOOST_CPPPATH))
+
+def mb_depends_on_opencv(env):
+    env.Append(LIBPATH = env.MBGetPath(MB_OPENCV_LIBPATH))
+    env.Append(CPPPATH = env.MBGetPath(MB_OPENCV_CPPPATH))
+
+def mb_depends_on_vtk(env):
+    env.Append(LIBPATH = env.MBGetPath(MB_VTK_LIBPATH))
+    env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
 
 def generate(env):
     tool_exists = 'MB_COMMON_TOOL_LOADED'
@@ -169,6 +234,10 @@ def generate(env):
     env.AddMethod(mb_magic_python_glob, 'MBMagicPythonGlob')
 
     env.AddMethod(mb_get_path, 'MBGetPath')
+
+    env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
+    env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
+    env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
 
     set_third_party_paths(env)
 

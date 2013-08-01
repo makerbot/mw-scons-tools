@@ -486,23 +486,6 @@ def mb_depends_on_conveyor_ui(env):
     if env.MBIsWindows():
         env.Append(CPPDEFINES='CONVEYOR_UI_DLL')
 
-def mb_depends_on_boost(env):
-    if env.MBIsWindows():
-        bitness = '64' if env.MBWindowsIs64Bit() else '32'
-        env.Append(LIBPATH = env.MBGetPath('MB_BOOST_' + bitness + '_LIBPATH'))
-        env.Append(CPPPATH = env.MBGetPath('MB_BOOST_' + bitness + '_CPPPATH'))
-    else:
-        env.Append(LIBPATH = env.MBGetPath('MB_BOOST_LIBPATH'))
-        env.Append(CPPPATH = env.MBGetPath('MB_BOOST_CPPPATH'))
-
-def mb_depends_on_opencv(env):
-    env.Append(LIBPATH = env.MBGetPath('MB_OPENCV_LIBPATH'))
-    env.Append(CPPPATH = env.MBGetPath('MB_OPENCV_CPPPATH'))
-
-def mb_depends_on_vtk(env):
-    env.Append(LIBPATH = env.MBGetPath('MB_VTK_LIBPATH'))
-    env.Append(CPPPATH = env.MBGetPath('MB_VTK_CPPPATH'))
-
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         env.MBWindowsDefaultToProgram()
@@ -601,10 +584,6 @@ def generate(env):
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
-
-    env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
-    env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
-    env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
