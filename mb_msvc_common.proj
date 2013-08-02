@@ -148,7 +148,7 @@
       <SDLCheck>true</SDLCheck>
       <FunctionLevelLinking>$(MBIsRelease)</FunctionLevelLinking>
       <IntrinsicFunctions>$(MBIsRelease)</IntrinsicFunctions>
-      <ProgramDataBaseFileName>$(OutDir)\$(TargetName).pdb</ProgramDataBaseFileName>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
