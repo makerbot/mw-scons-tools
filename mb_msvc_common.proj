@@ -103,7 +103,7 @@
   <PropertyGroup>
     <!-- Standard Paths used by msbuild -->
     <OutDir>$(MBRepoRoot)$(outputSuffix)</OutDir>
-    <IntDir>$(SolutionDir)$(Platform)_Int\$(Configuration)_Int\</IntDir>
+    <IntDir>$(SolutionDir)$(ProjectName)_Int\$(Platform)\$(Configuration)\</IntDir>
     <MocDir>$(IntDir)moc\</MocDir>
     <QrcDir>$(IntDir)qrc\</QrcDir>
     <!-- Some properties based on the Configuration -->
