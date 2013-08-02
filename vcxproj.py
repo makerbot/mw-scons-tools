@@ -32,6 +32,8 @@ kUseSDLCheck = 'MB_WINDOWS_USE_SDL_CHECK'
 # for the --novariant option
 kVariantDir = 'MB_WINDOWS_VARIANT_DIR'
 
+kIgnoredLibs = 'MB_WINDOWS_IGNORED_LIBS'
+
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
     if None == platform:
@@ -62,6 +64,9 @@ def mb_set_windows_use_sdl_check(env, use_sdl):
 
 def mb_set_windows_variant_dir(env, variant_dir):
     env[kVariantDir] = variant_dir
+
+def mb_add_windows_ignored_lib(env, lib):
+    env.Append(**{kIgnoredLibs : [lib]})
 
 def make_guid(project_name):
     ''' We want to make sure the guids are always the same per project name.
@@ -116,6 +121,7 @@ def fill_in_the_blanks(project_name,
                        include_paths,
                        sources,
                        libs,
+                       ignored_libs,
                        lib_paths):
     ''' this contains the template where the blanks can be filled in '''
     vcxproj_contents = '\n'.join([
@@ -153,6 +159,9 @@ def fill_in_the_blanks(project_name,
         one_per_line('        ', strip_obj(libs), ';'),
         '        %(AdditionalDependencies)',
         '      </AdditionalDependencies>',
+        '      <IgnoreSpecificDefaultLibraries>',
+        one_per_line('        ', strip_obj(ignored_libs), ';'),
+        '      </IgnoreSpecificDefaultLibraries>',
         '      <AdditionalLibraryDirectories>',
         one_per_line('        ', strip_obj(lib_paths), ';'),
         '        %(AdditionalLibraryDirectories)',
@@ -224,6 +233,9 @@ def mb_gen_vcxproj(target, source, env):
     # manually append '.lib' if it's missing
     libs = [lib if lib.endswith('.lib') else lib + '.lib' for lib in libs]
 
+    # we do less processing on ignored libs
+    ignored_libs = SCons.Util.flatten(env[kIgnoredLibs])
+
     env.MBLogSpam(
         'project_name = ' + str(env[kProjectName]) + '\n' +
         'can_be_program = ' + str(env[kCanBeProgram]) + '\n' +
@@ -236,6 +248,7 @@ def mb_gen_vcxproj(target, source, env):
         'include_paths = ' + str(cpppath) + '\n' +
         'sources = ' + str(desconsify(source)) + '\n' +
         'libs = ' + str(libs) + '\n' +
+        'ignored_libs = ' + str(ignored_libs) + '\n' +
         'lib_paths = ' + str(libpath))
 
     with open(filename, 'w') as f:
@@ -251,6 +264,7 @@ def mb_gen_vcxproj(target, source, env):
             include_paths = cpppath,
             sources = desconsify(source),
             libs = libs,
+            ignored_libs = ignored_libs,
             lib_paths = libpath))
 
 def mb_windows_default_to_program(env):
@@ -362,20 +376,14 @@ def generate(env):
     common_arguments(env)
 
     # make sure that some necessary env variables exist
-    if kPlatformBitness not in env:
-        env[kPlatformBitness] = kDefaultPlatformBitness
-
-    if kUseSDLCheck not in env:
-        env[kUseSDLCheck] = kDefaultUseSDLCheck
-
-    if kCanBeProgram not in env:
-        env[kCanBeProgram] = False
-
-    if kCanBeShared not in env:
-        env[kCanBeShared] = False
-
-    if kCanBeStatic not in env:
-        env[kCanBeStatic] = False
+    env.SetDefault(**{
+        kPlatformBitness : kDefaultPlatformBitness,
+        kUseSDLCheck : kDefaultUseSDLCheck,
+        kCanBeProgram : False,
+        kCanBeShared : False,
+        kCanBeStatic : False,
+        kIgnoredLibs : []
+    })
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
     env.AddMethod(mb_set_windows_bitness, 'MBSetWindowsBitness')
@@ -384,6 +392,7 @@ def generate(env):
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
     env.AddMethod(mb_add_windows_dll_build_flag, 'MBAddWindowsDLLBuildFlag')
     env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
+    env.AddMethod(mb_add_windows_ignored_lib, 'MBAddWindowsIgnoredLib')
 
     env.AddMethod(mb_windows_default_to_program, 'MBWindowsDefaultToProgram')
     env.AddMethod(mb_windows_default_to_static_lib, 'MBWindowsDefaultToStaticLib')
