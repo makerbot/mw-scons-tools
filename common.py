@@ -138,12 +138,6 @@ def set_third_party_paths(env):
 
         We assume that if anything is in a non-standard location the
         user has set the appropriate environment variable. '''
-
-    def set_default_if_not_none(env, variable, default):
-        ''' This is for things without default values. '''
-        if default:
-            env.SetDefault(**{variable : default})
-
     e = os.environ
     # SetDefault sets if the variable is not already set.
     if env.MBIsMac():
@@ -167,18 +161,19 @@ def set_third_party_paths(env):
                 e.get(MB_BOOST_LIBPATH,
                 os.path.join('/usr', 'local', 'boost', 'lib')))
     elif env.MBIsLinux():
-        set_default_if_not_none(env, MB_VTK_CPPPATH, e.get(MB_VTK_CPPPATH))
-        set_default_if_not_none(env, MB_VTK_LIBPATH, e.get(MB_VTK_LIBPATH))
-        set_default_if_not_none(env, MB_OPENCV_CPPPATH, e.get(MB_OPENCV_CPPPATH))
-        set_default_if_not_none(env, MB_OPENCV_LIBPATH, e.get(MB_OPENCV_LIBPATH))
-        set_default_if_not_none(env, MB_BOOST_CPPPATH, e.get(MB_BOOST_CPPPATH))
-        set_default_if_not_none(env, MB_BOOST_LIBPATH, e.get(MB_BOOST_LIBPATH))
-    elif env.MBIsWindows():
-        set_default_if_not_none(env, MB_VTK_CPPPATH, e.get(MB_VTK_CPPPATH))
-        set_default_if_not_none(env, MB_VTK_LIBPATH, e.get(MB_VTK_LIBPATH))
-        set_default_if_not_none(env, MB_OPENCV_CPPPATH, e.get(MB_OPENCV_CPPPATH))
-        set_default_if_not_none(env, MB_OPENCV_LIBPATH, e.get(MB_OPENCV_LIBPATH))
         env.SetDefault(
+            MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
+            MB_VTK_LIBPATH = e.get(MB_VTK_LIBPATH, []),
+            MB_OPENCV_CPPPATH = e.get(MB_OPENCV_CPPPATH, []),
+            MB_OPENCV_LIBPATH = e.get(MB_OPENCV_LIBPATH, []),
+            MB_BOOST_CPPPATH = e.get(MB_BOOST_CPPPATH, []),
+            MB_BOOST_LIBPATH = e.get(MB_BOOST_LIBPATH, []))
+    elif env.MBIsWindows():
+        env.SetDefault(
+            MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
+            MB_VTK_LIBPATH = e.get(MB_VTK_LIBPATH, []),
+            MB_OPENCV_CPPPATH = e.get(MB_OPENCV_CPPPATH, []),
+            MB_OPENCV_LIBPATH = e.get(MB_OPENCV_LIBPATH, []),
             MB_BOOST_64_CPPPATH =
                 e.get(MB_BOOST_64_CPPPATH,
                 os.path.join('C:\\', 'Boost', 'x64', 'include', 'boost-1_53')),
