@@ -349,7 +349,9 @@ def mb_windows_program(env, target, source, *args, **kwargs):
     env.Depends(vcxproj, this_file)
     common_file = env.File('site_scons\site_tools\mb_msvc_common.proj')
     env.Depends(vcxproj, common_file)
-    return env.MBBuildVcxproj(target, vcxproj)
+    result = env.MBBuildVcxproj(target, vcxproj)
+    env.Depends(result, source)
+    return result
 
 # Set up command line args used by every scons script
 def common_arguments(env):
