@@ -451,36 +451,41 @@ def mb_depends_on_mb_core_utils(env):
     # MBCoreUtils is currently header-only
     env.MBAddDevelIncludePath('#/../MBCoreUtils/cpp/include')
 
+def windows_debug_tweak(env, lib):
+    if env.MBIsWindows() and env.MBDebugBuild():
+        lib += 'd'
+    return lib
+
 def mb_depends_on_json_cpp(env):
-    env.MBAddLib('jsoncpp')
+    env.MBAddLib(windows_debug_tweak(env, 'jsoncpp'))
     env.MBAddDevelLibPath('#/../json-cpp/obj')
     env.MBAddDevelIncludePath('#/../json-cpp/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='JSON_DLL')
 
 def mb_depends_on_json_rpc(env):
-    env.MBAddLib('jsonrpc')
+    env.MBAddLib(windows_debug_tweak(env, 'jsonrpc'))
     env.MBAddDevelLibPath('#/../jsonrpc/obj')
     env.MBAddDevelIncludePath('#/../jsonrpc/src/main/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='JSONRPC_DLL')
 
 def mb_depends_on_thing(env):
-    env.MBAddLib('thing')
+    env.MBAddLib(windows_debug_tweak(env, 'thing'))
     env.MBAddDevelLibPath('#/../libthing-surprise/obj')
     env.MBAddDevelIncludePath('#/../libthing-surprise/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='THING_DLL')
 
 def mb_depends_on_conveyor(env):
-    env.MBAddLib('conveyor')
+    env.MBAddLib(windows_debug_tweak(env, 'conveyor'))
     env.MBAddDevelLibPath('#/../conveyor/obj')
     env.MBAddDevelIncludePath('#/../conveyor/obj/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='CONVEYOR_DLL')
 
 def mb_depends_on_conveyor_ui(env):
-    env.MBAddLib('conveyor-ui')
+    env.MBAddLib(windows_debug_tweak(env, 'conveyor-ui'))
     env.MBAddDevelLibPath('#/../conveyor-ui/obj')
     env.MBAddDevelIncludePath('#/../conveyor-ui/obj/include')
     if env.MBIsWindows():
