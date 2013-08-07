@@ -369,8 +369,6 @@ def mb_windows_build(env, target, source):
     vcxproj = env.MBGenVcxproj(target, source)
     this_file = os.path.abspath(__file__)
     env.Depends(vcxproj, this_file)
-    common_file = env.File('site_scons\site_tools\mb_msvc_common.proj')
-    env.Depends(vcxproj, common_file)
     result = env.MBBuildVcxproj(target, vcxproj)
     env.Depends(result, source)
     return result
