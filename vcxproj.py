@@ -30,6 +30,7 @@ kVariantDir = 'MB_WINDOWS_VARIANT_DIR'
 
 kIgnoredLibs = 'MB_WINDOWS_IGNORED_LIBS'
 
+
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
     if None == platform:
@@ -81,7 +82,7 @@ def strip_obj(paths):
     return [re.sub('^(\\\\|/)*obj(\\\\|/)*', '', path) for path in paths]
 
 def replace_hash(paths):
-    ''' If any path starts with obj, remove the obj '''
+    ''' Replace the '#' meaning 'root' with '..' '''
     return [re.sub('^#', '..', path) for path in paths]
 
 def replace_scons_nodes(nodes):
@@ -110,6 +111,7 @@ def fill_in_the_blanks(project_name,
                        target_name,
                        configuration_type,
                        preprocessor_defines,
+                       debugging_path,
                        use_sdl_check,
                        compiler_flags,
                        include_paths,
@@ -179,6 +181,10 @@ def fill_in_the_blanks(project_name,
         '    <MBPreprocessorDebugDefs Condition="$(MBIsDebug)">_DEBUG</MBPreprocessorDebugDefs>',
         '    <MBPreprocessorDebugDefs Condition="$(MBIsRelease)">NDEBUG</MBPreprocessorDebugDefs>',
         '    <TargetName>' + target_name + '</TargetName>',
+        '    <!-- Adds a bunch of stuff to the path for debugging. Formatting matters a lot here. -->',
+        '    <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\\bin;' + ';'.join(debugging_path),
+        '$(LocalDebuggerEnvironment)',
+        '    </LocalDebuggerEnvironment>',
         '  </PropertyGroup>',
         '  <ItemDefinitionGroup>',
         '    <ClCompile>',
@@ -302,6 +308,7 @@ def mb_gen_vcxproj(target, source, env):
             project_name = env[kProjectName],
             target_name = expanded_project_name(env),
             configuration_type = configuration,
+            debugging_path = libpath,
             compiler_flags = env['CCFLAGS'],
             preprocessor_defines = cppdefines,
             use_sdl_check = env[kUseSDLCheck],
