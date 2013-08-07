@@ -15,11 +15,7 @@ just make sure to update everything to match those conventions
 '''
 
 # environment keys
-kDefaultConfiguration = 'MB_WINDOWS_DEFAULT_CONFIGURATION'
-
-kCanBeProgram = 'MB_WINDOWS_CONFIGURATION_CAN_BE_PROGRAM'
-kCanBeShared = 'MB_WINDOWS_CONFIGURATION_CAN_BE_SHARED'
-kCanBeStatic = 'MB_WINDOWS_CONFIGURATION_CAN_BE_STATIC'
+kConfigurationType = 'MB_WINDOWS_CONFIGURATION_TYPE'
 
 kDefaultPlatformBitness = 'x64'
 kPlatformBitness = 'MB_WINDOWS_PLATFORM_BITNESS'
@@ -111,10 +107,8 @@ def scons_to_msbuild_env_substitution(stuff):
     return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', thing) for thing in stuff]
 
 def fill_in_the_blanks(project_name,
-                       can_be_program,
-                       can_be_shared,
-                       can_be_static,
-                       default_configuration,
+                       target_name,
+                       configuration_type,
                        preprocessor_defines,
                        use_sdl_check,
                        compiler_flags,
@@ -127,25 +121,80 @@ def fill_in_the_blanks(project_name,
     vcxproj_contents = '\n'.join([
         '<?xml version="1.0" encoding="utf-8"?>',
         '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
+        '  <ItemGroup Label="ProjectConfigurations">',
+        '    <ProjectConfiguration Include="Debug|Win32">',
+        '      <Configuration>Debug</Configuration>',
+        '      <Platform>Win32</Platform>',
+        '    </ProjectConfiguration>',
+        '    <ProjectConfiguration Include="Debug|x64">',
+        '      <Configuration>Debug</Configuration>',
+        '      <Platform>x64</Platform>',
+        '    </ProjectConfiguration>',
+        '    <ProjectConfiguration Include="Release|Win32">',
+        '      <Configuration>Release</Configuration>',
+        '      <Platform>Win32</Platform>',
+        '    </ProjectConfiguration>',
+        '    <ProjectConfiguration Include="Release|x64">',
+        '      <Configuration>Release</Configuration>',
+        '      <Platform>x64</Platform>',
+        '    </ProjectConfiguration>'
+        '  </ItemGroup>',
         '  <PropertyGroup Label="Globals">',
         '    <ProjectGuid>{' + make_guid(project_name) + '}</ProjectGuid>',
         '    <RootNamespace>' + project_name + '</RootNamespace>',
         '  </PropertyGroup>',
-        '  <PropertyGroup>',
-        '    <MBCanBeLib>' + ('true' if can_be_static else 'false') + '</MBCanBeLib>',
-        '    <MBCanBeDLL>' + ('true' if can_be_shared else 'false') + '</MBCanBeDLL>',
-        '    <MBCanBeApp>' + ('true' if can_be_program else 'false') + '</MBCanBeApp>',
-        '    <MBDefaultConfigurationType>' + default_configuration + '</MBDefaultConfigurationType>',
+        '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
+        '  <PropertyGroup Label="Configuration">',
+        '    <ConfigurationType>' + configuration_type + '</ConfigurationType>',
+        '    <UseDebugLibraries Condition="\'$(Configuration)\'==\'Debug\'">true</UseDebugLibraries>',
+        '    <UseDebugLibraries Condition="\'$(Configuration)\'==\'Release\'">false</UseDebugLibraries>',
+        '    <PlatformToolset>v110</PlatformToolset>',
+        '    <CharacterSet>MultiByte</CharacterSet>',
         '  </PropertyGroup>',
-        '  <Import Project=".\site_scons\site_tools\mb_msvc_common.proj" />',
+        '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />',
+        '  <ImportGroup Label="ExtensionSettings">',
+        '  </ImportGroup>',
+        '  <ImportGroup Label="PropertySheets">',
+        '    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists(\'$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props\')" Label="LocalAppDataPlatform" />',
+        '  </ImportGroup>',
+        '  <PropertyGroup Label="UserMacros" />',
+        '  <PropertyGroup />',
+        '  <PropertyGroup>',
+        '    <!-- If running from scons, some properties may not be set up -->',
+        '    <VCTargetsPath Condition="\'$(VCTargetsPath)\'==\'\'">C:\Program Files (x86)\MSBuild\Microsoft.Cpp\\v4.0\$(PlatformToolset)\</VCTargetsPath>',
+        '    <!-- Paths -->',
+        '    <MBRepoRoot>$(ProjectDir)\..\</MBRepoRoot>',
+        '    <MBToolchainFolder>$(MBRepoRoot)\..\</MBToolchainFolder>',
+        '    <variantDir Condition="\'$(MBNoVariant)\' == \'\' Or \'$(MBNoVariant)\' == \'false\'">.\obj\</variantDir>',
+        '    <variantDir Condition="\'$(MBNoVariant)\' != \'\'">.\</variantDir>',
+        '    <outputSuffix>$(variantDir)\$(Platform)\</outputSuffix>',
+        '    <!-- Standard Paths used by msbuild -->',
+        '    <OutDir>$(MBRepoRoot)$(outputSuffix)</OutDir>',
+        '    <IntDir>$(SolutionDir)$(ProjectName)_Int\$(Platform)\$(Configuration)\</IntDir>',
+        '    <!-- Some properties based on the Configuration -->',
+        '    <MBIsDebug Condition="\'$(Configuration)\' == \'Debug\'">true</MBIsDebug>',
+        '    <MBIsDebug Condition="\'$(MBIsDebug)\' == \'\'">false</MBIsDebug>',
+        '    <MBIsRelease Condition="\'$(Configuration)\' == \'Release\'">true</MBIsRelease>',
+        '    <MBIsRelease Condition="\'$(MBIsRelease)\' == \'\'">false</MBIsRelease>',
+        '    <MBPreprocessorDebugDefs Condition="$(MBIsDebug)">_DEBUG</MBPreprocessorDebugDefs>',
+        '    <MBPreprocessorDebugDefs Condition="$(MBIsRelease)">NDEBUG</MBPreprocessorDebugDefs>',
+        '    <TargetName>' + target_name + '</TargetName>',
+        '  </PropertyGroup>',
         '  <ItemDefinitionGroup>',
         '    <ClCompile>',
+        '      <DebugInformationFormat>OldStyle</DebugInformationFormat>',
+        '      <WarningLevel>Level3</WarningLevel>',
+        '      <Optimization Condition="$(MBIsDebug)">Disabled</Optimization>',
+        '      <Optimization Condition="$(MBIsRelease)">MaxSpeed</Optimization>',
+        '      <FunctionLevelLinking>$(MBIsRelease)</FunctionLevelLinking>',
+        '      <IntrinsicFunctions>$(MBIsRelease)</IntrinsicFunctions>',
         '      <SDLCheck>' + ('true' if use_sdl_check else 'false') + '</SDLCheck>',
+        # AdditionalOptions can't be on individual lines because of a bug in msbuild
         '      <AdditionalOptions>' + ' '.join(compiler_flags),
         '        %(AdditionalOptions)',
         '      </AdditionalOptions>',
         '      <PreprocessorDefinitions>',
-        '        $(MBCommonPreprocessorDefs);',
+        '        $(MBPreprocessorDebugDefs);',
         one_per_line('        ', preprocessor_defines, ';'),
         '        %(PreprocessorDefinitions)',
         '      </PreprocessorDefinitions>',
@@ -155,6 +204,9 @@ def fill_in_the_blanks(project_name,
         '      </AdditionalIncludeDirectories>',
         '    </ClCompile>',
         '    <Link>',
+        '      <GenerateDebugInformation>true</GenerateDebugInformation>',
+        '      <EnableCOMDATFolding>$(MBIsRelease)</EnableCOMDATFolding>',
+        '      <OptimizeReferences>$(MBIsRelease)</OptimizeReferences>',
         '      <AdditionalDependencies>',
         one_per_line('        ', strip_obj(libs), ';'),
         '        %(AdditionalDependencies)',
@@ -182,6 +234,19 @@ kProgramType = 'exe'
 kStaticLibraryType = 'lib'
 kDynamicLibraryType = 'dll'
 
+def expanded_project_name(env):
+    ''' Set up the target name with our naming convention '''
+    target_type = env[kConfigurationType]
+    expandedname = env[kProjectName]
+
+    if env.MBDebugBuild():
+        expandedname += 'd'
+
+    if target_type == kStaticLibraryType:
+        expandedname = 'lib' + expandedname
+
+    return expandedname
+
 def mb_gen_vcxproj_emitter(target, source, env):
     ''' An Emitter that adds '.vcxproj' to the target '''
     target = [str(target[0]) + '.vcxproj']
@@ -192,12 +257,8 @@ def mb_gen_vcxproj(target, source, env):
 
     filename = str(target[0])
 
-    default_to_program = (kProgramType == env[kDefaultConfiguration])
-    default_to_shared = (kDynamicLibraryType == env[kDefaultConfiguration])
-    default_to_static = (kStaticLibraryType == env[kDefaultConfiguration])
-
-    configuration = ('Application' if default_to_program else
-        ('DynamicLibrary' if default_to_shared else 'StaticLibrary'))
+    configuration = ('Application' if kProgramType == env[kConfigurationType] else
+        ('DynamicLibrary' if kDynamicLibraryType == env[kConfigurationType] else 'StaticLibrary'))
 
     # clean up the CPPDEFINES, which can be strings, 1-tuples, 2-tuples, or dicts
     cppdefines = []
@@ -236,28 +297,11 @@ def mb_gen_vcxproj(target, source, env):
     # we do less processing on ignored libs
     ignored_libs = SCons.Util.flatten(env[kIgnoredLibs])
 
-    env.MBLogSpam(
-        'project_name = ' + str(env[kProjectName]) + '\n' +
-        'can_be_program = ' + str(env[kCanBeProgram]) + '\n' +
-        'can_be_shared = ' + str(env[kCanBeShared]) + '\n' +
-        'can_be_static = ' + str(env[kCanBeStatic]) + '\n' +
-        'default_configuration = ' + str(configuration) + '\n' +
-        'compiler_flags = ' + str(env['CCFLAGS']) + '\n' +
-        'preprocessor_defines = ' + str(cppdefines) + '\n' +
-        'use_sdl_check = ' + str(env[kUseSDLCheck]) + '\n' +
-        'include_paths = ' + str(cpppath) + '\n' +
-        'sources = ' + str(desconsify(source)) + '\n' +
-        'libs = ' + str(libs) + '\n' +
-        'ignored_libs = ' + str(ignored_libs) + '\n' +
-        'lib_paths = ' + str(libpath))
-
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
             project_name = env[kProjectName],
-            can_be_program = env[kCanBeProgram],
-            can_be_shared = env[kCanBeShared],
-            can_be_static = env[kCanBeStatic],
-            default_configuration = configuration,
+            target_name = expanded_project_name(env),
+            configuration_type = configuration,
             compiler_flags = env['CCFLAGS'],
             preprocessor_defines = cppdefines,
             use_sdl_check = env[kUseSDLCheck],
@@ -267,40 +311,18 @@ def mb_gen_vcxproj(target, source, env):
             ignored_libs = ignored_libs,
             lib_paths = libpath))
 
-def mb_windows_default_to_program(env):
-    ''' Set default project configuration to Application/exe '''
-    env[kDefaultConfiguration] = kProgramType
-    env[kCanBeProgram] = True
-
-def mb_windows_default_to_shared_lib(env):
-    ''' Set default project configuration to DynamicLibrary/dll+lib '''
-    env[kDefaultConfiguration] = kDynamicLibraryType
-    env[kCanBeShared] = True
-
-def mb_windows_default_to_static_lib(env):
-    ''' Set default project configuration to StaticLibrary/lib '''
-    env[kDefaultConfiguration] = kStaticLibraryType
-    env[kCanBeStatic] = True
-
 def mb_build_vcxproj_emitter(target, source, env):
     ''' Emitter to turn a project name into the outputs
         of the vcxproj in the default configuration '''
-    target_type = env[kDefaultConfiguration]
+    target_type = env[kConfigurationType]
 
-    expandedname = env[kProjectName]
-    if env.MBDebugBuild():
-        expandedname += 'd'
-
-    if target_type == kStaticLibraryType:
-        expandedname = 'lib' + expandedname
-
-    extension = target_type
+    expandedname = expanded_project_name(env)
 
     target = [os.path.join(
         '#',
         'obj',
         env[kPlatformBitness],
-        (expandedname + '.' + extension))]
+        (expandedname + '.' + target_type))]
 
     # For .dlls on windows we actually link against
     # the .lib that's generated, so return that, too
@@ -341,7 +363,7 @@ def mb_build_vcxproj(env, target, source):
     target_list = env.Command(target, source, ' '.join(command))
     return target_list
 
-def mb_windows_program(env, target, source, *args, **kwargs):
+def mb_windows_build(env, target, source):
     ''' Generate a vcxproj and build it '''
     env.MBSetWindowsProjectName(target)
     vcxproj = env.MBGenVcxproj(target, source)
@@ -353,6 +375,18 @@ def mb_windows_program(env, target, source, *args, **kwargs):
     env.Depends(result, source)
     return result
 
+def mb_windows_program(env, target, source, *args, **kwargs):
+    env[kConfigurationType] = kProgramType
+    return mb_windows_build(env, target, source)
+
+def mb_windows_shared_library(env, target, source, *args, **kwargs):
+    env[kConfigurationType] = kDynamicLibraryType
+    return mb_windows_build(env, target, source)
+
+def mb_windows_static_library(env, target, source, *args, **kwargs):
+    env[kConfigurationType] = kStaticLibraryType
+    return mb_windows_build(env, target, source)
+
 # Set up command line args used by every scons script
 def common_arguments(env):
     env.MBAddOption(
@@ -363,7 +397,6 @@ def common_arguments(env):
         action='append',
         default=[],
         help='Passes the given property=value pair to msbuild when building the project.')
-
 
 def vcxproj_properties(env):
     return env.MBGetOption('vcxproj_properties')
@@ -381,9 +414,6 @@ def generate(env):
     env.SetDefault(**{
         kPlatformBitness : kDefaultPlatformBitness,
         kUseSDLCheck : kDefaultUseSDLCheck,
-        kCanBeProgram : False,
-        kCanBeShared : False,
-        kCanBeStatic : False,
         kIgnoredLibs : []
     })
 
@@ -396,10 +426,6 @@ def generate(env):
     env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
     env.AddMethod(mb_add_windows_ignored_lib, 'MBAddWindowsIgnoredLib')
 
-    env.AddMethod(mb_windows_default_to_program, 'MBWindowsDefaultToProgram')
-    env.AddMethod(mb_windows_default_to_static_lib, 'MBWindowsDefaultToStaticLib')
-    env.AddMethod(mb_windows_default_to_shared_lib, 'MBWindowsDefaultToSharedLib')
-
     import SCons.Tool
     env.Append(
         BUILDERS = {
@@ -411,6 +437,8 @@ def generate(env):
     env.AddMethod(mb_build_vcxproj, 'MBBuildVcxproj')
 
     env.AddMethod(mb_windows_program, 'MBWindowsProgram')
+    env.AddMethod(mb_windows_shared_library, 'MBWindowsSharedLibrary')
+    env.AddMethod(mb_windows_static_library, 'MBWindowsStaticLibrary')
 
     add_common_defines(env)
 

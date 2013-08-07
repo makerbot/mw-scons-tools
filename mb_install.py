@@ -493,7 +493,6 @@ def mb_depends_on_conveyor_ui(env):
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        env.MBWindowsDefaultToProgram()
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
         return program
     else:
@@ -501,16 +500,14 @@ def mb_program(env, target, source, *args, **kwargs):
 
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        env.MBWindowsDefaultToSharedLib()
-        program = env.MBWindowsProgram(target, source, *args, **kwargs)
+        program = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
         return program
     else:
         return env.SharedLibrary(target, source, *args, **kwargs)
 
 def mb_static_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        env.MBWindowsDefaultToStaticLib()
-        program = env.MBWindowsProgram(target, source, *args, **kwargs)
+        program = env.MBWindowsStaticLibrary(target, source, *args, **kwargs)
         return program
     else:
         return env.StaticLibrary(target, source, *args, **kwargs)
