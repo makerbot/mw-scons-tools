@@ -166,12 +166,10 @@ def fill_in_the_blanks(debug,
         '    <!-- Paths -->',
         '    <MBRepoRoot>$(ProjectDir)\..\</MBRepoRoot>',
         '    <MBToolchainFolder>$(MBRepoRoot)\..\</MBToolchainFolder>',
-        '    <variantDir Condition="\'$(MBNoVariant)\' == \'\' Or \'$(MBNoVariant)\' == \'false\'">.\obj\</variantDir>',
-        '    <variantDir Condition="\'$(MBNoVariant)\' != \'\'">.\</variantDir>',
-        '    <outputSuffix>$(variantDir)\$(Platform)\</outputSuffix>',
+        '    <outputSuffix>.\$(Platform)\</outputSuffix>',
         '    <!-- Standard Paths used by msbuild -->',
-        '    <OutDir>$(MBRepoRoot)$(outputSuffix)</OutDir>',
-        '    <IntDir>$(SolutionDir)$(ProjectName)_Int\$(Platform)\$(Configuration)\</IntDir>',
+        '    <OutDir>$(MBRepoRoot)\obj\$(outputSuffix)</OutDir>',
+        '    <IntDir>$(MBRepoRoot)\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>',
         '    <!-- Some properties based on the Configuration -->',
         '    <MBIsDebug Condition="\'$(Configuration)\' == \'Debug\'">true</MBIsDebug>',
         '    <MBIsDebug Condition="\'$(MBIsDebug)\' == \'\'">false</MBIsDebug>',
@@ -324,22 +322,14 @@ def mb_build_vcxproj_emitter(target, source, env):
     target_type = env[kConfigurationType]
 
     expandedname = expanded_project_name(env)
+    expandedname = os.path.join(env[kPlatformBitness], expandedname)
 
-    target = [os.path.join(
-        '#',
-        'obj',
-        env[kPlatformBitness],
-        (expandedname + '.' + target_type))]
+    target = [expandedname + '.' + target_type]
 
     # For .dlls on windows we actually link against
     # the .lib that's generated, so return that, too
     if target_type == kDynamicLibraryType:
-        target.append(
-            os.path.join(
-                '#',
-                'obj',
-                env[kPlatformBitness],
-                (expandedname + '.lib')))
+        target += [expandedname + '.lib']
 
     return target, source
 
@@ -359,12 +349,7 @@ def mb_build_vcxproj(env, target, source):
         '/p:MBRepoRoot="' + formatted_repo_root + '\\\\"',
         '/p:Platform=' + env[kPlatformBitness]]
     command += ['/p:' + property for property in vcxproj_properties(env)]
-    # only in miracle-grue at the moment
-    try:
-        if env.GetOption('novariant'):
-            command += ['/p:MBNoVariant=true']
-    except AttributeError:
-        pass
+
     command += ['$SOURCE']
 
     target_list = env.Command(target, source, ' '.join(command))
