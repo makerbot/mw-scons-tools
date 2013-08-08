@@ -107,7 +107,23 @@ def scons_to_msbuild_env_substitution(stuff):
         but not on windows. $QT5DIR is the only one I've seen so far. '''
     return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', thing) for thing in stuff]
 
-def fill_in_the_blanks(project_name,
+def project_configurations(debug):
+    configuration = 'Debug' if debug else 'Release'
+    return '\n'.join([
+        '  <ItemGroup Label="ProjectConfigurations">',
+        '    <ProjectConfiguration Include="' + configuration + '|Win32">',
+        '      <Configuration>' + configuration + '</Configuration>',
+        '      <Platform>Win32</Platform>',
+        '    </ProjectConfiguration>',
+        '    <ProjectConfiguration Include="' + configuration + '|x64">',
+        '      <Configuration>' + configuration + '</Configuration>',
+        '      <Platform>x64</Platform>',
+        '    </ProjectConfiguration>',
+        '  </ItemGroup>'
+    ])
+
+def fill_in_the_blanks(debug,
+                       project_name,
                        target_name,
                        configuration_type,
                        preprocessor_defines,
@@ -123,24 +139,7 @@ def fill_in_the_blanks(project_name,
     vcxproj_contents = '\n'.join([
         '<?xml version="1.0" encoding="utf-8"?>',
         '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
-        '  <ItemGroup Label="ProjectConfigurations">',
-        '    <ProjectConfiguration Include="Debug|Win32">',
-        '      <Configuration>Debug</Configuration>',
-        '      <Platform>Win32</Platform>',
-        '    </ProjectConfiguration>',
-        '    <ProjectConfiguration Include="Debug|x64">',
-        '      <Configuration>Debug</Configuration>',
-        '      <Platform>x64</Platform>',
-        '    </ProjectConfiguration>',
-        '    <ProjectConfiguration Include="Release|Win32">',
-        '      <Configuration>Release</Configuration>',
-        '      <Platform>Win32</Platform>',
-        '    </ProjectConfiguration>',
-        '    <ProjectConfiguration Include="Release|x64">',
-        '      <Configuration>Release</Configuration>',
-        '      <Platform>x64</Platform>',
-        '    </ProjectConfiguration>'
-        '  </ItemGroup>',
+        project_configurations(debug),
         '  <PropertyGroup Label="Globals">',
         '    <ProjectGuid>{' + make_guid(project_name) + '}</ProjectGuid>',
         '    <RootNamespace>' + project_name + '</RootNamespace>',
@@ -305,6 +304,7 @@ def mb_gen_vcxproj(target, source, env):
 
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
+            debug = env.MBDebugBuild(),
             project_name = env[kProjectName],
             target_name = expanded_project_name(env),
             configuration_type = configuration,
