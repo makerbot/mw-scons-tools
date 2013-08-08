@@ -96,7 +96,7 @@ def mb_install_lib(env, source, name, dest=''):
                     #if we have liblib.so.1.2.3
                     #we will make symbolic links liblib.so.1.2 and liblib.so.1
                     libsource = source.abspath
-                    for i in xrange(len(libver) - 1, 0, -1):
+                    for i in xrange(len(libver) - 1, -1, -1):
                         ver = libver[:i]
                         vername = '.'.join([libname] + ver)
                         createdlink = os.path.join(targetpath, vername)
