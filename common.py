@@ -228,7 +228,9 @@ def mb_setup_openmp(env):
             env.Append(CCFLAGS=['-fopenmp'])
             env.Append(LINKFLAGS=['-fopenmp'])
         elif env.MBIsWindows():
-            print('cxx_compiler', env['CXX'])
+            # This is technically wrong, should check if compiler is
+            # MVSC rather than just "on Windows"
+            print('OpenMP enabled')
             env.Append(CCFLAGS=['/openmp'])
         else:
             # clang doesn't support OpenMP yet
