@@ -204,6 +204,37 @@ def mb_depends_on_vtk(env):
     env.Append(LIBPATH = env.MBGetPath(MB_VTK_LIBPATH))
     env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
 
+def mb_add_openmp_option(env):
+    """Add a '--disable-openmp' command-line option"""
+    env.MBAddOption(
+        '--disable-openmp',
+        dest='openmp_enabled',
+        action='store_false',
+        help='Turn off OpenMP')
+
+def mb_setup_openmp(env):
+    """Add OpenMP compiler flags if OpenMP is supported and enabled
+
+    Calls mb_add_openmp_option() to add a SCons flag for disabling
+    OpenMP.
+
+    If OpenMP is enabled, the appropriate flags are set for MSVC and
+    G++. Clang does not support OpenMP yet."""
+    mb_add_openmp_option(env)
+    if env.GetOption('openmp_enabled') != False:
+        compiler = env['CXX']
+        if compiler == 'g++':
+            print('OpenMP enabled')
+            env.Append(CCFLAGS=['-fopenmp'])
+        elif env.MBIsWindows():
+            print('cxx_compiler', env['CXX'])
+            env.Append(CCFLAGS=['/openmp'])
+        else:
+            # clang doesn't support OpenMP yet
+            print('OpenMP enabled but not supported')
+    else:
+        print('OpenMP disabled')
+
 def generate(env):
     tool_exists = 'MB_COMMON_TOOL_LOADED'
     if env.get(tool_exists, False):
@@ -233,6 +264,8 @@ def generate(env):
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
     env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
     env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
+
+    env.AddMethod(mb_setup_openmp, 'MBSetupOpenMP')
 
     set_third_party_paths(env)
 
