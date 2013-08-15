@@ -226,6 +226,7 @@ def mb_setup_openmp(env):
         if compiler == 'g++':
             print('OpenMP enabled')
             env.Append(CCFLAGS=['-fopenmp'])
+            env.Append(LINKFLAGS=['-fopenmp'])
         elif env.MBIsWindows():
             print('cxx_compiler', env['CXX'])
             env.Append(CCFLAGS=['/openmp'])
