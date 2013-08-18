@@ -89,8 +89,10 @@ def mb_recursive_file_glob(env, root, pattern, exclude = None):
     def path_without_first_component(path):
         return os.sep.join(path.split(os.sep)[1:])
 
-    def excluded(filename):
+    def excluded(filename, exclude):
         if exclude:
+            if isinstance(exclude, str):
+                exclude = [exclude]
             for pattern in exclude:
                 if fnmatch.fnmatch(filename, pattern):
                     return True
@@ -101,7 +103,7 @@ def mb_recursive_file_glob(env, root, pattern, exclude = None):
         raise Exception('Directories starting with "#" not supported yet')
     for parent, dirnames, filenames in os.walk(os.path.join('..', root)):
         for filename in fnmatch.filter(filenames, pattern):
-            if not excluded(filename):
+            if not excluded(filename, exclude):
                 matches.append(env.File(
                         path_without_first_component(
                             os.path.join(parent, filename))))
