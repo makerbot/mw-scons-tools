@@ -78,20 +78,33 @@ def mb_glob(env, path):
     return glob.glob(os.path.join(str(env.Dir(head)), tail))
 
 # This is a special glob made by NicholasBishop
-def mb_recursive_file_glob(env, root, pattern):
-    '''Recursively search in 'root' for files matching 'pattern'
+def mb_recursive_file_glob(env, root, pattern, exclude = None):
+    """Recursively search in 'root' for files matching 'pattern'
 
-    Returns a list of matches of type SCons.Node.FS.File'''
+    Returns a list of matches of type SCons.Node.FS.File.
+
+    If exclude is not None, it should be a glob pattern or list of
+    glob patterns. Any results matching a glob in exclude will be
+    excluded from the returned list."""
     def path_without_first_component(path):
         return os.sep.join(path.split(os.sep)[1:])
+
+    def excluded(filename):
+        if exclude:
+            for pattern in exclude:
+                if fnmatch.fnmatch(filename, pattern):
+                    return True
+        return False
 
     matches = []
     if root.startswith('#'):
         raise Exception('Directories starting with "#" not supported yet')
     for parent, dirnames, filenames in os.walk(os.path.join('..', root)):
         for filename in fnmatch.filter(filenames, pattern):
-            matches.append(env.File(
-                    path_without_first_component(os.path.join(parent, filename))))
+            if not excluded(filename):
+                matches.append(env.File(
+                        path_without_first_component(
+                            os.path.join(parent, filename))))
     return matches
 
 # I'm not sure who made this, but we use it for all of our python globbing
