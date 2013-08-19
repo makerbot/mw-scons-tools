@@ -86,6 +86,8 @@ class DoxygenBinary:
         try:
             subprocess.check_output('doxygen', stderr=subprocess.STDOUT)
             return True
+        except subprocess.CalledProcessError:
+            return True
         except OSError:
             return False
 
