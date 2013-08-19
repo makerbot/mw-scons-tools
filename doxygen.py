@@ -1,3 +1,4 @@
+import SCons
 import collections
 import os
 import re
@@ -136,6 +137,9 @@ def generate(env):
         env.DoxygenBuilder(
             'doxygen/' + expected_output,
             all_source)
+        # Ensure that documentation is always built, even if only the
+        # "install" target is specified
+        SCons.Script.BUILD_TARGETS.append(env.File('doxygen/html/index.html'))
 
     env.AddMethod(BuildDoxygen, 'BuildDoxygen')
 
