@@ -1,4 +1,5 @@
 import collections
+import os
 import re
 import subprocess
 
@@ -94,7 +95,7 @@ class DoxygenBinary:
         subprocess.call(['doxygen', config_path])
 
 def generate(env):
-    expected_output = 'html/index.html'
+    expected_output = os.path.join('html', 'index.html')
 
     def DoxygenBuilderAction(env, target, source):
         if DoxygenBinary.is_runnable():
