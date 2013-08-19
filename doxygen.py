@@ -83,8 +83,7 @@ class DoxygenBinary:
     def is_runnable():
         """Return true if Doxygen runs, false otherwise"""
         try:
-            from subprocess import PIPE 
-            subprocess.call('doxygen', stdout=PIPE, stderr=PIPE)
+            subprocess.check_output('doxygen', stderr=subprocess.STDOUT)
             return True
         except OSError:
             return False
