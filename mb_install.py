@@ -491,6 +491,13 @@ def mb_depends_on_conveyor_ui(env):
     if env.MBIsWindows():
         env.Append(CPPDEFINES='CONVEYOR_UI_DLL')
 
+def mb_depends_on_toolpathviz(env):
+    env.MBAddLib(windows_debug_tweak(env, 'toolpathviz'))
+    env.MBAddDevelLibPath('#/../ToolPathViz/obj')
+    env.MBAddDevelIncludePath('#/../ToolPathViz/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='TOOLPATHVIZ_DLL')
+
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
@@ -589,6 +596,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
+    env.AddMethod(mb_depends_on_toolpathviz, 'MBDependsOnToolPathViz')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
