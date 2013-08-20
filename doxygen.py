@@ -128,10 +128,15 @@ def generate(env):
         else:
             print('Doxygen not found')
 
+    def DoxygenPrintAction(env, target, source):
+        print('Building Doxygen from {}'.format(str(target[0])))
+
     env.Append(
         BUILDERS = {
             'DoxygenBuilder':
-                env.Builder(action = DoxygenBuilderAction)})
+                env.Builder(action = env.Action(
+                    DoxygenBuilderAction,
+                    DoxygenPrintAction))})
 
     def BuildDoxygen(env, configuration, *sources):
         """Run Doxygen using configuration on specified sources"""
