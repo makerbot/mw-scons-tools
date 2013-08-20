@@ -494,23 +494,26 @@ def mb_depends_on_conveyor_ui(env):
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
-        return program
     else:
-        return env.Program(target, source, *args, **kwargs);
+        program = env.Program(target, source, *args, **kwargs);
+    env.Alias(target, program)
+    return program
 
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        program = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
-        return program
+        library = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
     else:
-        return env.SharedLibrary(target, source, *args, **kwargs)
+        library = env.SharedLibrary(target, source, *args, **kwargs)
+    env.Alias(target, library)
+    return library
 
 def mb_static_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        program = env.MBWindowsStaticLibrary(target, source, *args, **kwargs)
-        return program
+        library = env.MBWindowsStaticLibrary(target, source, *args, **kwargs)
     else:
-        return env.StaticLibrary(target, source, *args, **kwargs)
+        library = env.StaticLibrary(target, source, *args, **kwargs)
+    env.Alias(target, library)
+    return library
 
 def mb_explicit_moc_fixme(env, sources):
     target = []
