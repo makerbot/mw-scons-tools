@@ -139,9 +139,9 @@ def generate(env):
         env.DoxygenBuilder(
             'doxygen/' + expected_output,
             all_source)
-        # Ensure that documentation is always built, even if only the
+        # Ensure that documentation is built if only the
         # "install" target is specified
-        SCons.Script.BUILD_TARGETS.append(env.File('doxygen/html/index.html'))
+        env.Append(MB_INSTALL_TARGETS = env.File('doxygen/html/index.html'))
 
     env.AddMethod(BuildDoxygen, 'BuildDoxygen')
 
