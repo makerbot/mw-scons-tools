@@ -107,22 +107,19 @@ def scons_to_msbuild_env_substitution(stuff):
         but not on windows. $QT5DIR is the only one I've seen so far. '''
     return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', thing) for thing in stuff]
 
-def project_configurations(debug):
+def project_configurations(debug, bitness):
     configuration = 'Debug' if debug else 'Release'
     return '\n'.join([
         '  <ItemGroup Label="ProjectConfigurations">',
-        '    <ProjectConfiguration Include="' + configuration + '|Win32">',
+        '    <ProjectConfiguration Include="' + configuration + '|' + bitness + '">',
         '      <Configuration>' + configuration + '</Configuration>',
-        '      <Platform>Win32</Platform>',
-        '    </ProjectConfiguration>',
-        '    <ProjectConfiguration Include="' + configuration + '|x64">',
-        '      <Configuration>' + configuration + '</Configuration>',
-        '      <Platform>x64</Platform>',
+        '      <Platform>' + bitness + '</Platform>',
         '    </ProjectConfiguration>',
         '  </ItemGroup>'
     ])
 
 def fill_in_the_blanks(debug,
+                       bitness,
                        project_name,
                        target_name,
                        configuration_type,
@@ -139,7 +136,7 @@ def fill_in_the_blanks(debug,
     vcxproj_contents = '\n'.join([
         '<?xml version="1.0" encoding="utf-8"?>',
         '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
-        project_configurations(debug),
+        project_configurations(debug, bitness),
         '  <PropertyGroup Label="Globals">',
         '    <ProjectGuid>{' + make_guid(project_name) + '}</ProjectGuid>',
         '    <RootNamespace>' + project_name + '</RootNamespace>',
@@ -305,6 +302,7 @@ def mb_gen_vcxproj(target, source, env):
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
             debug = env.MBDebugBuild(),
+            bitness = env[kPlatformBitness],
             project_name = env[kProjectName],
             target_name = expanded_project_name(env),
             configuration_type = configuration,
