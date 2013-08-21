@@ -105,21 +105,39 @@ def scons_to_msbuild_env_substitution(stuff):
         but not on windows. $QT5DIR is the only one I've seen so far. '''
     return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', thing) for thing in stuff]
 
-def project_configurations(debug, bitness):
+def project_configurations(debug, bitness, suffix):
     configuration = 'Debug' if debug else 'Release'
+    configuration += suffix
     return '\n'.join([
-        '  <ItemGroup Label="ProjectConfigurations">',
         '    <ProjectConfiguration Include="' + configuration + '|' + bitness + '">',
         '      <Configuration>' + configuration + '</Configuration>',
         '      <Platform>' + bitness + '</Platform>',
         '    </ProjectConfiguration>',
-        '  </ItemGroup>'
+    ])
+
+def configuration_group(debug, configuration_type, suffix):
+    configuration = 'Debug' if debug else 'Release'
+    configuration += suffix
+
+    configuration_type = ('Application' if kProgramType == configuration_type else
+        ('DynamicLibrary' if kDynamicLibraryType == configuration_type else
+        'StaticLibrary'))
+
+    return '\n'.join([
+        '  <PropertyGroup Condition="\'$(Configuration)\'==\'' + configuration + '\'" Label="Configuration">',
+        '    <ConfigurationType>' + configuration_type + '</ConfigurationType>',
+        '    <UseDebugLibraries>' + ('true' if debug else 'false') + '</UseDebugLibraries>',
+        '    <PlatformToolset>v110</PlatformToolset>',
+        '    <CharacterSet>MultiByte</CharacterSet>',
+        '    <configSuffix>' + suffix + '</configSuffix>',
+        '  </PropertyGroup>',
     ])
 
 def fill_in_the_blanks(debug,
                        bitness,
                        project_name,
                        target_name,
+                       lib_name,
                        configuration_type,
                        preprocessor_defines,
                        debugging_path,
@@ -134,19 +152,17 @@ def fill_in_the_blanks(debug,
     vcxproj_contents = '\n'.join([
         '<?xml version="1.0" encoding="utf-8"?>',
         '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
-        project_configurations(debug, bitness),
+        '  <ItemGroup Label="ProjectConfigurations">',
+        project_configurations(debug, bitness, ''),
+        project_configurations(debug, bitness, '_lib') if kDynamicLibraryType == configuration_type else '',
+        '  </ItemGroup>',
         '  <PropertyGroup Label="Globals">',
         '    <ProjectGuid>{' + make_guid(project_name) + '}</ProjectGuid>',
         '    <RootNamespace>' + project_name + '</RootNamespace>',
         '  </PropertyGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
-        '  <PropertyGroup Label="Configuration">',
-        '    <ConfigurationType>' + configuration_type + '</ConfigurationType>',
-        '    <UseDebugLibraries Condition="\'$(Configuration)\'==\'Debug\'">true</UseDebugLibraries>',
-        '    <UseDebugLibraries Condition="\'$(Configuration)\'==\'Release\'">false</UseDebugLibraries>',
-        '    <PlatformToolset>v110</PlatformToolset>',
-        '    <CharacterSet>MultiByte</CharacterSet>',
-        '  </PropertyGroup>',
+        configuration_group(debug, configuration_type, ''),
+        configuration_group(debug, kStaticLibraryType, '_lib') if kDynamicLibraryType == configuration_type else '',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />',
         '  <ImportGroup Label="ExtensionSettings">',
         '  </ImportGroup>',
@@ -168,13 +184,12 @@ def fill_in_the_blanks(debug,
         '    <OutDir>$(MBRepoRoot)$(outputSuffix)</OutDir>',
         '    <IntDir>$(ProjectDir)$(ProjectName)_Int\$(Platform)\$(Configuration)\</IntDir>',
         '    <!-- Some properties based on the Configuration -->',
-        '    <MBIsDebug Condition="\'$(Configuration)\' == \'Debug\'">true</MBIsDebug>',
-        '    <MBIsDebug Condition="\'$(MBIsDebug)\' == \'\'">false</MBIsDebug>',
-        '    <MBIsRelease Condition="\'$(Configuration)\' == \'Release\'">true</MBIsRelease>',
-        '    <MBIsRelease Condition="\'$(MBIsRelease)\' == \'\'">false</MBIsRelease>',
-        '    <MBPreprocessorDebugDefs Condition="$(MBIsDebug)">_DEBUG</MBPreprocessorDebugDefs>',
-        '    <MBPreprocessorDebugDefs Condition="$(MBIsRelease)">NDEBUG</MBPreprocessorDebugDefs>',
-        '    <TargetName>' + target_name + '</TargetName>',
+        '    <MBIsDebug>' + ('true' if debug else 'false') + '</MBIsDebug>',
+        '    <MBIsRelease>' + ('false' if debug else 'true') + '</MBIsRelease>',
+        '    <MBPreprocessorDebugDefs Condition="\'$(MBIsDebug)\' == \'true\'">_DEBUG</MBPreprocessorDebugDefs>',
+        '    <MBPreprocessorDebugDefs Condition="\'$(MBIsRelease)\' == \'true\'">NDEBUG</MBPreprocessorDebugDefs>',
+        '    <TargetName Condition="\'$(configSuffix)\' == \'_lib\'">' + lib_name + '</TargetName>' if kDynamicLibraryType == configuration_type else '',
+        '    <TargetName Condition="\'$(TargetName)\' == \'\'">' + target_name + '</TargetName>',
         '    <!-- Adds a bunch of stuff to the path for debugging. Formatting matters a lot here. -->',
         '    <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\\bin;' + ';'.join(debugging_path),
         '$(LocalDebuggerEnvironment)',
@@ -256,9 +271,6 @@ def gen_vcxproj(env, target, source, target_type):
 
     filename = str(target[0])
 
-    configuration = ('Application' if kProgramType == target_type else
-        ('DynamicLibrary' if kDynamicLibraryType == target_type else 'StaticLibrary'))
-
     # clean up the CPPDEFINES, which can be strings, 1-tuples, 2-tuples, or dicts
     cppdefines = []
     for define in env['CPPDEFINES']:
@@ -302,7 +314,8 @@ def gen_vcxproj(env, target, source, target_type):
             bitness = env[kPlatformBitness],
             project_name = env[kProjectName],
             target_name = expanded_project_name(env, target_type),
-            configuration_type = configuration,
+            lib_name = expanded_project_name(env, kStaticLibraryType),
+            configuration_type = target_type,
             debugging_path = libpath,
             compiler_flags = env['CCFLAGS'],
             preprocessor_defines = cppdefines,
