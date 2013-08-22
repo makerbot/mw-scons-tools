@@ -377,32 +377,28 @@ def mb_build_vcxproj(env, target, source, target_type):
     target_list = env.Command(target, source, ' '.join(command))
     return target_list
 
-def mb_windows_program(env, target, source, *args, **kwargs):
+def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     env.MBSetWindowsProjectName(target)
-    vcxproj = env.MBAppVcxproj(target, source)
+    if kProgramType == configuration_type:
+      vcxproj = env.MBAppVcxproj(target, source)
+    elif kDynamicLibraryType == configuration_type:
+      vcxproj = env.MBDLLVcxproj(target, source)
+    elif kStaticLibraryType == configuration_type:
+      vcxproj = env.MBLibVcxproj(target, source)
     this_file = os.path.abspath(__file__)
     env.Depends(vcxproj, this_file)
-    result = env.MBBuildVcxproj(target, vcxproj, kProgramType)
+    result = env.MBBuildVcxproj(target, vcxproj, configuration_type)
     env.Depends(result, source)
     return result
+
+def mb_windows_program(env, target, source, *args, **kwargs):
+    return windows_binary(env, target, source, kProgramType, *args, **kwargs)
 
 def mb_windows_shared_library(env, target, source, *args, **kwargs):
-    env.MBSetWindowsProjectName(target)
-    vcxproj = env.MBDLLVcxproj(target, source)
-    this_file = os.path.abspath(__file__)
-    env.Depends(vcxproj, this_file)
-    result = env.MBBuildVcxproj(target, vcxproj, kDynamicLibraryType)
-    env.Depends(result, source)
-    return result
+    return windows_binary(env, target, source, kDynamicLibraryType, *args, **kwargs)
 
 def mb_windows_static_library(env, target, source, *args, **kwargs):
-    env.MBSetWindowsProjectName(target)
-    vcxproj = env.MBLibVcxproj(target, source)
-    this_file = os.path.abspath(__file__)
-    env.Depends(vcxproj, this_file)
-    result = env.MBBuildVcxproj(target, vcxproj, kStaticLibraryType)
-    env.Depends(result, source)
-    return result
+    return windows_binary(env, target, source, kStaticLibraryType, *args, **kwargs)
 
 # Set up command line args used by every scons script
 def common_arguments(env):
