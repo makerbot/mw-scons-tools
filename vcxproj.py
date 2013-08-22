@@ -379,12 +379,13 @@ def mb_build_vcxproj(env, target, source, target_type):
 
 def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     env.MBSetWindowsProjectName(target)
+    vcxproj_name = target + ('d' if env.MBDebugBuild() else '')
     if kProgramType == configuration_type:
-      vcxproj = env.MBAppVcxproj(target, source)
+      vcxproj = env.MBAppVcxproj(vcxproj_name, source)
     elif kDynamicLibraryType == configuration_type:
-      vcxproj = env.MBDLLVcxproj(target, source)
+      vcxproj = env.MBDLLVcxproj(vcxproj_name, source)
     elif kStaticLibraryType == configuration_type:
-      vcxproj = env.MBLibVcxproj(target, source)
+      vcxproj = env.MBLibVcxproj(vcxproj_name, source)
     this_file = os.path.abspath(__file__)
     env.Depends(vcxproj, this_file)
     result = env.MBBuildVcxproj(target, vcxproj, configuration_type)
