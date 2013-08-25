@@ -485,4 +485,4 @@ def generate(env):
     add_common_defines(env)
 
 def exists(env):
-    return env.MBIsWindows()
+    return True
