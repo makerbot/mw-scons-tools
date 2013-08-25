@@ -432,13 +432,10 @@ def add_common_defines(env):
 
 def generate(env):
     env.Tool('common')
-
-    if not env.MBIsWindows():
-      return
-
     env.Tool('log')
 
-    common_arguments(env)
+    if not env.MBIsWindows():
+      common_arguments(env)
 
     # make sure that some necessary env variables exist
     env.SetDefault(**{
@@ -482,7 +479,8 @@ def generate(env):
     env.AddMethod(mb_windows_shared_library, 'MBWindowsSharedLibrary')
     env.AddMethod(mb_windows_static_library, 'MBWindowsStaticLibrary')
 
-    add_common_defines(env)
+    if not env.MBIsWindows():
+      add_common_defines(env)
 
 def exists(env):
     return True
