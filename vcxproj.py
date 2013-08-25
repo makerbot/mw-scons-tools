@@ -147,7 +147,8 @@ def fill_in_the_blanks(debug,
                        sources,
                        libs,
                        ignored_libs,
-                       lib_paths):
+                       lib_paths,
+                       hide_console):
     ''' this contains the template where the blanks can be filled in '''
     vcxproj_contents = '\n'.join([
         '<?xml version="1.0" encoding="utf-8"?>',
@@ -233,6 +234,7 @@ def fill_in_the_blanks(debug,
         one_per_line('        ', strip_obj(lib_paths), ';'),
         '        %(AdditionalLibraryDirectories)',
         '      </AdditionalLibraryDirectories>',
+        '      <SubSystem>' + ('Windows' if hide_console else 'Console') + '</SubSystem>' if kProgramType == configuration_type else '',
         '    </Link>',
         '  </ItemDefinitionGroup>',
         '  <ItemGroup>',
@@ -324,7 +326,8 @@ def gen_vcxproj(env, target, source, target_type):
             sources = desconsify(source),
             libs = libs,
             ignored_libs = ignored_libs,
-            lib_paths = libpath))
+            lib_paths = libpath,
+            hide_console = hide_console(env)))
 
 def mb_app_vcxproj(target, source, env):
     gen_vcxproj(env, target, source, kProgramType)
@@ -412,8 +415,17 @@ def common_arguments(env):
         default=[],
         help='Passes the given property=value pair to msbuild when building the project.')
 
+    env.MBAddOption(
+        '--hide-console',
+        dest='hide_console',
+        action='store_true',
+        help='Normally we allow applications to display a console, so we can see printer errors, etc. This option turns that console off.')
+
 def vcxproj_properties(env):
     return env.MBGetOption('vcxproj_properties')
+
+def hide_console(env):
+    return env.MBGetOption('hide_console')
 
 def add_common_defines(env):
     env.Append(CPPDEFINES = ['_CRT_SECURE_NO_WARNINGS'])
