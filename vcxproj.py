@@ -413,13 +413,13 @@ def common_arguments(env):
         type='string',
         action='append',
         default=[],
-        help='Passes the given property=value pair to msbuild when building the project.')
+        help='WINDOWS_ONLY: Passes the given property=value pair to msbuild when building the project.')
 
     env.MBAddOption(
         '--hide-console',
         dest='hide_console',
         action='store_true',
-        help='Normally we allow applications to display a console, so we can see printer errors, etc. This option turns that console off.')
+        help='WINDOWS_ONLY: Normally we allow applications to display a console, so we can see printer errors, etc. This option turns that console off.')
 
 def vcxproj_properties(env):
     return env.MBGetOption('vcxproj_properties')
@@ -431,7 +431,11 @@ def add_common_defines(env):
     env.Append(CPPDEFINES = ['_CRT_SECURE_NO_WARNINGS'])
 
 def generate(env):
-    env.Tool('options')
+    env.Tool('common')
+
+    if not env.MBIsWindows():
+      return
+
     env.Tool('log')
 
     common_arguments(env)
@@ -481,4 +485,4 @@ def generate(env):
     add_common_defines(env)
 
 def exists(env):
-    return True
+    return env.MBIsWindows()
