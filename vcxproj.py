@@ -434,7 +434,7 @@ def generate(env):
     env.Tool('common')
     env.Tool('log')
 
-    if not env.MBIsWindows():
+    if env.MBIsWindows():
       common_arguments(env)
 
     # make sure that some necessary env variables exist
@@ -479,7 +479,7 @@ def generate(env):
     env.AddMethod(mb_windows_shared_library, 'MBWindowsSharedLibrary')
     env.AddMethod(mb_windows_static_library, 'MBWindowsStaticLibrary')
 
-    if not env.MBIsWindows():
+    if env.MBIsWindows():
       add_common_defines(env)
 
 def exists(env):
