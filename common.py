@@ -78,20 +78,35 @@ def mb_glob(env, path):
     return glob.glob(os.path.join(str(env.Dir(head)), tail))
 
 # This is a special glob made by NicholasBishop
-def mb_recursive_file_glob(env, root, pattern):
-    '''Recursively search in 'root' for files matching 'pattern'
+def mb_recursive_file_glob(env, root, pattern, exclude = None):
+    """Recursively search in 'root' for files matching 'pattern'
 
-    Returns a list of matches of type SCons.Node.FS.File'''
+    Returns a list of matches of type SCons.Node.FS.File.
+
+    If exclude is not None, it should be a glob pattern or list of
+    glob patterns. Any results matching a glob in exclude will be
+    excluded from the returned list."""
     def path_without_first_component(path):
         return os.sep.join(path.split(os.sep)[1:])
+
+    def excluded(filename, exclude):
+        if exclude:
+            if isinstance(exclude, str):
+                exclude = [exclude]
+            for pattern in exclude:
+                if fnmatch.fnmatch(filename, pattern):
+                    return True
+        return False
 
     matches = []
     if root.startswith('#'):
         raise Exception('Directories starting with "#" not supported yet')
     for parent, dirnames, filenames in os.walk(os.path.join('..', root)):
         for filename in fnmatch.filter(filenames, pattern):
-            matches.append(env.File(
-                    path_without_first_component(os.path.join(parent, filename))))
+            if not excluded(filename, exclude):
+                matches.append(env.File(
+                        path_without_first_component(
+                            os.path.join(parent, filename))))
     return matches
 
 # I'm not sure who made this, but we use it for all of our python globbing
@@ -204,6 +219,40 @@ def mb_depends_on_vtk(env):
     env.Append(LIBPATH = env.MBGetPath(MB_VTK_LIBPATH))
     env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
 
+def mb_add_openmp_option(env):
+    """Add a '--disable-openmp' command-line option"""
+    env.MBAddOption(
+        '--disable-openmp',
+        dest='openmp_enabled',
+        action='store_false',
+        help='Turn off OpenMP')
+
+def mb_setup_openmp(env):
+    """Add OpenMP compiler flags if OpenMP is supported and enabled
+
+    Calls mb_add_openmp_option() to add a SCons flag for disabling
+    OpenMP.
+
+    If OpenMP is enabled, the appropriate flags are set for MSVC and
+    G++. Clang does not support OpenMP yet."""
+    mb_add_openmp_option(env)
+    if env.GetOption('openmp_enabled') != False:
+        compiler = env['CXX']
+        if compiler == 'g++':
+            print('OpenMP enabled')
+            env.Append(CCFLAGS=['-fopenmp'])
+            env.Append(LINKFLAGS=['-fopenmp'])
+        elif env.MBIsWindows():
+            # This is technically wrong, should check if compiler is
+            # MVSC rather than just "on Windows"
+            print('OpenMP enabled')
+            env.Append(CCFLAGS=['/openmp'])
+        else:
+            # clang doesn't support OpenMP yet
+            print('OpenMP enabled but not supported')
+    else:
+        print('OpenMP disabled')
+
 def generate(env):
     tool_exists = 'MB_COMMON_TOOL_LOADED'
     if env.get(tool_exists, False):
@@ -233,6 +282,8 @@ def generate(env):
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
     env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
     env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
+
+    env.AddMethod(mb_setup_openmp, 'MBSetupOpenMP')
 
     set_third_party_paths(env)
 
