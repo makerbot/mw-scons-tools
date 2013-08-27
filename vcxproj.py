@@ -28,6 +28,8 @@ kVariantDir = 'MB_WINDOWS_VARIANT_DIR'
 
 kIgnoredLibs = 'MB_WINDOWS_IGNORED_LIBS'
 
+MB_WINDOWS_IS_WINDOWED_APPLICATION = 'MB_WINDOWS_IS_WINDOWED_APPLICATION'
+
 
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
@@ -62,6 +64,9 @@ def mb_set_windows_variant_dir(env, variant_dir):
 
 def mb_add_windows_ignored_lib(env, lib):
     env.Append(**{kIgnoredLibs : [lib]})
+
+def mb_set_windows_is_windowed_application(env, is_windowed = True):
+    env[MB_WINDOWS_IS_WINDOWED_APPLICATION] = is_windowed
 
 def make_guid(project_name):
     ''' We want to make sure the guids are always the same per project name.
@@ -426,7 +431,7 @@ def vcxproj_properties(env):
     return env.MBGetOption('vcxproj_properties')
 
 def hide_console(env):
-    return env.MBGetOption('hide_console')
+    return env.MBGetOption('hide_console') and env[MB_WINDOWS_IS_WINDOWED_APPLICATION]
 
 def add_common_defines(env):
     env.Append(CPPDEFINES = ['_CRT_SECURE_NO_WARNINGS'])
@@ -453,6 +458,7 @@ def generate(env):
     env.AddMethod(mb_add_windows_dll_build_flag, 'MBAddWindowsDLLBuildFlag')
     env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
     env.AddMethod(mb_add_windows_ignored_lib, 'MBAddWindowsIgnoredLib')
+    env.AddMethod(mb_set_windows_is_windowed_application, 'MBSetWindowsIsWindowedApplication')
 
     import SCons.Tool
     env.Append(
