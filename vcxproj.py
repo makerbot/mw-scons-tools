@@ -133,7 +133,7 @@ def configuration_group(debug, configuration_type, suffix):
         '    <ConfigurationType>' + configuration_type + '</ConfigurationType>',
         '    <UseDebugLibraries>' + ('true' if debug else 'false') + '</UseDebugLibraries>',
         '    <PlatformToolset>v110</PlatformToolset>',
-        '    <CharacterSet>MultiByte</CharacterSet>',
+        '    <CharacterSet>Unicode</CharacterSet>',
         '    <configSuffix>' + suffix + '</configSuffix>',
         '  </PropertyGroup>',
     ])
