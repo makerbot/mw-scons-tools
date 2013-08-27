@@ -447,7 +447,8 @@ def generate(env):
     env.SetDefault(**{
         kPlatformBitness : kDefaultPlatformBitness,
         kUseSDLCheck : kDefaultUseSDLCheck,
-        kIgnoredLibs : []
+        kIgnoredLibs : [],
+        MB_WINDOWS_IS_WINDOWED_APPLICATION : False
     })
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
