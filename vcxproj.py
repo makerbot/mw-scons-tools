@@ -85,8 +85,8 @@ def strip_obj(paths):
     return [re.sub('^(\\\\|/)*obj(\\\\|/)*', '', path) for path in paths]
 
 def replace_hash(paths):
-    ''' Replace the '#' meaning 'root' with '..' '''
-    return [re.sub('^#', '..', path) for path in paths]
+    ''' Replace the '#' meaning 'root' with '' '''
+    return [re.sub('^#(\\\\|/)*', '', path) for path in paths]
 
 def replace_scons_nodes(nodes):
     ''' make all the Files and Nodes and Dirs and what-all into strings '''
