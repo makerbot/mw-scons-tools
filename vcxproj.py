@@ -181,11 +181,9 @@ def fill_in_the_blanks(debug,
         '    <!-- If running from scons, some properties may not be set up -->',
         '    <VCTargetsPath Condition="\'$(VCTargetsPath)\'==\'\'">C:\Program Files (x86)\MSBuild\Microsoft.Cpp\\v4.0\$(PlatformToolset)\</VCTargetsPath>',
         '    <!-- Paths -->',
-        '    <MBRepoRoot>$(ProjectDir)\..\</MBRepoRoot>',
-        '    <MBToolchainFolder>$(MBRepoRoot)\..\</MBToolchainFolder>',
         '    <!-- Standard Paths used by msbuild -->',
-        '    <OutDir>$(MBRepoRoot)\obj\$(Platform)\</OutDir>',
-        '    <IntDir>$(MBRepoRoot)\obj\\' + project_name + '_Int\$(Platform)\$(Configuration)\</IntDir>',
+        '    <OutDir>$(ProjectDir)\obj\$(Platform)\</OutDir>',
+        '    <IntDir>$(ProjectDir)\obj\\' + project_name + '_Int\$(Platform)\$(Configuration)\</IntDir>',
         '    <!-- Some properties based on the Configuration -->',
         '    <MBIsDebug>' + ('true' if debug else 'false') + '</MBIsDebug>',
         '    <MBIsRelease>' + ('false' if debug else 'true') + '</MBIsRelease>',
@@ -357,14 +355,9 @@ def mb_build_vcxproj(env, target, source, target_type):
     if target_type == kDynamicLibraryType:
         target += [expandedname + '.lib']
 
-    # this supposedly fixes problems with paths containing spaces
-    formatted_repo_root = str(env.Dir('#/.'))
-    formatted_repo_root = re.sub('\\\\', '\\\\\\\\', formatted_repo_root)
-
     command = [
         'msbuild',
         '/p:Configuration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
-        '/p:MBRepoRoot="' + formatted_repo_root + '\\\\"',
         '/p:Platform=' + env[kPlatformBitness]]
     command += ['/p:' + property for property in vcxproj_properties(env)]
 
