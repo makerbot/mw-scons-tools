@@ -13,7 +13,7 @@ def common_arguments(env):
                 'Note that for python projects and on windows this is on by default.')
 
 def mb_use_variant_dir(env):
-    return not env.MBGetOption(NO_VARIANT)
+    return not env.MBIsWindows() and not env.MBGetOption(NO_VARIANT))
 
 def mb_variant_dir(env):
     if env.MBUseVariantDir():
@@ -26,7 +26,7 @@ def mb_strip_variant_dir(env, path):
     return re.sub('^(\\\\|/)*' + env.MBVariantDir() + '(\\\\|/)*', '', path)
 
 def mb_sconscript(env, sconscript, python_project = False):
-    if python_project or env.MBIsWindows() or not env.MBUseVariantDir():
+    if python_project or not env.MBUseVariantDir():
         env.SConscript(sconscript)
     else:
         env.SConscript(sconscript, variant_dir=env.MBVariantDir(), duplicate=1)
