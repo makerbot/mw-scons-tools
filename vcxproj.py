@@ -34,7 +34,7 @@ MB_WINDOWS_IS_WINDOWED_APPLICATION = 'MB_WINDOWS_IS_WINDOWED_APPLICATION'
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
     if None == platform:
-        platform = env[kPlatformBitness]
+        platform = env.MBWindowsBitness()
     env.Prepend(LIBPATH = [str(env.Dir(os.path.join(path, platform)))])
 
 def mb_set_windows_bitness(env, bitness):
@@ -309,7 +309,7 @@ def gen_vcxproj(env, target, source, target_type):
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
             debug = env.MBDebugBuild(),
-            bitness = env[kPlatformBitness],
+            bitness = env.MBWindowsBitness(),
             project_name = env[kProjectName],
             target_name = expanded_project_name(env, target_type),
             lib_name = expanded_project_name(env, kStaticLibraryType),
@@ -339,7 +339,7 @@ def mb_build_vcxproj(env, target, source, target_type):
         (and therefore understands things like MBConfiguration '''
     expandedname = os.path.join(
         'obj',
-        env[kPlatformBitness],
+        env.MBWindowsBitness(),
         expanded_project_name(env, target_type))
 
     target = [expandedname + '.' + target_type]
@@ -352,7 +352,7 @@ def mb_build_vcxproj(env, target, source, target_type):
     command = [
         'msbuild',
         '/p:Configuration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
-        '/p:Platform=' + env[kPlatformBitness]]
+        '/p:Platform=' + env.MBWindowsBitness()]
     command += ['/p:' + property for property in vcxproj_properties(env)]
 
     command += ['$SOURCE']
@@ -405,6 +405,7 @@ def common_arguments(env):
         '--bitness-override',
         dest='bitness_override',
         action='store',
+        default=None;
         help='WINDOWS_ONLY: overrides the Platform setting. Use either Win32 or x64')
 
 def vcxproj_properties(env):
@@ -413,17 +414,17 @@ def vcxproj_properties(env):
 def bitness_override(env):
     return env.MBGetOption('bitness_override')
 
-def mb_windows_is_64_bit(env):
-    if None == bitness_override:
-        return 'x64' == env[kPlatformBitness]
+def mb_windows_bitness(env):
+    if None == bitness_override():
+        env[kPlatformBitness]
     else:
-        return 'x64' == bitness_override(env)
+        bitness_override(env)
+
+def mb_windows_is_64_bit(env):
+    return 'x64' == env.MBWindowsBitness()
 
 def mb_windows_is_32_bit(env):
-    if None == bitness_override:
-        return 'Win32' == env[kPlatformBitness]
-    else:
-        return 'Win32' == bitness_override(env)
+    return 'Win32' == env.MBWindowsBitness()
 
 def hide_console(env):
     return env.MBGetOption('hide_console') and env[MB_WINDOWS_IS_WINDOWED_APPLICATION]
@@ -448,6 +449,7 @@ def generate(env):
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
     env.AddMethod(mb_set_windows_bitness, 'MBSetWindowsBitness')
+    env.AddMethod(mb_windows_bitness, 'MBWindowsBitness')
     env.AddMethod(mb_windows_is_64_bit, 'MBWindowsIs64Bit')
     env.AddMethod(mb_windows_is_32_bit, 'MBWindowsIs32Bit')
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
