@@ -13,7 +13,7 @@ def common_arguments(env):
                 'Note that for python projects and on windows this is on by default.')
 
 def mb_use_variant_dir(env):
-    return not env.MBIsWindows() and not env.MBGetOption(NO_VARIANT))
+    return (not env.MBIsWindows() and not env.MBGetOption(NO_VARIANT))
 
 def mb_variant_dir(env):
     if env.MBUseVariantDir():
