@@ -86,9 +86,6 @@ def mb_recursive_file_glob(env, root, pattern, exclude = None):
     If exclude is not None, it should be a glob pattern or list of
     glob patterns. Any results matching a glob in exclude will be
     excluded from the returned list."""
-    def path_without_first_component(path):
-        return os.sep.join(path.split(os.sep)[1:])
-
     def excluded(filename, exclude):
         if exclude:
             if isinstance(exclude, str):
@@ -101,12 +98,14 @@ def mb_recursive_file_glob(env, root, pattern, exclude = None):
     matches = []
     if root.startswith('#'):
         raise Exception('Directories starting with "#" not supported yet')
-    for parent, dirnames, filenames in os.walk(os.path.join('..', root)):
+    project_root = env.Dir('#').abspath
+    for parent, dirnames, filenames in os.walk(os.path.join(
+            project_root, root)):
         for filename in fnmatch.filter(filenames, pattern):
             if not excluded(filename, exclude):
-                matches.append(env.File(
-                        path_without_first_component(
-                            os.path.join(parent, filename))))
+                p = os.path.join(parent, filename)
+                rp = os.path.relpath(p, project_root)
+                matches.append(env.File(rp))
     return matches
 
 # I'm not sure who made this, but we use it for all of our python globbing
