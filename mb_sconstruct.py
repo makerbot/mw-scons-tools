@@ -1,4 +1,6 @@
 
+import re
+
 NO_VARIANT = 'no_variant'
 
 # Set up command line args used by every scons script
@@ -18,6 +20,10 @@ def mb_variant_dir(env):
         return 'obj'
     else:
         return ''
+
+def mb_strip_variant_dir(env, path):
+    ''' If path starts with the variant dir, remove the dir '''
+    return re.sub('^(\\\\|/)*' + env.MBVariantDir() + '(\\\\|/)*', '', path)
 
 def mb_sconscript(env, sconscript, python_project = False):
     if python_project or env.MBIsWindows() or not env.MBUseVariantDir():
@@ -39,6 +45,7 @@ def generate(env):
 
     env.AddMethod(mb_use_variant_dir, 'MBUseVariantDir')
     env.AddMethod(mb_variant_dir, 'MBVariantDir')
+    env.AddMethod(mb_strip_variant_dir, 'MBStripVariantDir')
     env.AddMethod(mb_sconscript, 'MBSConscript')
 
 def exists(env) :
