@@ -459,42 +459,42 @@ def windows_debug_tweak(env, lib):
 def mb_depends_on_json_cpp(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsoncpp'))
     env.MBAddDevelLibPath('#/../json-cpp/obj')
-    env.MBAddDevelIncludePath('#/../json-cpp/include')
+    env.MBAddDevelIncludePath('#/../json-cpp/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='JSON_DLL')
 
 def mb_depends_on_json_rpc(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsonrpc'))
     env.MBAddDevelLibPath('#/../jsonrpc/obj')
-    env.MBAddDevelIncludePath('#/../jsonrpc/src/main/include')
+    env.MBAddDevelIncludePath('#/../jsonrpc/' + env.MBVariantDir() + '/src/main/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='JSONRPC_DLL')
 
 def mb_depends_on_thing(env):
     env.MBAddLib(windows_debug_tweak(env, 'thing'))
     env.MBAddDevelLibPath('#/../libthing-surprise/obj')
-    env.MBAddDevelIncludePath('#/../libthing-surprise/include')
+    env.MBAddDevelIncludePath('#/../libthing-surprise/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='THING_DLL')
 
 def mb_depends_on_conveyor(env):
     env.MBAddLib(windows_debug_tweak(env, 'conveyor'))
     env.MBAddDevelLibPath('#/../conveyor/obj')
-    env.MBAddDevelIncludePath('#/../conveyor/obj/include')
+    env.MBAddDevelIncludePath('#/../conveyor/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='CONVEYOR_DLL')
 
 def mb_depends_on_conveyor_ui(env):
     env.MBAddLib(windows_debug_tweak(env, 'conveyor-ui'))
     env.MBAddDevelLibPath('#/../conveyor-ui/obj')
-    env.MBAddDevelIncludePath('#/../conveyor-ui/obj/include')
+    env.MBAddDevelIncludePath('#/../conveyor-ui/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='CONVEYOR_UI_DLL')
 
 def mb_depends_on_toolpathviz(env):
     env.MBAddLib(windows_debug_tweak(env, 'toolpathviz'))
     env.MBAddDevelLibPath('#/../ToolPathViz/obj')
-    env.MBAddDevelIncludePath('#/../ToolPathViz/include')
+    env.MBAddDevelIncludePath('#/../ToolPathViz/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.Append(CPPDEFINES='TOOLPATHVIZ_DLL')
 
@@ -553,11 +553,10 @@ def common_arguments(env):
 
 
 def generate(env):
-    env.Tool('options')
+    env.Tool('mb_sconstruct')
 
     common_arguments(env)
 
-    env.Tool('common')
     env.Tool('vcxproj')
 
     env['MB_INSTALL_TARGETS'] = []
