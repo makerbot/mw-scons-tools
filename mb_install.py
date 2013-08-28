@@ -525,7 +525,9 @@ def mb_static_library(env, target, source, *args, **kwargs):
 def mb_explicit_moc_fixme(env, sources):
     target = []
     for source in sources:
-        mocced = env.ExplicitMoc5('moc/moc_${SOURCE.file}.cpp', env.File(source))
+        mocced = env.ExplicitMoc5(
+                env.MBVariantDir() + '/moc/moc_${SOURCE.file}.cpp',
+                env.File(source))
         target.append(mocced)
     return target
 
