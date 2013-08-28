@@ -451,6 +451,13 @@ def mb_depends_on_mb_core_utils(env):
     # MBCoreUtils is currently header-only
     env.MBAddDevelIncludePath('#/../MBCoreUtils/cpp/include')
 
+def mb_depends_on_mbqtutils(env):
+    env.MBAddLib(windows_debug_tweak(env, 'libmbqtutils'))
+    env.MBAddDevelLibPath('#/../libmbqtutils/obj')
+    env.MBAddDevelIncludePath('#/../libmbqtutils/' + env.MBVariantDir() + '/include')
+    if env.MBIsWindows():
+        env.Append(CPPDEFINES='MBQTUTILS_DLL')
+
 def windows_debug_tweak(env, lib):
     if env.MBIsWindows() and env.MBDebugBuild():
         lib += 'd'
@@ -599,6 +606,7 @@ def generate(env):
     env.AddMethod(mb_set_lib_sym_name, 'MBSetLibSymName')
 
     env.AddMethod(mb_depends_on_mb_core_utils, 'MBDependsOnMBCoreUtils')
+    env.AddMethod(mb_depends_on_mbqtutils, 'MBDependsOnMBQtUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
