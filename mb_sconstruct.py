@@ -6,12 +6,12 @@ def common_arguments(env):
     env.MBAddOption(
         '--no-variant',
         dest=NO_VARIANT,
-        action='store_true',
+        action='store_false',
         help='Turns off the variant dir if it would be used. Mainly for use with IDEs. '
                 'Note that for python projects and on windows this is on by default.')
 
 def mb_use_variant_dir(env):
-    return not env.MBGetOption(NO_VARIANT)
+    return env.MBGetOption(NO_VARIANT)
 
 def mb_variant_dir(env):
     if env.MBUseVariantDir():
