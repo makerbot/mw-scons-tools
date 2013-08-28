@@ -405,7 +405,7 @@ def common_arguments(env):
         '--bitness-override',
         dest='bitness_override',
         action='store',
-        default=None;
+        default=None,
         help='WINDOWS_ONLY: overrides the Platform setting. Use either Win32 or x64')
 
 def vcxproj_properties(env):
