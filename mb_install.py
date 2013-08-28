@@ -452,7 +452,7 @@ def mb_depends_on_mb_core_utils(env):
     env.MBAddDevelIncludePath('#/../MBCoreUtils/cpp/include')
 
 def mb_depends_on_mbqtutils(env):
-    env.MBAddLib(windows_debug_tweak(env, 'libmbqtutils'))
+    env.MBAddLib(windows_debug_tweak(env, 'mbqtutils'))
     env.MBAddDevelLibPath('#/../libmbqtutils/obj')
     env.MBAddDevelIncludePath('#/../libmbqtutils/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
