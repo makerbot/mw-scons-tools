@@ -41,12 +41,6 @@ def mb_set_windows_bitness(env, bitness):
     ''' Toggle between Win32 and x64 '''
     env[kPlatformBitness] = bitness
 
-def mb_windows_is_64_bit(env):
-    return 'x64' == env[kPlatformBitness]
-
-def mb_windows_is_32_bit(env):
-    return 'Win32' == env[kPlatformBitness]
-
 def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
     env[kProjectName] = name
@@ -407,8 +401,29 @@ def common_arguments(env):
         action='store_true',
         help='WINDOWS_ONLY: Normally we allow applications to display a console, so we can see printer errors, etc. This option turns that console off.')
 
+    env.MBAddOption(
+        '--bitness-override',
+        dest='bitness_override',
+        action='store',
+        help='WINDOWS_ONLY: overrides the Platform setting. Use either Win32 or x64')
+
 def vcxproj_properties(env):
     return env.MBGetOption('vcxproj_properties')
+
+def bitness_override(env):
+    return env.MBGetOption('bitness_override')
+
+def mb_windows_is_64_bit(env):
+    if None == bitness_override:
+        return 'x64' == env[kPlatformBitness]
+    else:
+        return 'x64' == bitness_override(env)
+
+def mb_windows_is_32_bit(env):
+    if None == bitness_override:
+        return 'Win32' == env[kPlatformBitness]
+    else:
+        return 'Win32' == bitness_override(env)
 
 def hide_console(env):
     return env.MBGetOption('hide_console') and env[MB_WINDOWS_IS_WINDOWED_APPLICATION]
