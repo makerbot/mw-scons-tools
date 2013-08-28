@@ -415,10 +415,10 @@ def bitness_override(env):
     return env.MBGetOption('bitness_override')
 
 def mb_windows_bitness(env):
-    if None == bitness_override():
-        env[kPlatformBitness]
+    if None == bitness_override(env):
+        return env[kPlatformBitness]
     else:
-        bitness_override(env)
+        return bitness_override(env)
 
 def mb_windows_is_64_bit(env):
     return 'x64' == env.MBWindowsBitness()
