@@ -253,12 +253,6 @@ def mb_setup_openmp(env):
         print('OpenMP disabled')
 
 def generate(env):
-    tool_exists = 'MB_COMMON_TOOL_LOADED'
-    if env.get(tool_exists, False):
-        print 'tool "common" being loaded multiple times'
-    else:
-        env[tool_exists] = True
-
     env.Tool('options')
 
     common_arguments(env)
