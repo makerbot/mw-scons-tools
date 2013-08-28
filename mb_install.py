@@ -525,7 +525,11 @@ def mb_static_library(env, target, source, *args, **kwargs):
 def mb_explicit_moc_fixme(env, sources):
     target = []
     for source in sources:
+        # this explicit putting it in the variant dir relative to the root
+        # should satisfy both mac and windows
         moc_file = os.path.join(
+                '#',
+                env.MBVariantDir(),
                 'moc',
                 'moc_${SOURCE.file}.cpp')
         mocced = env.ExplicitMoc5(
