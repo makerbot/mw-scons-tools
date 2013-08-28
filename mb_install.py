@@ -526,7 +526,6 @@ def mb_explicit_moc_fixme(env, sources):
     target = []
     for source in sources:
         moc_file = os.path.join(
-                env.MBVariantDir(),
                 'moc',
                 'moc_${SOURCE.file}.cpp')
         mocced = env.ExplicitMoc5(
