@@ -3,6 +3,7 @@
 import fnmatch
 import glob
 import os
+import re
 import sys
 import SCons
 
@@ -15,6 +16,23 @@ Some conventions to keep this sane:
 Feel free to change the conventions if you think they're wrong,
 just make sure to update everything to match those conventions
 '''
+
+MB_VTK_CPPPATH = 'MB_VTK_CPPPATH'
+MB_VTK_LIBPATH = 'MB_VTK_LIBPATH'
+MB_OPENCV_CPPPATH = 'MB_OPENCV_CPPPATH'
+MB_OPENCV_LIBPATH = 'MB_OPENCV_LIBPATH'
+MB_BOOST_CPPPATH = 'MB_BOOST_CPPPATH'
+MB_BOOST_LIBPATH = 'MB_BOOST_LIBPATH'
+MB_OPENMESH_CPPPATH = 'MB_OPENMESH_CPPPATH'
+MB_OPENMESH_LIBPATH = 'MB_OPENMESH_LIBPATH'
+MB_BOOST_64_CPPPATH = 'MB_BOOST_64_CPPPATH'
+MB_BOOST_64_LIBPATH = 'MB_BOOST_64_LIBPATH'
+MB_BOOST_32_CPPPATH = 'MB_BOOST_32_CPPPATH'
+MB_BOOST_32_LIBPATH = 'MB_BOOST_32_LIBPATH'
+MB_OPENMESH_64_CPPPATH = 'MB_OPENMESH_64_CPPPATH'
+MB_OPENMESH_64_LIBPATH = 'MB_OPENMESH_64_LIBPATH'
+MB_OPENMESH_32_CPPPATH = 'MB_OPENMESH_32_CPPPATH'
+MB_OPENMESH_32_LIBPATH = 'MB_OPENMESH_32_LIBPATH'
 
 # Set up command line args used by every scons script
 def common_arguments(env):
@@ -42,6 +60,32 @@ def common_arguments(env):
         dest='run_tests',
         action='store_true',
         help='Runs the test suite (if one exists). Does not imply --build-tests.')
+
+    env_vars = [
+            MB_VTK_CPPPATH,
+            MB_VTK_LIBPATH,
+            MB_OPENCV_CPPPATH,
+            MB_OPENCV_LIBPATH,
+            MB_BOOST_CPPPATH,
+            MB_BOOST_LIBPATH,
+            MB_OPENMESH_CPPPATH,
+            MB_OPENMESH_LIBPATH,
+            MB_BOOST_64_CPPPATH,
+            MB_BOOST_64_LIBPATH,
+            MB_BOOST_32_CPPPATH,
+            MB_BOOST_32_LIBPATH,
+            MB_OPENMESH_64_CPPPATH,
+            MB_OPENMESH_64_LIBPATH,
+            MB_OPENMESH_32_CPPPATH,
+            MB_OPENMESH_32_LIBPATH]
+    for ev in env_vars:
+        flag = ev.lower()
+        flag = re.sub('_', '-', flag)
+        env.MBAddOption(
+            '--' + flag,
+            dest=ev,
+            action='store',
+            help='Sets the value of ' + ev)
 
 
 # Accessors for the common arguments
@@ -123,12 +167,15 @@ def mb_get_path(env, pathname):
 
         If it's a list return it as-is,
         If it's a string break it on the path separator (either ':' or ';') '''
-    try:
-        var = env[pathname]
-    except KeyError:
-        raise KeyError(
-            'This SConscript expects you to have an '
-            'environment variable ' + pathname + ' defined.')
+    var = env.GetOption(pathname)
+
+    if None == var:
+        try:
+            var = env[pathname]
+        except KeyError:
+            raise KeyError(
+                'This SConscript expects you to have an '
+                'environment variable ' + pathname + ' defined.')
     if SCons.Util.is_List(var):
         return var
     else:
@@ -137,22 +184,6 @@ def mb_get_path(env, pathname):
         else:
             return value.split(':')
 
-MB_VTK_CPPPATH = 'MB_VTK_CPPPATH'
-MB_VTK_LIBPATH = 'MB_VTK_LIBPATH'
-MB_OPENCV_CPPPATH = 'MB_OPENCV_CPPPATH'
-MB_OPENCV_LIBPATH = 'MB_OPENCV_LIBPATH'
-MB_BOOST_CPPPATH = 'MB_BOOST_CPPPATH'
-MB_BOOST_LIBPATH = 'MB_BOOST_LIBPATH'
-MB_OPENMESH_CPPPATH = 'MB_OPENMESH_CPPPATH'
-MB_OPENMESH_LIBPATH = 'MB_OPENMESH_LIBPATH'
-MB_BOOST_64_CPPPATH = 'MB_BOOST_64_CPPPATH'
-MB_BOOST_64_LIBPATH = 'MB_BOOST_64_LIBPATH'
-MB_BOOST_32_CPPPATH = 'MB_BOOST_32_CPPPATH'
-MB_BOOST_32_LIBPATH = 'MB_BOOST_32_LIBPATH'
-MB_OPENMESH_64_CPPPATH = 'MB_OPENMESH_64_CPPPATH'
-MB_OPENMESH_64_LIBPATH = 'MB_OPENMESH_64_LIBPATH'
-MB_OPENMESH_32_CPPPATH = 'MB_OPENMESH_32_CPPPATH'
-MB_OPENMESH_32_LIBPATH = 'MB_OPENMESH_32_LIBPATH'
 def set_third_party_paths(env):
     ''' Sets the default locations for third-party libs and headers.
 
