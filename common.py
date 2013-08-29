@@ -143,10 +143,16 @@ MB_OPENCV_CPPPATH = 'MB_OPENCV_CPPPATH'
 MB_OPENCV_LIBPATH = 'MB_OPENCV_LIBPATH'
 MB_BOOST_CPPPATH = 'MB_BOOST_CPPPATH'
 MB_BOOST_LIBPATH = 'MB_BOOST_LIBPATH'
+MB_OPENMESH_CPPPATH = 'MB_OPENMESH_CPPPATH'
+MB_OPENMESH_LIBPATH = 'MB_OPENMESH_LIBPATH'
 MB_BOOST_64_CPPPATH = 'MB_BOOST_64_CPPPATH'
 MB_BOOST_64_LIBPATH = 'MB_BOOST_64_LIBPATH'
 MB_BOOST_32_CPPPATH = 'MB_BOOST_32_CPPPATH'
 MB_BOOST_32_LIBPATH = 'MB_BOOST_32_LIBPATH'
+MB_OPENMESH_64_CPPPATH = 'MB_OPENMESH_64_CPPPATH'
+MB_OPENMESH_64_LIBPATH = 'MB_OPENMESH_64_LIBPATH'
+MB_OPENMESH_32_CPPPATH = 'MB_OPENMESH_32_CPPPATH'
+MB_OPENMESH_32_LIBPATH = 'MB_OPENMESH_32_LIBPATH'
 def set_third_party_paths(env):
     ''' Sets the default locations for third-party libs and headers.
 
@@ -173,7 +179,13 @@ def set_third_party_paths(env):
                 os.path.join('/usr', 'local', 'boost', 'include', 'boost-1_53')),
             MB_BOOST_LIBPATH =
                 e.get(MB_BOOST_LIBPATH,
-                os.path.join('/usr', 'local', 'boost', 'lib')))
+                os.path.join('/usr', 'local', 'boost', 'lib')),
+            MB_OPENMESH_CPPPATH =
+                e.get(MB_OPENMESH_CPPPATH,
+                os.path.join('/usr', 'local', 'openmesh', 'include')),
+            MB_OPENMESH_LIBPATH =
+                e.get(MB_OPENMESH_LIBPATH,
+                os.path.join('/usr', 'local', 'openmesh', 'lib')))
     elif env.MBIsLinux():
         env.SetDefault(
             MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
@@ -181,7 +193,9 @@ def set_third_party_paths(env):
             MB_OPENCV_CPPPATH = e.get(MB_OPENCV_CPPPATH, []),
             MB_OPENCV_LIBPATH = e.get(MB_OPENCV_LIBPATH, []),
             MB_BOOST_CPPPATH = e.get(MB_BOOST_CPPPATH, []),
-            MB_BOOST_LIBPATH = e.get(MB_BOOST_LIBPATH, []))
+            MB_BOOST_LIBPATH = e.get(MB_BOOST_LIBPATH, []),
+            MB_OPENMESH_CPPPATH = e.get(MB_OPENMESH_CPPPATH, []),
+            MB_OPENMESH_LIBPATH = e.get(MB_OPENMESH_LIBPATH, []))
     elif env.MBIsWindows():
         env.SetDefault(
             MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
@@ -199,7 +213,28 @@ def set_third_party_paths(env):
                 os.path.join('C:\\', 'Boost', 'x86', 'include', 'boost-1_53')),
             MB_BOOST_32_LIBPATH =
                 e.get(MB_BOOST_32_LIBPATH,
-                os.path.join('C:\\', 'Boost', 'x86', 'lib')))
+                os.path.join('C:\\', 'Boost', 'x86', 'lib')),
+            MB_OPENMESH_64_CPPPATH =
+                e.get(MB_OPENMESH_64_CPPPATH,
+                os.path.join('C:\\', 'OpenMesh-2.4', 'include')),
+            MB_OPENMESH_64_LIBPATH =
+                e.get(MB_OPENMESH_64_LIBPATH,
+                os.path.join('C:\\', 'OpenMesh-2.4', 'x64', 'lib')),
+            MB_OPENMESH_32_CPPPATH =
+                e.get(MB_OPENMESH_32_CPPPATH,
+                os.path.join('C:\\', 'OpenMesh-2.4', 'include')),
+            MB_OPENMESH_32_LIBPATH =
+                e.get(MB_OPENMESH_32_LIBPATH,
+                os.path.join('C:\\', 'OpenMesh-2.4', 'x86', 'lib')))
+
+def mb_depends_on_openmesh(env):
+    if env.MBIsWindows():
+        bitness = '64' if env.MBWindowsIs64Bit() else '32'
+        env.Append(LIBPATH = env.MBGetPath('MB_OPENMESH_' + bitness + '_LIBPATH'))
+        env.Append(CPPPATH = env.MBGetPath('MB_OPENMESH_' + bitness + '_CPPPATH'))
+    else:
+        env.Append(LIBPATH = env.MBGetPath(MB_OPENMESH_LIBPATH))
+        env.Append(CPPPATH = env.MBGetPath(MB_OPENMESH_CPPPATH))
 
 def mb_depends_on_boost(env):
     if env.MBIsWindows():
@@ -272,6 +307,7 @@ def generate(env):
 
     env.AddMethod(mb_get_path, 'MBGetPath')
 
+    env.AddMethod(mb_depends_on_openmesh, 'MBDependsOnOpenMesh')
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
     env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
     env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
