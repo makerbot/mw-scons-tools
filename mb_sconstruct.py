@@ -32,12 +32,6 @@ def mb_sconscript(env, sconscript, python_project = False):
         env.SConscript(sconscript, variant_dir=env.MBVariantDir(), duplicate=1)
 
 def generate(env):
-    tool_exists = 'MB_SCONSTRUCT_TOOL_LOADED'
-    if env.get(tool_exists, False):
-        print 'tool "mb_sconstruct" being loaded multiple times'
-    else:
-        env[tool_exists] = True
-
     env.Tool('options')
     env.Tool('common')
 
