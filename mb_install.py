@@ -232,6 +232,7 @@ def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python',
         return base + '-py' + version + '.egg'
 
     deps = [eggify(e, version) for e in egg_dependencies]
+
     environment = env['ENV'].copy()
     environment.update({'PYTHONPATH': deps})
     egg = env.Command(
@@ -239,6 +240,9 @@ def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python',
         source,
         python + ' -c "import setuptools; execfile(\'setup.py\')" bdist_egg',
         ENV = environment)
+
+    env.Depends(egg, deps)
+
     return egg
 
 def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
