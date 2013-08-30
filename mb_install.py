@@ -227,11 +227,18 @@ def mb_install_system(env, source, dest):
 def mb_create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
-def mb_dist_egg(env, egg_name, source, python = 'python', version = '2.7'):
+def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python', version = '2.7'):
+    def eggify(base, version):
+        return base + '-py' + version + '.egg'
+
+    deps = [eggify(e, version) for e in egg_dependencies]
+    environment = env['ENV'].copy()
+    environment.update({'PYTHONPATH': deps})
     egg = env.Command(
-        egg_name + '-py' + version + '.egg',
+        eggify(egg_name, version),
         source,
-        python + ' -c "import setuptools; execfile(\'setup.py\')" bdist_egg')
+        python + ' -c "import setuptools; execfile(\'setup.py\')" bdist_egg',
+        ENV = environment)
     return egg
 
 def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
