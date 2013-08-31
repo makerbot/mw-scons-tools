@@ -365,8 +365,8 @@ def mb_build_vcxproj(env, target, source, target_type):
 
 def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     env.MBSetWindowsProjectName(target)
-    vcxproj_name = target + ('d' if env.MBDebugBuild() else '')
     vcxproj_name = target + ('_32' if env.MBWindowsIs32Bit() else '_64')
+    vcxproj_name = target + ('d' if env.MBDebugBuild() else '')
     if kProgramType == configuration_type:
       vcxproj = env.MBAppVcxproj(vcxproj_name, source)
     elif kDynamicLibraryType == configuration_type:
