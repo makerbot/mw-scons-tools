@@ -39,6 +39,9 @@ def mb_add_windows_devel_lib_path(env, path, platform = None):
 
 def mb_set_windows_bitness(env, bitness):
     ''' Toggle between Win32 and x64 '''
+    if None != env[kPlatformBitness]:
+        print ('Setting the bitness multiple times, or even anywhere '
+               'besides the beginning of the sconscript is a BAD IDEA!')
     env[kPlatformBitness] = bitness
 
 def mb_set_windows_project_name(env, name):
@@ -416,7 +419,10 @@ def bitness_override(env):
 
 def mb_windows_bitness(env):
     if None == bitness_override(env):
-        return env[kPlatformBitness]
+        if None == env[kPlatformBitness]:
+            return kDefaultPlatformBitness
+        else:
+            env[kPlatformBitness]
     else:
         return bitness_override(env)
 
@@ -441,7 +447,7 @@ def generate(env):
 
     # make sure that some necessary env variables exist
     env.SetDefault(**{
-        kPlatformBitness : kDefaultPlatformBitness,
+        kPlatformBitness : None,
         kUseSDLCheck : kDefaultUseSDLCheck,
         kIgnoredLibs : [],
         MB_WINDOWS_IS_WINDOWED_APPLICATION : False
