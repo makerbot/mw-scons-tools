@@ -365,7 +365,6 @@ def mb_build_vcxproj(env, target, source, target_type):
 
 def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     env.MBSetWindowsProjectName(target)
-    print target
     vcxproj_name = target + ('_32' if env.MBWindowsIs32Bit() else '_64')
     vcxproj_name += ('d' if env.MBDebugBuild() else '')
     if kProgramType == configuration_type:
