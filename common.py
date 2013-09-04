@@ -268,8 +268,7 @@ def mb_depends_on_openmesh(env):
         env.Append(LIBPATH = env.MBGetPath(MB_OPENMESH_LIBPATH))
         env.Append(CPPPATH = env.MBGetPath(MB_OPENMESH_CPPPATH))
 
-    env.MBAddLib('OpenMeshCore')
-    env.MBAddLib('OpenMeshTools')
+    env.Append(LIBS = ['OpenMeshCore', 'OpenMeshTools'])
 
 def mb_depends_on_boost(env):
     if env.MBIsWindows():
