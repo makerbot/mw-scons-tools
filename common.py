@@ -263,6 +263,7 @@ def mb_depends_on_openmesh(env):
         bitness = '64' if env.MBWindowsIs64Bit() else '32'
         env.Append(LIBPATH = env.MBGetPath('MB_OPENMESH_' + bitness + '_LIBPATH'))
         env.Append(CPPPATH = env.MBGetPath('MB_OPENMESH_' + bitness + '_CPPPATH'))
+        env.Append(CPPDEFINES = '_USE_MATH_DEFINES')
     else:
         env.Append(LIBPATH = env.MBGetPath(MB_OPENMESH_LIBPATH))
         env.Append(CPPPATH = env.MBGetPath(MB_OPENMESH_CPPPATH))
