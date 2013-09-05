@@ -195,28 +195,28 @@ def set_third_party_paths(env):
         env.SetDefault(
             MB_VTK_CPPPATH =
                 e.get(MB_VTK_CPPPATH,
-                os.path.join('/usr', 'local', 'vtk', 'include', 'vtk-5.10')),
+                '/usr/local/vtk/include/vtk-5.10'),
             MB_VTK_LIBPATH =
                 e.get(MB_VTK_LIBPATH,
-                os.path.join('/usr', 'local', 'vtk', 'lib', 'vtk-5.10')),
+                '/usr/local/vtk/lib/vtk-5.10'),
             MB_OPENCV_CPPPATH =
                 e.get(MB_OPENCV_CPPPATH,
-                os.path.join('/usr', 'local', 'opencv', 'include')),
+                '/usr/local/opencv/include'),
             MB_OPENCV_LIBPATH =
                 e.get(MB_OPENCV_LIBPATH,
-                os.path.join('/usr', 'local', 'opencv', 'lib')),
+                '/usr/local/opencv/lib'),
             MB_BOOST_CPPPATH =
                 e.get(MB_BOOST_CPPPATH,
-                os.path.join('/usr', 'local', 'boost', 'include', 'boost-1_53')),
+                '/usr/local/boost/include/boost-1_53'),
             MB_BOOST_LIBPATH =
                 e.get(MB_BOOST_LIBPATH,
-                os.path.join('/usr', 'local', 'boost', 'lib')),
+                '/usr/local/boost/lib'),
             MB_OPENMESH_CPPPATH =
                 e.get(MB_OPENMESH_CPPPATH,
-                os.path.join('/usr', 'local', 'openmesh', 'include')),
+                '/usr/local/openmesh/include'),
             MB_OPENMESH_LIBPATH =
                 e.get(MB_OPENMESH_LIBPATH,
-                os.path.join('/usr', 'local', 'openmesh', 'lib')))
+                '/usr/local/openmesh/lib'))
     elif env.MBIsLinux():
         env.SetDefault(
             MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
