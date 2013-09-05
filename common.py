@@ -216,7 +216,7 @@ def set_third_party_paths(env):
                 '/usr/local/openmesh/include'),
             MB_OPENMESH_LIBPATH =
                 e.get(MB_OPENMESH_LIBPATH,
-                '/usr/local/openmesh/lib'))
+                '/usr/local/openmesh/lib/OpenMesh'))
     elif env.MBIsLinux():
         env.SetDefault(
             MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
