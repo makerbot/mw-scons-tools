@@ -418,8 +418,8 @@ def set_compiler_flags(env):
         env.Replace(CXX='clang++')
         env.Append(CXXFLAGS='-arch x86_64 -arch i386 '+
                    '-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.6 '+
-                   '-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6mb.sdk' +
-                   '-U__STRICT_ANSI__'
+                   '-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6mb.sdk ' +
+                   '-U__STRICT_ANSI__ '
                    '-I/usr/local/clang/include '+
                    '-I/usr/local/clang/include/c++/v1 ' +
                    # Disabling this warning since this extension is
