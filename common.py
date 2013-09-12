@@ -247,16 +247,16 @@ def set_third_party_paths(env):
                 os.path.join('C:\\', 'Boost', 'x86', 'lib')),
             MB_OPENMESH_64_CPPPATH =
                 e.get(MB_OPENMESH_64_CPPPATH,
-                os.path.join('C:\\', 'OpenMesh-2.4', 'include')),
+                os.path.join('C:\\', 'OpenMesh-2.4', 'openmesh-64', 'include')),
             MB_OPENMESH_64_LIBPATH =
                 e.get(MB_OPENMESH_64_LIBPATH,
-                os.path.join('C:\\', 'OpenMesh-2.4', 'x64', 'lib')),
+                os.path.join('C:\\', 'OpenMesh-2.4', 'openmesh-64', 'lib')),
             MB_OPENMESH_32_CPPPATH =
                 e.get(MB_OPENMESH_32_CPPPATH,
-                os.path.join('C:\\', 'OpenMesh-2.4', 'include')),
+                os.path.join('C:\\', 'OpenMesh-2.4', 'openmesh-32', 'include')),
             MB_OPENMESH_32_LIBPATH =
                 e.get(MB_OPENMESH_32_LIBPATH,
-                os.path.join('C:\\', 'OpenMesh-2.4', 'x86', 'lib')))
+                os.path.join('C:\\', 'OpenMesh-2.4', 'openmesh-32', 'lib')))
 
 def mb_depends_on_openmesh(env):
     if env.MBIsWindows():
