@@ -29,6 +29,7 @@ kVariantDir = 'MB_WINDOWS_VARIANT_DIR'
 kIgnoredLibs = 'MB_WINDOWS_IGNORED_LIBS'
 
 MB_WINDOWS_IS_WINDOWED_APPLICATION = 'MB_WINDOWS_IS_WINDOWED_APPLICATION'
+MB_WINDOWS_USE_STATIC_RUNTIME_LIB = 'MB_WINDOWS_USE_STATIC_RUNTIME_LIB'
 
 
 def mb_add_windows_devel_lib_path(env, path, platform = None):
@@ -61,6 +62,9 @@ def mb_set_windows_variant_dir(env, variant_dir):
 
 def mb_add_windows_ignored_lib(env, lib):
     env.Append(**{kIgnoredLibs : [lib]})
+
+def mb_windows_use_static_runtime_lib(env, use_static = True):
+    env[MB_WINDOWS_USE_STATIC_RUNTIME_LIB] = use_static
 
 def mb_set_windows_is_windowed_application(env, is_windowed = True):
     env[MB_WINDOWS_IS_WINDOWED_APPLICATION] = is_windowed
@@ -147,6 +151,7 @@ def fill_in_the_blanks(debug,
                        compiler_flags,
                        include_paths,
                        sources,
+                       runtime_lib,
                        libs,
                        ignored_libs,
                        lib_paths,
@@ -216,6 +221,7 @@ def fill_in_the_blanks(debug,
         '        %(AdditionalIncludeDirectories)',
         '      </AdditionalIncludeDirectories>',
         '      <BufferSecurityCheck>' + ('true' if debug else 'false') + '</BufferSecurityCheck>',
+        '      <RuntimeLibrary>' + runtime_lib + '</RuntimeLibrary>',
         '    </ClCompile>',
         '    <Link>',
         '      <GenerateDebugInformation>true</GenerateDebugInformation>',
@@ -309,6 +315,12 @@ def gen_vcxproj(env, target, source, target_type):
     # we do less processing on ignored libs
     ignored_libs = SCons.Util.flatten(env[kIgnoredLibs])
 
+    runtime_lib = 'MultiThreaded'
+    if env.MBDebugBuild():
+        runtime_lib += 'Debug'
+    if not use_static_runtime_lib(env):
+        runtime_lib += 'DLL'
+
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
             debug = env.MBDebugBuild(),
@@ -323,6 +335,7 @@ def gen_vcxproj(env, target, source, target_type):
             use_sdl_check = env[kUseSDLCheck],
             include_paths = cpppath,
             sources = desconsify(source),
+            runtime_lib = runtime_lib,
             libs = libs,
             ignored_libs = ignored_libs,
             lib_paths = libpath,
@@ -412,6 +425,12 @@ def common_arguments(env):
         default=None,
         help='WINDOWS_ONLY: overrides the Platform setting. Use either Win32 or x64')
 
+    env.MBAddOption(
+        '--static-runtime',
+        dest='static_runtime',
+        action='store_true',
+        help='WINDOWS_ONLY: ensures that we use the static runtime')
+
 def vcxproj_properties(env):
     return env.MBGetOption('vcxproj_properties')
 
@@ -433,6 +452,9 @@ def mb_windows_is_64_bit(env):
 def mb_windows_is_32_bit(env):
     return 'Win32' == env.MBWindowsBitness()
 
+def use_static_runtime_lib(env):
+    return env[MB_WINDOWS_USE_STATIC_RUNTIME_LIB] or env.MBGetOption('static_runtime')
+
 def hide_console(env):
     return env.MBGetOption('hide_console') and env[MB_WINDOWS_IS_WINDOWED_APPLICATION]
 
@@ -451,7 +473,8 @@ def generate(env):
         kPlatformBitness : None,
         kUseSDLCheck : kDefaultUseSDLCheck,
         kIgnoredLibs : [],
-        MB_WINDOWS_IS_WINDOWED_APPLICATION : False
+        MB_WINDOWS_IS_WINDOWED_APPLICATION : False,
+        MB_WINDOWS_USE_STATIC_RUNTIME_LIB : False
     })
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
@@ -463,6 +486,7 @@ def generate(env):
     env.AddMethod(mb_add_windows_dll_build_flag, 'MBAddWindowsDLLBuildFlag')
     env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
     env.AddMethod(mb_add_windows_ignored_lib, 'MBAddWindowsIgnoredLib')
+    env.AddMethod(mb_windows_use_static_runtime_lib, 'MBWindowsUseStaticRuntimeLib')
     env.AddMethod(mb_set_windows_is_windowed_application, 'MBSetWindowsIsWindowedApplication')
 
     import SCons.Tool
