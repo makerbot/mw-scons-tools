@@ -436,7 +436,9 @@ def set_compiler_flags(env):
                    # Disabling this warning since some of Eigen3's
                    # headers cause it to happen in our code
                    '-Wno-unused-local-typedefs')
-        env.Append(LINKFLAGS='-std=c++11')
+        env.Append(LINKFLAGS='-std=c++11 ' +
+                   # This fixes the need for LD_LIBRARY_PATH=/usr/lib/makerbot
+                   '-Wl,-rpath,\'/usr/lib/makerbot\'')
 
 def mb_set_lib_sym_name(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
