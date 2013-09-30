@@ -30,6 +30,12 @@ kIgnoredLibs = 'MB_WINDOWS_IGNORED_LIBS'
 
 MB_WINDOWS_IS_WINDOWED_APPLICATION = 'MB_WINDOWS_IS_WINDOWED_APPLICATION'
 
+MB_WINDOWS_API_IMPORTS = 'MB_WINDOWS_API_IMPORTS'
+MB_WINDOWS_API_EXPORT = 'MB_WINDOWS_API_EXPORT'
+
+DLL_IMPORT = '__declspec(dllimport)'
+DLL_EXPORT = '__declspec(dllexport)'
+
 
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
@@ -48,10 +54,15 @@ def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
     env[kProjectName] = name
 
-def mb_add_windows_dll_build_flag(env, flag):
-    ''' So, this should really only be called once,
-        but we're not going to enforce that '''
-    env.Append(CPPDEFINES = flag)
+def mb_windows_add_api_import(env, api_import):
+    env.Append(**{MB_WINDOWS_API_IMPORTS : [api_import]})
+
+def mb_windows_set_api_export(env, api_export):
+    env[MB_WINDOWS_API_EXPORT] = api_export
+
+def mb_windows_set_default_api_export(env, api_export):
+    if env[MB_WINDOWS_API_EXPORT] == '':
+        env[MB_WINDOWS_API_EXPORT] = api_export
 
 def mb_set_windows_use_sdl_check(env, use_sdl):
     env[kUseSDLCheck] = use_sdl
@@ -140,6 +151,8 @@ def configuration_group(debug, configuration_type, suffix, runtime_link_type):
 def fill_in_the_blanks(debug,
                        bitness,
                        project_name,
+                       api_imports,
+                       api_export,
                        target_name,
                        lib_name,
                        configuration_type,
@@ -188,6 +201,12 @@ def fill_in_the_blanks(debug,
         '    <MBIsRelease>' + ('false' if debug else 'true') + '</MBIsRelease>',
         '    <MBPreprocessorDebugDefs Condition="\'$(MBIsDebug)\' == \'true\'">_DEBUG</MBPreprocessorDebugDefs>',
         '    <MBPreprocessorDebugDefs Condition="\'$(MBIsRelease)\' == \'true\'">NDEBUG</MBPreprocessorDebugDefs>',
+        '    <apiDefine Condition="\'$(ConfigurationType)\' == \'DynamicLibrary\'">' + api_export + '=' + DLL_EXPORT + '</apiDefine>',
+        '    <apiDefine Condition="\'$(ConfigurationType)\' != \'DynamicLibrary\'">' + api_export + '=</apiDefine>',
+        '    <MBPreprocessorAPIDefs>',
+        '      $(apiDefine);',
+        one_per_line('      ', api_imports, '=' + DLL_IMPORT + ';'),
+        '    </MBPreprocessorAPIDefs>',
         '    <TargetName Condition="\'$(configSuffix)\' == \'\'">' + target_name + '</TargetName>',
         '    <TargetName Condition="\'$(configSuffix)\' == \'_lib_srt\'">' + lib_name + '_lib_srt</TargetName>',
         '    <!-- Adds a bunch of stuff to the path for debugging. Formatting matters a lot here. -->',
@@ -211,6 +230,7 @@ def fill_in_the_blanks(debug,
         '      </AdditionalOptions>',
         '      <PreprocessorDefinitions>',
         '        $(MBPreprocessorDebugDefs);',
+        '        $(MBPreprocessorAPIDefs);',
         one_per_line('        ', preprocessor_defines, ';'),
         '        %(PreprocessorDefinitions)',
         '      </PreprocessorDefinitions>',
@@ -318,6 +338,8 @@ def gen_vcxproj(env, target, source, target_type):
             debug = env.MBDebugBuild(),
             bitness = env.MBWindowsBitness(),
             project_name = env[kProjectName],
+            api_imports = env[MB_WINDOWS_API_IMPORTS],
+            api_export = env[MB_WINDOWS_API_EXPORT],
             target_name = expanded_project_name(env, target_type),
             lib_name = expanded_project_name(env, kStaticLibraryType),
             configuration_type = target_type,
@@ -455,7 +477,9 @@ def generate(env):
         kPlatformBitness : None,
         kUseSDLCheck : kDefaultUseSDLCheck,
         kIgnoredLibs : [],
-        MB_WINDOWS_IS_WINDOWED_APPLICATION : False
+        MB_WINDOWS_IS_WINDOWED_APPLICATION : False,
+        MB_WINDOWS_API_IMPORTS: [],
+        MB_WINDOWS_API_EXPORT: ''
     })
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
@@ -464,7 +488,9 @@ def generate(env):
     env.AddMethod(mb_windows_is_64_bit, 'MBWindowsIs64Bit')
     env.AddMethod(mb_windows_is_32_bit, 'MBWindowsIs32Bit')
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
-    env.AddMethod(mb_add_windows_dll_build_flag, 'MBAddWindowsDLLBuildFlag')
+    env.AddMethod(mb_windows_add_api_import, 'MBWindowsAddAPIImport')
+    env.AddMethod(mb_windows_set_api_export, 'MBWindowsSetAPIExport')
+    env.AddMethod(mb_windows_set_default_api_export, 'MBWindowsSetDefaultAPIExport')
     env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
     env.AddMethod(mb_add_windows_ignored_lib, 'MBAddWindowsIgnoredLib')
     env.AddMethod(mb_set_windows_is_windowed_application, 'MBSetWindowsIsWindowedApplication')

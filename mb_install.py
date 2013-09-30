@@ -462,6 +462,18 @@ def mb_set_lib_sym_name(env, name):
             env.Append(LINKFLAGS = ['-compatibility_version',
                                     env['MB_VERSION']])
 
+def api_define(env, target_name):
+    api = re.sub('-', '', target_name)
+    api = re.sub('_', '', api)
+    api = api.upper()
+    api = api + '_API'
+    return api
+
+def windows_debug_tweak(env, lib):
+    if env.MBIsWindows() and env.MBDebugBuild():
+        lib += 'd'
+    return lib
+
 def mb_depends_on_mb_core_utils(env):
     # MBCoreUtils is currently header-only
     env.MBAddDevelIncludePath('#/../MBCoreUtils/cpp/include')
@@ -471,75 +483,79 @@ def mb_depends_on_mbqtutils(env):
     env.MBAddDevelLibPath('#/../libmbqtutils/obj')
     env.MBAddDevelIncludePath('#/../libmbqtutils/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
-        env.Append(CPPDEFINES='MBQTUTILS_DLL')
-
-def windows_debug_tweak(env, lib):
-    if env.MBIsWindows() and env.MBDebugBuild():
-        lib += 'd'
-    return lib
+        env.MBWindowsAddAPIImport(api_define(env, 'mbqtutils'))
 
 def mb_depends_on_json_cpp(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsoncpp'))
     env.MBAddDevelLibPath('#/../json-cpp/obj')
     env.MBAddDevelIncludePath('#/../json-cpp/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
-        env.Append(CPPDEFINES='JSON_DLL')
+        env.MBWindowsAddAPIImport('JSON_API')
 
 def mb_depends_on_json_rpc(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsonrpc'))
     env.MBAddDevelLibPath('#/../jsonrpc/obj')
     env.MBAddDevelIncludePath('#/../jsonrpc/' + env.MBVariantDir() + '/src/main/include')
     if env.MBIsWindows():
-        env.Append(CPPDEFINES='JSONRPC_DLL')
+        env.MBWindowsAddAPIImport(api_define(env, 'jsonrpc'))
 
 def mb_depends_on_thing(env):
     env.MBAddLib(windows_debug_tweak(env, 'thing'))
     env.MBAddDevelLibPath('#/../libthing-surprise/obj')
     env.MBAddDevelIncludePath('#/../libthing-surprise/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
-        env.Append(CPPDEFINES='THING_DLL')
+        env.MBWindowsAddAPIImport(api_define(env, 'thing'))
 
 def mb_depends_on_conveyor(env):
     env.MBAddLib(windows_debug_tweak(env, 'conveyor'))
     env.MBAddDevelLibPath('#/../conveyor/obj')
     env.MBAddDevelIncludePath('#/../conveyor/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
-        env.Append(CPPDEFINES='CONVEYOR_DLL')
+        env.MBWindowsAddAPIImport(api_define(env, 'conveyor'))
 
 def mb_depends_on_conveyor_ui(env):
     env.MBAddLib(windows_debug_tweak(env, 'conveyor-ui'))
     env.MBAddDevelLibPath('#/../conveyor-ui/obj')
     env.MBAddDevelIncludePath('#/../conveyor-ui/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
-        env.Append(CPPDEFINES='CONVEYOR_UI_DLL')
+        env.MBWindowsAddAPIImport(api_define(env, 'conveyor-ui'))
 
 def mb_depends_on_toolpathviz(env):
     env.MBAddLib(windows_debug_tweak(env, 'toolpathviz'))
     env.MBAddDevelLibPath('#/../ToolPathViz/obj')
     env.MBAddDevelIncludePath('#/../ToolPathViz/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
-        env.Append(CPPDEFINES='TOOLPATHVIZ_DLL')
+        env.MBWindowsAddAPIImport(api_define(env, 'toolpathviz'))
+
+def define_api_nothing(env, target):
+    env.Append(CPPDEFINES={api_define(env, target): ''})
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
+        env.MBWindowsSetDefaultAPIExport(api_define(env, target))
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
     else:
+        define_api_nothing(env, target)
         program = env.Program(target, source, *args, **kwargs);
     env.Alias(target, program)
     return program
 
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
+        env.MBWindowsSetDefaultAPIExport(api_define(env, target))
         library = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
     else:
+        define_api_nothing(env, target)
         library = env.SharedLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
     return library
 
 def mb_static_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
+        env.MBWindowsSetDefaultAPIExport(api_define(env, target))
         library = env.MBWindowsStaticLibrary(target, source, *args, **kwargs)
     else:
+        define_api_nothing(env, target)
         library = env.StaticLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
     return library
