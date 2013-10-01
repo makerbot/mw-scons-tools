@@ -469,6 +469,9 @@ def api_define(env, target_name):
     api = api + '_API'
     return api
 
+def define_api_nothing(env, target):
+    env.Append(CPPDEFINES={api_define(env, target): ''})
+
 def windows_debug_tweak(env, lib):
     if env.MBIsWindows() and env.MBDebugBuild():
         lib += 'd'
@@ -484,6 +487,8 @@ def mb_depends_on_mbqtutils(env):
     env.MBAddDevelIncludePath('#/../libmbqtutils/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'mbqtutils'))
+    else:
+        define_api_nothing(env, 'mbqtutils')
 
 def mb_depends_on_json_cpp(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsoncpp'))
@@ -491,6 +496,8 @@ def mb_depends_on_json_cpp(env):
     env.MBAddDevelIncludePath('#/../json-cpp/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport('JSON_API')
+    else:
+        define_api_nothing(env, 'JSON_API')
 
 def mb_depends_on_json_rpc(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsonrpc'))
@@ -498,6 +505,8 @@ def mb_depends_on_json_rpc(env):
     env.MBAddDevelIncludePath('#/../jsonrpc/' + env.MBVariantDir() + '/src/main/include')
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'jsonrpc'))
+    else:
+        define_api_nothing(env, 'jsonrpc')
 
 def mb_depends_on_thing(env):
     env.MBAddLib(windows_debug_tweak(env, 'thing'))
@@ -505,6 +514,8 @@ def mb_depends_on_thing(env):
     env.MBAddDevelIncludePath('#/../libthing-surprise/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'thing'))
+    else:
+        define_api_nothing(env, 'thing')
 
 def mb_depends_on_conveyor(env):
     env.MBAddLib(windows_debug_tweak(env, 'conveyor'))
@@ -512,6 +523,8 @@ def mb_depends_on_conveyor(env):
     env.MBAddDevelIncludePath('#/../conveyor/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'conveyor'))
+    else:
+        define_api_nothing(env, 'conveyor')
 
 def mb_depends_on_conveyor_ui(env):
     env.MBAddLib(windows_debug_tweak(env, 'conveyor-ui'))
@@ -519,6 +532,8 @@ def mb_depends_on_conveyor_ui(env):
     env.MBAddDevelIncludePath('#/../conveyor-ui/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'conveyor-ui'))
+    else:
+        define_api_nothing(env, 'conveyor-ui')
 
 def mb_depends_on_toolpathviz(env):
     env.MBAddLib(windows_debug_tweak(env, 'toolpathviz'))
@@ -526,9 +541,8 @@ def mb_depends_on_toolpathviz(env):
     env.MBAddDevelIncludePath('#/../ToolPathViz/' + env.MBVariantDir() + '/include')
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'toolpathviz'))
-
-def define_api_nothing(env, target):
-    env.Append(CPPDEFINES={api_define(env, target): ''})
+    else:
+        define_api_nothing(env, 'toolpathviz')
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
