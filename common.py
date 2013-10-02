@@ -259,7 +259,7 @@ def set_third_party_paths(env):
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'include')),
             MB_OPENMESH_64_LIBPATH =
                 e.get(MB_OPENMESH_64_LIBPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'lib')),
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'dll')),
             MB_OPENMESH_64 =
                 e.get(MB_OPENMESH_64,
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64')),
@@ -268,7 +268,7 @@ def set_third_party_paths(env):
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'include')),
             MB_OPENMESH_32_LIBPATH =
                 e.get(MB_OPENMESH_32_LIBPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'lib')),
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'dll')),
             MB_OPENMESH_32 =
                 e.get(MB_OPENMESH_32,
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32')))
