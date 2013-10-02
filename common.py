@@ -232,7 +232,7 @@ def set_third_party_paths(env):
     elif env.MBIsWindows():
         env.SetDefault(
             MB_THIRD_PARTY = e.get(MB_THIRD_PARTY, []))
-        third_party_dir = '%' + env[MB_THIRD_PARTY] + '%'
+        third_party_dir = env[MB_THIRD_PARTY]
         env.SetDefault(
             MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
             MB_VTK_LIBPATH = e.get(MB_VTK_LIBPATH, []),
