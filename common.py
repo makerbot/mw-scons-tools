@@ -255,13 +255,13 @@ def set_third_party_paths(env):
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'include')),
             MB_OPENMESH_64_LIBPATH =
                 e.get(MB_OPENMESH_64_LIBPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'bin')),
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'lib')),
             MB_OPENMESH_32_CPPPATH =
                 e.get(MB_OPENMESH_32_CPPPATH,
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'include')),
             MB_OPENMESH_32_LIBPATH =
                 e.get(MB_OPENMESH_32_LIBPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'bin')))
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'lib')))
 
 def mb_depends_on_openmesh(env):
     if env.MBIsWindows():
