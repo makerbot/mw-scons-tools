@@ -33,6 +33,7 @@ MB_OPENMESH_64_CPPPATH = 'MB_OPENMESH_64_CPPPATH'
 MB_OPENMESH_64_LIBPATH = 'MB_OPENMESH_64_LIBPATH'
 MB_OPENMESH_32_CPPPATH = 'MB_OPENMESH_32_CPPPATH'
 MB_OPENMESH_32_LIBPATH = 'MB_OPENMESH_32_LIBPATH'
+MB_THIRD_PARTY = 'MB_THIRD_PARTY'
 
 # Set up command line args used by every scons script
 def common_arguments(env):
@@ -77,7 +78,8 @@ def common_arguments(env):
             MB_OPENMESH_64_CPPPATH,
             MB_OPENMESH_64_LIBPATH,
             MB_OPENMESH_32_CPPPATH,
-            MB_OPENMESH_32_LIBPATH]
+            MB_OPENMESH_32_LIBPATH,
+            MB_THIRD_PARTY]
     for ev in env_vars:
         flag = ev.lower()
         flag = re.sub('_', '-', flag)
@@ -229,34 +231,37 @@ def set_third_party_paths(env):
             MB_OPENMESH_LIBPATH = e.get(MB_OPENMESH_LIBPATH, []))
     elif env.MBIsWindows():
         env.SetDefault(
+            MB_THIRD_PARTY = e.get(MB_THIRD_PARTY, []))
+        third_party_dir = '%' + env[MB_THIRD_PARTY] + '%'
+        env.SetDefault(
             MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
             MB_VTK_LIBPATH = e.get(MB_VTK_LIBPATH, []),
             MB_OPENCV_CPPPATH = e.get(MB_OPENCV_CPPPATH, []),
             MB_OPENCV_LIBPATH = e.get(MB_OPENCV_LIBPATH, []),
             MB_BOOST_64_CPPPATH =
                 e.get(MB_BOOST_64_CPPPATH,
-                os.path.join('C:\\', 'Boost', 'x64', 'include', 'boost-1_53')),
+                os.path.join(third_party_dir, 'Boost-1.53', 'boost-64', 'include')),
             MB_BOOST_64_LIBPATH =
                 e.get(MB_BOOST_64_LIBPATH,
-                os.path.join('C:\\', 'Boost', 'x64', 'lib')),
+                os.path.join(third_party_dir, 'Boost-1.53', 'boost-64', 'lib')),
             MB_BOOST_32_CPPPATH =
                 e.get(MB_BOOST_32_CPPPATH,
-                os.path.join('C:\\', 'Boost', 'x86', 'include', 'boost-1_53')),
+                os.path.join(third_party_dir, 'Boost-1.53', 'boost-32', 'include')),
             MB_BOOST_32_LIBPATH =
                 e.get(MB_BOOST_32_LIBPATH,
-                os.path.join('C:\\', 'Boost', 'x86', 'lib')),
+                os.path.join(third_party_dir, 'Boost-1.53', 'boost-32', 'lib')),
             MB_OPENMESH_64_CPPPATH =
                 e.get(MB_OPENMESH_64_CPPPATH,
-                os.path.join('C:\\', 'OpenMesh-2.4', 'openmesh-64', 'include')),
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'include')),
             MB_OPENMESH_64_LIBPATH =
                 e.get(MB_OPENMESH_64_LIBPATH,
-                os.path.join('C:\\', 'OpenMesh-2.4', 'openmesh-64', 'lib')),
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'bin')),
             MB_OPENMESH_32_CPPPATH =
                 e.get(MB_OPENMESH_32_CPPPATH,
-                os.path.join('C:\\', 'OpenMesh-2.4', 'openmesh-32', 'include')),
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'include')),
             MB_OPENMESH_32_LIBPATH =
                 e.get(MB_OPENMESH_32_LIBPATH,
-                os.path.join('C:\\', 'OpenMesh-2.4', 'openmesh-32', 'lib')))
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'bin')))
 
 def mb_depends_on_openmesh(env):
     if env.MBIsWindows():
