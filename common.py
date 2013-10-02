@@ -31,8 +31,10 @@ MB_BOOST_32_CPPPATH = 'MB_BOOST_32_CPPPATH'
 MB_BOOST_32_LIBPATH = 'MB_BOOST_32_LIBPATH'
 MB_OPENMESH_64_CPPPATH = 'MB_OPENMESH_64_CPPPATH'
 MB_OPENMESH_64_LIBPATH = 'MB_OPENMESH_64_LIBPATH'
+MB_OPENMESH_64 = 'MB_OPENMESH_64'
 MB_OPENMESH_32_CPPPATH = 'MB_OPENMESH_32_CPPPATH'
 MB_OPENMESH_32_LIBPATH = 'MB_OPENMESH_32_LIBPATH'
+MB_OPENMESH_32 = 'MB_OPENMESH_32'
 MB_THIRD_PARTY = 'MB_THIRD_PARTY'
 
 # Set up command line args used by every scons script
@@ -77,8 +79,10 @@ def common_arguments(env):
             MB_BOOST_32_LIBPATH,
             MB_OPENMESH_64_CPPPATH,
             MB_OPENMESH_64_LIBPATH,
+            MB_OPENMESH_64,
             MB_OPENMESH_32_CPPPATH,
             MB_OPENMESH_32_LIBPATH,
+            MB_OPENMESH_32,
             MB_THIRD_PARTY]
     for ev in env_vars:
         flag = ev.lower()
@@ -256,12 +260,18 @@ def set_third_party_paths(env):
             MB_OPENMESH_64_LIBPATH =
                 e.get(MB_OPENMESH_64_LIBPATH,
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'lib')),
+            MB_OPENMESH_64 =
+                e.get(MB_OPENMESH_64,
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64')),
             MB_OPENMESH_32_CPPPATH =
                 e.get(MB_OPENMESH_32_CPPPATH,
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'include')),
             MB_OPENMESH_32_LIBPATH =
                 e.get(MB_OPENMESH_32_LIBPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'lib')))
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'lib')),
+            MB_OPENMESH_32 =
+                e.get(MB_OPENMESH_32,
+                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32')))
 
 def mb_depends_on_openmesh(env):
     if env.MBIsWindows():
