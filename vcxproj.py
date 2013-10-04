@@ -91,6 +91,18 @@ def make_guid(project_name, debug, bitness):
     project_guid = guid_base[0:8]+'-'+guid_base[8:12]+'-'+guid_base[12:16]+'-'+guid_base[16:20]+'-'+guid_base[20:32]
     return project_guid
 
+def expand_project_name(project_name, target_type, debug):
+    ''' Set up the target name with our naming convention '''
+    expandedname = project_name
+
+    if debug:
+        expandedname += 'd'
+
+    if target_type == STATIC_LIB_TYPE:
+        expandedname = 'lib' + expandedname
+
+    return expandedname
+
 def configuration_string(debug):
     return 'Debug' if debug else 'Release'
 
@@ -150,7 +162,7 @@ def configuration_group(configuration, configuration_type, debug, target_name, e
 def standard_project_configurations(debug, bitness):
     return project_configurations(configuration_string(debug), bitness)
 
-def standard_configuration_group(target_name, debug, configuration_type):
+def standard_configuration_group(project_name, debug, configuration_type):
     configuration = configuration_string(debug)
 
     extra_props = [
@@ -158,6 +170,8 @@ def standard_configuration_group(target_name, debug, configuration_type):
         '<runtimeLinkType>DLL</runtimeLinkType>',
         '<importSiblings>' + DLL_IMPORT + '</importSiblings>',
     ]
+
+    target_name = expand_project_name(project_name, configuration_type, debug)
 
     return configuration_group(
         configuration,
@@ -173,9 +187,10 @@ def driver_project_configurations(debug, bitness):
         all the driver configurations. '''
     return project_configurations(configuration_string(debug) + DRIVER_SUFFIX, bitness)
 
-def driver_configuration_group(target_name, debug):
+def driver_configuration_group(project_name, debug):
     configuration = configuration_string(debug) + DRIVER_SUFFIX
 
+    target_name = expand_project_name(project_name, STATIC_LIB_TYPE, debug)
     target_name += DRIVER_SUFFIX
 
     extra_props = [
@@ -183,7 +198,7 @@ def driver_configuration_group(target_name, debug):
 
     return configuration_group(
         configuration,
-        'StaticLibrary',
+        STATIC_LIB_TYPE['project_string'],
         debug,
         target_name,
         extra_props)
@@ -193,8 +208,6 @@ def fill_in_the_blanks(debug,
                        project_name,
                        api_imports,
                        api_export,
-                       target_name,
-                       lib_name,
                        configuration_type,
                        preprocessor_defines,
                        debugging_path,
@@ -219,8 +232,8 @@ def fill_in_the_blanks(debug,
         '    <RootNamespace>' + project_name + '</RootNamespace>',
         '  </PropertyGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
-        standard_configuration_group(target_name, debug, configuration_type),
-        driver_configuration_group(lib_name, debug) if APPLICATION_TYPE != configuration_type else '',
+        standard_configuration_group(project_name, debug, configuration_type),
+        driver_configuration_group(project_name, debug) if APPLICATION_TYPE != configuration_type else '',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />',
         '  <ImportGroup Label="ExtensionSettings">',
         '  </ImportGroup>',
@@ -306,18 +319,6 @@ def fill_in_the_blanks(debug,
 
     return vcxproj_contents
 
-def expanded_project_name(env, target_type):
-    ''' Set up the target name with our naming convention '''
-    expandedname = env[MB_WINDOWS_PROJECT_NAME]
-
-    if env.MBDebugBuild():
-        expandedname += 'd'
-
-    if target_type == STATIC_LIB_TYPE:
-        expandedname = 'lib' + expandedname
-
-    return expandedname
-
 def mb_gen_vcxproj_emitter(target, source, env):
     ''' An Emitter that adds '.vcxproj' to the target '''
     target = [str(target[0]) + '.vcxproj']
@@ -374,8 +375,6 @@ def gen_vcxproj(env, target, source, target_type):
             project_name = env[MB_WINDOWS_PROJECT_NAME],
             api_imports = env[MB_WINDOWS_API_IMPORTS],
             api_export = env[MB_WINDOWS_API_EXPORT],
-            target_name = expanded_project_name(env, target_type),
-            lib_name = expanded_project_name(env, STATIC_LIB_TYPE),
             configuration_type = target_type,
             debugging_path = libpath,
             compiler_flags = env['CCFLAGS'],
@@ -402,7 +401,9 @@ def mb_build_vcxproj(env, target, source, target_type):
     expandedname = os.path.join(
         'obj',
         env.MBWindowsBitness(),
-        expanded_project_name(env, target_type))
+        expand_project_name(env[MB_WINDOWS_PROJECT_NAME],
+                            target_type,
+                            env.MBDebugBuild()))
 
     target = [expandedname + '.' + target_type['extension']]
 
