@@ -45,13 +45,6 @@ def mb_add_windows_devel_lib_path(env, path, platform = None):
         platform = env.MBWindowsBitness()
     env.Prepend(LIBPATH = [str(env.Dir(os.path.join(path, platform)))])
 
-def mb_set_windows_bitness(env, bitness):
-    ''' Toggle between Win32 and x64 '''
-    if None != env[MB_WINDOWS_PLATFORM_BITNESS]:
-        print ('Setting the bitness multiple times, or even anywhere '
-               'besides the beginning of the sconscript is a BAD IDEA!')
-    env[MB_WINDOWS_PLATFORM_BITNESS] = bitness
-
 def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
     env[MB_WINDOWS_PROJECT_NAME] = name
@@ -507,7 +500,6 @@ def generate(env):
     })
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
-    env.AddMethod(mb_set_windows_bitness, 'MBSetWindowsBitness')
     env.AddMethod(mb_windows_bitness, 'MBWindowsBitness')
     env.AddMethod(mb_windows_is_64_bit, 'MBWindowsIs64Bit')
     env.AddMethod(mb_windows_is_32_bit, 'MBWindowsIs32Bit')
