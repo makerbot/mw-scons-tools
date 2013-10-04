@@ -149,7 +149,7 @@ def standard_project_configurations(debug, bitness):
     return project_configurations(configuration_string(debug), bitness)
 
 def standard_configuration_group(target_name, debug, configuration_type):
-    configuration = 'Debug' if debug else 'Release'
+    configuration = configuration_string(debug)
 
     configuration_type = ('Application' if APPLICATION_CONFIG_TYPE == configuration_type else
         ('DynamicLibrary' if DYNAMIC_LIB_CONFIG_TYPE == configuration_type else
@@ -415,7 +415,7 @@ def mb_build_vcxproj(env, target, source, target_type):
 
     command = [
         'msbuild',
-        '/p:Configuration=' + ('Debug' if env.MBDebugBuild() else 'Release'),
+        '/p:Configuration=' + configuration_string(env.MBDebugBuild()),
         '/p:Platform=' + env.MBWindowsBitness()]
     command += ['/p:' + property for property in vcxproj_properties(env)]
 
