@@ -88,6 +88,9 @@ def make_guid(project_name):
     project_guid = guid_base[0:8]+'-'+guid_base[8:12]+'-'+guid_base[12:16]+'-'+guid_base[16:20]+'-'+guid_base[20:32]
     return project_guid
 
+def configuration_string(debug):
+    return 'Debug' if debug else 'Release'
+
 def strip_obj(paths):
     ''' If any path starts with obj, remove the obj '''
     return [re.sub('^(\\\\|/)*obj(\\\\|/)*', '', path) for path in paths]
@@ -118,9 +121,7 @@ def scons_to_msbuild_env_substitution(stuff):
         but not on windows. $QT5DIR is the only one I've seen so far. '''
     return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', thing) for thing in stuff]
 
-def project_configurations(debug, bitness, suffix):
-    configuration = 'Debug' if debug else 'Release'
-    configuration += suffix
+def project_configurations(configuration, bitness):
     return '\n'.join([
         '    <ProjectConfiguration Include="' + configuration + '|' + bitness + '">',
         '      <Configuration>' + configuration + '</Configuration>',
@@ -128,25 +129,60 @@ def project_configurations(debug, bitness, suffix):
         '    </ProjectConfiguration>',
     ])
 
-def configuration_group(debug, configuration_type, suffix, runtime_link_type):
-    configuration = 'Debug' if debug else 'Release'
-    configuration += suffix
-
-    configuration_type = ('Application' if kProgramType == configuration_type else
-        ('DynamicLibrary' if kDynamicLibraryType == configuration_type else
-        'StaticLibrary'))
-
+def configuration_group(configuration, configuration_type, debug, target_name, extra_properties):
     return '\n'.join([
         '  <PropertyGroup Condition="\'$(Configuration)\'==\'' + configuration + '\'" Label="Configuration">',
         '    <ConfigurationType>' + configuration_type + '</ConfigurationType>',
         '    <UseDebugLibraries>' + ('true' if debug else 'false') + '</UseDebugLibraries>',
         '    <PlatformToolset>v110</PlatformToolset>',
         '    <CharacterSet>Unicode</CharacterSet>',
-        '    <configSuffix>' + suffix + '</configSuffix>',
-        '    <!-- We use static linkage when building the windows 8.1 driver, dynamic otherwise -->',
-        '    <runtimeLinkType>' + runtime_link_type + '</runtimeLinkType>',
+        '    <TargetName>' + target_name + '</TargetName>',
+        one_per_line('    ', extra_properties, ''),
         '  </PropertyGroup>',
     ])
+
+def standard_project_configurations(debug, bitness):
+    return project_configurations(configuration_string(debug), bitness)
+
+def standard_configuration_group(target_name, debug, configuration_type):
+    configuration = 'Debug' if debug else 'Release'
+
+    configuration_type = ('Application' if kProgramType == configuration_type else
+        ('DynamicLibrary' if kDynamicLibraryType == configuration_type else
+        'StaticLibrary'))
+
+    extra_props = [
+        '<!-- We use dynamic linkage against the C++ runtime by default -->',
+        '<runtimeLinkType>DLL</runtimeLinkType>',
+        '<importSiblings>' + DLL_IMPORT + '</importSiblings>',
+    ]
+
+    return configuration_group(
+        configuration,
+        configuration_type,
+        debug,
+        target_name,
+        extra_props)
+
+DRIVER_SUFFIX = '_lib_srt'
+
+def driver_project_configurations(debug, bitness):
+    return project_configurations(configuration_string(debug) + DRIVER_SUFFIX, bitness)
+
+def driver_configuration_group(target_name, debug):
+    configuration = configuration_string(debug) + DRIVER_SUFFIX
+
+    target_name += DRIVER_SUFFIX
+
+    extra_props = [
+    ]
+
+    return configuration_group(
+        configuration,
+        'StaticLibrary',
+        debug,
+        target_name,
+        extra_props)
 
 def fill_in_the_blanks(debug,
                        bitness,
@@ -171,16 +207,16 @@ def fill_in_the_blanks(debug,
         '<?xml version="1.0" encoding="utf-8"?>',
         '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
         '  <ItemGroup Label="ProjectConfigurations">',
-        project_configurations(debug, bitness, ''),
-        project_configurations(debug, bitness, '_lib_srt') if kProgramType != configuration_type else '',
+        standard_project_configurations(debug, bitness),
+        driver_project_configurations(debug, bitness) if kProgramType != configuration_type else '',
         '  </ItemGroup>',
         '  <PropertyGroup Label="Globals">',
         '    <ProjectGuid>{' + make_guid(project_name) + '}</ProjectGuid>',
         '    <RootNamespace>' + project_name + '</RootNamespace>',
         '  </PropertyGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
-        configuration_group(debug, configuration_type, '', 'DLL'),
-        configuration_group(debug, kStaticLibraryType, '_lib_srt', '') if kProgramType != configuration_type else '',
+        standard_configuration_group(target_name, debug, configuration_type),
+        driver_configuration_group(lib_name, debug) if kProgramType != configuration_type else '',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />',
         '  <ImportGroup Label="ExtensionSettings">',
         '  </ImportGroup>',
@@ -203,14 +239,10 @@ def fill_in_the_blanks(debug,
         '    <MBPreprocessorDebugDefs Condition="\'$(MBIsRelease)\' == \'true\'">NDEBUG</MBPreprocessorDebugDefs>',
         '    <apiDefine Condition="\'$(ConfigurationType)\' == \'DynamicLibrary\'">' + api_export + '=' + DLL_EXPORT + '</apiDefine>',
         '    <apiDefine Condition="\'$(ConfigurationType)\' != \'DynamicLibrary\'">' + api_export + '=</apiDefine>',
-        '    <importSiblings Condition="\'$(configSuffix)\' == \'\'">' + DLL_IMPORT + '</importSiblings>',
-        '    <importSiblings Condition="\'$(configSuffix)\' == \'_lib_srt\'"></importSiblings>',
         '    <MBPreprocessorAPIDefs>',
         '      $(apiDefine);',
         one_per_line('      ', api_imports, '=$(importSiblings);'),
         '    </MBPreprocessorAPIDefs>',
-        '    <TargetName Condition="\'$(configSuffix)\' == \'\'">' + target_name + '</TargetName>',
-        '    <TargetName Condition="\'$(configSuffix)\' == \'_lib_srt\'">' + lib_name + '_lib_srt</TargetName>',
         '    <!-- Adds a bunch of stuff to the path for debugging. Formatting matters a lot here. -->',
         '    <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\\bin;' + ';'.join(debugging_path),
         'QT_PLUGIN_PATH=$(QT5DIR)\plugins',
