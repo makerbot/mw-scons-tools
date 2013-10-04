@@ -34,10 +34,10 @@ DLL_IMPORT = '__declspec(dllimport)'
 DLL_EXPORT = '__declspec(dllexport)'
 
 # these function as both an enumeration and
-# the file extensions for each configuration type
-APPLICATION_CONFIG_TYPE = 'exe'
-STATIC_LIB_CONFIG_TYPE = 'lib'
-DYNAMIC_LIB_CONFIG_TYPE = 'dll'
+# constant strings for each configuration type
+APPLICATION_TYPE = {'extension': 'exe', 'project_string': 'Application'}
+STATIC_LIB_TYPE =  {'extension': 'lib', 'project_string': 'StaticLibrary'}
+DYNAMIC_LIB_TYPE = {'extension': 'dll', 'project_string': 'DynamicLibrary'}
 
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
@@ -153,10 +153,6 @@ def standard_project_configurations(debug, bitness):
 def standard_configuration_group(target_name, debug, configuration_type):
     configuration = configuration_string(debug)
 
-    configuration_type = ('Application' if APPLICATION_CONFIG_TYPE == configuration_type else
-        ('DynamicLibrary' if DYNAMIC_LIB_CONFIG_TYPE == configuration_type else
-        'StaticLibrary'))
-
     extra_props = [
         '<!-- We use dynamic linkage against the C++ runtime by default -->',
         '<runtimeLinkType>DLL</runtimeLinkType>',
@@ -165,7 +161,7 @@ def standard_configuration_group(target_name, debug, configuration_type):
 
     return configuration_group(
         configuration,
-        configuration_type,
+        configuration_type['project_string'],
         debug,
         target_name,
         extra_props)
@@ -216,7 +212,7 @@ def fill_in_the_blanks(debug,
         '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
         '  <ItemGroup Label="ProjectConfigurations">',
         standard_project_configurations(debug, bitness),
-        driver_project_configurations(debug, bitness) if APPLICATION_CONFIG_TYPE != configuration_type else '',
+        driver_project_configurations(debug, bitness) if APPLICATION_TYPE != configuration_type else '',
         '  </ItemGroup>',
         '  <PropertyGroup Label="Globals">',
         '    <ProjectGuid>{' + make_guid(project_name, debug, bitness) + '}</ProjectGuid>',
@@ -224,7 +220,7 @@ def fill_in_the_blanks(debug,
         '  </PropertyGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
         standard_configuration_group(target_name, debug, configuration_type),
-        driver_configuration_group(lib_name, debug) if APPLICATION_CONFIG_TYPE != configuration_type else '',
+        driver_configuration_group(lib_name, debug) if APPLICATION_TYPE != configuration_type else '',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />',
         '  <ImportGroup Label="ExtensionSettings">',
         '  </ImportGroup>',
@@ -299,7 +295,7 @@ def fill_in_the_blanks(debug,
         '        $(OutDir)',
         '        %(AdditionalLibraryDirectories)',
         '      </AdditionalLibraryDirectories>',
-        '      <SubSystem>' + ('Windows' if hide_console else 'Console') + '</SubSystem>' if APPLICATION_CONFIG_TYPE == configuration_type else '',
+        '      <SubSystem>' + ('Windows' if hide_console else 'Console') + '</SubSystem>' if APPLICATION_TYPE == configuration_type else '',
         '    </Link>',
         '  </ItemDefinitionGroup>',
         '  <ItemGroup>',
@@ -317,7 +313,7 @@ def expanded_project_name(env, target_type):
     if env.MBDebugBuild():
         expandedname += 'd'
 
-    if target_type == STATIC_LIB_CONFIG_TYPE:
+    if target_type == STATIC_LIB_TYPE:
         expandedname = 'lib' + expandedname
 
     return expandedname
@@ -379,7 +375,7 @@ def gen_vcxproj(env, target, source, target_type):
             api_imports = env[MB_WINDOWS_API_IMPORTS],
             api_export = env[MB_WINDOWS_API_EXPORT],
             target_name = expanded_project_name(env, target_type),
-            lib_name = expanded_project_name(env, STATIC_LIB_CONFIG_TYPE),
+            lib_name = expanded_project_name(env, STATIC_LIB_TYPE),
             configuration_type = target_type,
             debugging_path = libpath,
             compiler_flags = env['CCFLAGS'],
@@ -393,13 +389,13 @@ def gen_vcxproj(env, target, source, target_type):
             hide_console = hide_console(env)))
 
 def mb_app_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, APPLICATION_CONFIG_TYPE)
+    gen_vcxproj(env, target, source, APPLICATION_TYPE)
 
 def mb_dll_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, DYNAMIC_LIB_CONFIG_TYPE)
+    gen_vcxproj(env, target, source, DYNAMIC_LIB_TYPE)
 
 def mb_lib_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, STATIC_LIB_CONFIG_TYPE)
+    gen_vcxproj(env, target, source, STATIC_LIB_TYPE)
 
 def mb_build_vcxproj(env, target, source, target_type):
     ''' Build the given vcxproj '''
@@ -408,11 +404,11 @@ def mb_build_vcxproj(env, target, source, target_type):
         env.MBWindowsBitness(),
         expanded_project_name(env, target_type))
 
-    target = [expandedname + '.' + target_type]
+    target = [expandedname + '.' + target_type['extension']]
 
     # For .dlls on windows we actually link against
     # the .lib that's generated, so return that, too
-    if target_type == DYNAMIC_LIB_CONFIG_TYPE:
+    if target_type == DYNAMIC_LIB_TYPE:
         target += [expandedname + '.lib']
 
     command = [
@@ -433,11 +429,11 @@ def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     env.MBSetWindowsProjectName(target)
     vcxproj_name = target + ('_32' if env.MBWindowsIs32Bit() else '_64')
     vcxproj_name += ('d' if env.MBDebugBuild() else '')
-    if APPLICATION_CONFIG_TYPE == configuration_type:
+    if APPLICATION_TYPE == configuration_type:
       vcxproj = env.MBAppVcxproj(vcxproj_name, source)
-    elif DYNAMIC_LIB_CONFIG_TYPE == configuration_type:
+    elif DYNAMIC_LIB_TYPE == configuration_type:
       vcxproj = env.MBDLLVcxproj(vcxproj_name, source)
-    elif STATIC_LIB_CONFIG_TYPE == configuration_type:
+    elif STATIC_LIB_TYPE == configuration_type:
       vcxproj = env.MBLibVcxproj(vcxproj_name, source)
     this_file = os.path.abspath(__file__)
     env.Depends(vcxproj, this_file)
@@ -446,13 +442,13 @@ def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     return result
 
 def mb_windows_program(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, APPLICATION_CONFIG_TYPE, *args, **kwargs)
+    return windows_binary(env, target, source, APPLICATION_TYPE, *args, **kwargs)
 
 def mb_windows_shared_library(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, DYNAMIC_LIB_CONFIG_TYPE, *args, **kwargs)
+    return windows_binary(env, target, source, DYNAMIC_LIB_TYPE, *args, **kwargs)
 
 def mb_windows_static_library(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, STATIC_LIB_CONFIG_TYPE, *args, **kwargs)
+    return windows_binary(env, target, source, STATIC_LIB_TYPE, *args, **kwargs)
 
 # Set up command line args used by every scons script
 def common_arguments(env):
