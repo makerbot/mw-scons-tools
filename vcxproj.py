@@ -15,18 +15,15 @@ just make sure to update everything to match those conventions
 '''
 
 # environment keys
-kDefaultPlatformBitness = 'x64'
-kPlatformBitness = 'MB_WINDOWS_PLATFORM_BITNESS'
+DEFAULT_PLATFORM_BITNESS = 'x64'
+MB_WINDOWS_PLATFORM_BITNESS = 'MB_WINDOWS_PLATFORM_BITNESS'
 
-kProjectName = 'MB_WINDOWS_PROJECT_NAME'
+MB_WINDOWS_PROJECT_NAME = 'MB_WINDOWS_PROJECT_NAME'
 
-kDefaultUseSDLCheck = True
-kUseSDLCheck = 'MB_WINDOWS_USE_SDL_CHECK'
+DEFAULT_USE_SDL_CHECK = True
+MB_WINDOWS_USE_SDL_CHECK = 'MB_WINDOWS_USE_SDL_CHECK'
 
-# for the --novariant option
-kVariantDir = 'MB_WINDOWS_VARIANT_DIR'
-
-kIgnoredLibs = 'MB_WINDOWS_IGNORED_LIBS'
+MB_WINDOWS_IGNORED_LIBS = 'MB_WINDOWS_IGNORED_LIBS'
 
 MB_WINDOWS_IS_WINDOWED_APPLICATION = 'MB_WINDOWS_IS_WINDOWED_APPLICATION'
 
@@ -36,6 +33,11 @@ MB_WINDOWS_API_EXPORT = 'MB_WINDOWS_API_EXPORT'
 DLL_IMPORT = '__declspec(dllimport)'
 DLL_EXPORT = '__declspec(dllexport)'
 
+# these function as both an enumeration and
+# the file extensions for each configuration type
+APPLICATION_CONFIG_TYPE = 'exe'
+STATIC_LIB_CONFIG_TYPE = 'lib'
+DYNAMIC_LIB_CONFIG_TYPE = 'dll'
 
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
@@ -45,14 +47,14 @@ def mb_add_windows_devel_lib_path(env, path, platform = None):
 
 def mb_set_windows_bitness(env, bitness):
     ''' Toggle between Win32 and x64 '''
-    if None != env[kPlatformBitness]:
+    if None != env[MB_WINDOWS_PLATFORM_BITNESS]:
         print ('Setting the bitness multiple times, or even anywhere '
                'besides the beginning of the sconscript is a BAD IDEA!')
-    env[kPlatformBitness] = bitness
+    env[MB_WINDOWS_PLATFORM_BITNESS] = bitness
 
 def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
-    env[kProjectName] = name
+    env[MB_WINDOWS_PROJECT_NAME] = name
 
 def mb_windows_add_api_import(env, api_import):
     env.Append(**{MB_WINDOWS_API_IMPORTS : [api_import]})
@@ -65,13 +67,10 @@ def mb_windows_set_default_api_export(env, api_export):
         env[MB_WINDOWS_API_EXPORT] = api_export
 
 def mb_set_windows_use_sdl_check(env, use_sdl):
-    env[kUseSDLCheck] = use_sdl
-
-def mb_set_windows_variant_dir(env, variant_dir):
-    env[kVariantDir] = variant_dir
+    env[MB_WINDOWS_USE_SDL_CHECK] = use_sdl
 
 def mb_add_windows_ignored_lib(env, lib):
-    env.Append(**{kIgnoredLibs : [lib]})
+    env.Append(**{MB_WINDOWS_IGNORED_LIBS : [lib]})
 
 def mb_set_windows_is_windowed_application(env, is_windowed = True):
     env[MB_WINDOWS_IS_WINDOWED_APPLICATION] = is_windowed
@@ -147,8 +146,8 @@ def standard_project_configurations(debug, bitness):
 def standard_configuration_group(target_name, debug, configuration_type):
     configuration = 'Debug' if debug else 'Release'
 
-    configuration_type = ('Application' if kProgramType == configuration_type else
-        ('DynamicLibrary' if kDynamicLibraryType == configuration_type else
+    configuration_type = ('Application' if APPLICATION_CONFIG_TYPE == configuration_type else
+        ('DynamicLibrary' if DYNAMIC_LIB_CONFIG_TYPE == configuration_type else
         'StaticLibrary'))
 
     extra_props = [
@@ -208,7 +207,7 @@ def fill_in_the_blanks(debug,
         '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
         '  <ItemGroup Label="ProjectConfigurations">',
         standard_project_configurations(debug, bitness),
-        driver_project_configurations(debug, bitness) if kProgramType != configuration_type else '',
+        driver_project_configurations(debug, bitness) if APPLICATION_CONFIG_TYPE != configuration_type else '',
         '  </ItemGroup>',
         '  <PropertyGroup Label="Globals">',
         '    <ProjectGuid>{' + make_guid(project_name) + '}</ProjectGuid>',
@@ -216,7 +215,7 @@ def fill_in_the_blanks(debug,
         '  </PropertyGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
         standard_configuration_group(target_name, debug, configuration_type),
-        driver_configuration_group(lib_name, debug) if kProgramType != configuration_type else '',
+        driver_configuration_group(lib_name, debug) if APPLICATION_CONFIG_TYPE != configuration_type else '',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />',
         '  <ImportGroup Label="ExtensionSettings">',
         '  </ImportGroup>',
@@ -291,7 +290,7 @@ def fill_in_the_blanks(debug,
         '        $(OutDir)',
         '        %(AdditionalLibraryDirectories)',
         '      </AdditionalLibraryDirectories>',
-        '      <SubSystem>' + ('Windows' if hide_console else 'Console') + '</SubSystem>' if kProgramType == configuration_type else '',
+        '      <SubSystem>' + ('Windows' if hide_console else 'Console') + '</SubSystem>' if APPLICATION_CONFIG_TYPE == configuration_type else '',
         '    </Link>',
         '  </ItemDefinitionGroup>',
         '  <ItemGroup>',
@@ -302,20 +301,14 @@ def fill_in_the_blanks(debug,
 
     return vcxproj_contents
 
-# these function as both an enumeration and
-# the file extensions for each configuration type
-kProgramType = 'exe'
-kStaticLibraryType = 'lib'
-kDynamicLibraryType = 'dll'
-
 def expanded_project_name(env, target_type):
     ''' Set up the target name with our naming convention '''
-    expandedname = env[kProjectName]
+    expandedname = env[MB_WINDOWS_PROJECT_NAME]
 
     if env.MBDebugBuild():
         expandedname += 'd'
 
-    if target_type == kStaticLibraryType:
+    if target_type == STATIC_LIB_CONFIG_TYPE:
         expandedname = 'lib' + expandedname
 
     return expandedname
@@ -365,22 +358,22 @@ def gen_vcxproj(env, target, source, target_type):
     libs = [lib if lib.endswith('.lib') else lib + '.lib' for lib in libs]
 
     # we do less processing on ignored libs
-    ignored_libs = SCons.Util.flatten(env[kIgnoredLibs])
+    ignored_libs = SCons.Util.flatten(env[MB_WINDOWS_IGNORED_LIBS])
 
     with open(filename, 'w') as f:
         f.write(fill_in_the_blanks(
             debug = env.MBDebugBuild(),
             bitness = env.MBWindowsBitness(),
-            project_name = env[kProjectName],
+            project_name = env[MB_WINDOWS_PROJECT_NAME],
             api_imports = env[MB_WINDOWS_API_IMPORTS],
             api_export = env[MB_WINDOWS_API_EXPORT],
             target_name = expanded_project_name(env, target_type),
-            lib_name = expanded_project_name(env, kStaticLibraryType),
+            lib_name = expanded_project_name(env, STATIC_LIB_CONFIG_TYPE),
             configuration_type = target_type,
             debugging_path = libpath,
             compiler_flags = env['CCFLAGS'],
             preprocessor_defines = cppdefines,
-            use_sdl_check = env[kUseSDLCheck],
+            use_sdl_check = env[MB_WINDOWS_USE_SDL_CHECK],
             include_paths = cpppath,
             sources = desconsify(source),
             libs = libs,
@@ -389,13 +382,13 @@ def gen_vcxproj(env, target, source, target_type):
             hide_console = hide_console(env)))
 
 def mb_app_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, kProgramType)
+    gen_vcxproj(env, target, source, APPLICATION_CONFIG_TYPE)
 
 def mb_dll_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, kDynamicLibraryType)
+    gen_vcxproj(env, target, source, DYNAMIC_LIB_CONFIG_TYPE)
 
 def mb_lib_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, kStaticLibraryType)
+    gen_vcxproj(env, target, source, STATIC_LIB_CONFIG_TYPE)
 
 def mb_build_vcxproj(env, target, source, target_type):
     ''' Build the given vcxproj (we assume that it's a vcxproj generated by us,
@@ -409,7 +402,7 @@ def mb_build_vcxproj(env, target, source, target_type):
 
     # For .dlls on windows we actually link against
     # the .lib that's generated, so return that, too
-    if target_type == kDynamicLibraryType:
+    if target_type == DYNAMIC_LIB_CONFIG_TYPE:
         target += [expandedname + '.lib']
 
     command = [
@@ -427,11 +420,11 @@ def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     env.MBSetWindowsProjectName(target)
     vcxproj_name = target + ('_32' if env.MBWindowsIs32Bit() else '_64')
     vcxproj_name += ('d' if env.MBDebugBuild() else '')
-    if kProgramType == configuration_type:
+    if APPLICATION_CONFIG_TYPE == configuration_type:
       vcxproj = env.MBAppVcxproj(vcxproj_name, source)
-    elif kDynamicLibraryType == configuration_type:
+    elif DYNAMIC_LIB_CONFIG_TYPE == configuration_type:
       vcxproj = env.MBDLLVcxproj(vcxproj_name, source)
-    elif kStaticLibraryType == configuration_type:
+    elif STATIC_LIB_CONFIG_TYPE == configuration_type:
       vcxproj = env.MBLibVcxproj(vcxproj_name, source)
     this_file = os.path.abspath(__file__)
     env.Depends(vcxproj, this_file)
@@ -440,13 +433,13 @@ def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     return result
 
 def mb_windows_program(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, kProgramType, *args, **kwargs)
+    return windows_binary(env, target, source, APPLICATION_CONFIG_TYPE, *args, **kwargs)
 
 def mb_windows_shared_library(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, kDynamicLibraryType, *args, **kwargs)
+    return windows_binary(env, target, source, DYNAMIC_LIB_CONFIG_TYPE, *args, **kwargs)
 
 def mb_windows_static_library(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, kStaticLibraryType, *args, **kwargs)
+    return windows_binary(env, target, source, STATIC_LIB_CONFIG_TYPE, *args, **kwargs)
 
 # Set up command line args used by every scons script
 def common_arguments(env):
@@ -480,10 +473,7 @@ def bitness_override(env):
 
 def mb_windows_bitness(env):
     if None == bitness_override(env):
-        if None == env[kPlatformBitness]:
-            return kDefaultPlatformBitness
-        else:
-            env[kPlatformBitness]
+        return env[MB_WINDOWS_PLATFORM_BITNESS]
     else:
         return bitness_override(env)
 
@@ -508,9 +498,9 @@ def generate(env):
 
     # make sure that some necessary env variables exist
     env.SetDefault(**{
-        kPlatformBitness : None,
-        kUseSDLCheck : kDefaultUseSDLCheck,
-        kIgnoredLibs : [],
+        MB_WINDOWS_PLATFORM_BITNESS : DEFAULT_PLATFORM_BITNESS,
+        MB_WINDOWS_USE_SDL_CHECK : DEFAULT_USE_SDL_CHECK,
+        MB_WINDOWS_IGNORED_LIBS : [],
         MB_WINDOWS_IS_WINDOWED_APPLICATION : False,
         MB_WINDOWS_API_IMPORTS: [],
         MB_WINDOWS_API_EXPORT: ''
