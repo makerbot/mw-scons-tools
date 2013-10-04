@@ -77,7 +77,7 @@ def mb_set_windows_is_windowed_application(env, is_windowed = True):
         have any effect on this project '''
     env[MB_WINDOWS_IS_WINDOWED_APPLICATION] = is_windowed
 
-def make_guid(project_name):
+def make_guid(project_name, debug, bitness):
     ''' We want to make sure the guids are always the same per project name.
         Produces a guid in {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} form
         based on the project name (so don't reuse project names). '''
@@ -85,7 +85,9 @@ def make_guid(project_name):
     fixed_name = ''
     for char in project_name:
         fixed_name += str(ord(char))
-    guid_base = fixed_name + 'abcdef1234567890abcdef1234567890'
+    debug = ('D' if debug else '')
+    bitness = ('64' if (bitness == 'x64') else '32')
+    guid_base = bitness + debug + fixed_name + 'abcdef1234567890abcdef1234567890'
     project_guid = guid_base[0:8]+'-'+guid_base[8:12]+'-'+guid_base[12:16]+'-'+guid_base[16:20]+'-'+guid_base[20:32]
     return project_guid
 
@@ -217,7 +219,7 @@ def fill_in_the_blanks(debug,
         driver_project_configurations(debug, bitness) if APPLICATION_CONFIG_TYPE != configuration_type else '',
         '  </ItemGroup>',
         '  <PropertyGroup Label="Globals">',
-        '    <ProjectGuid>{' + make_guid(project_name) + '}</ProjectGuid>',
+        '    <ProjectGuid>{' + make_guid(project_name, debug, bitness) + '}</ProjectGuid>',
         '    <RootNamespace>' + project_name + '</RootNamespace>',
         '  </PropertyGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
