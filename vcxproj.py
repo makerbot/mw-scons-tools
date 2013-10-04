@@ -30,6 +30,8 @@ MB_WINDOWS_IS_WINDOWED_APPLICATION = 'MB_WINDOWS_IS_WINDOWED_APPLICATION'
 MB_WINDOWS_API_IMPORTS = 'MB_WINDOWS_API_IMPORTS'
 MB_WINDOWS_API_EXPORT = 'MB_WINDOWS_API_EXPORT'
 
+MB_WINDOWS_STANDARD_CONFIG_DEFINES = 'MB_WINDOWS_STANDARD_CONFIG_DEFINES'
+
 DLL_IMPORT = '__declspec(dllimport)'
 DLL_EXPORT = '__declspec(dllexport)'
 
@@ -48,6 +50,11 @@ def mb_add_windows_devel_lib_path(env, path, platform = None):
 def mb_set_windows_project_name(env, name):
     ''' Lots of things need a base name for the project '''
     env[MB_WINDOWS_PROJECT_NAME] = name
+
+def mb_windows_add_standard_configuration_preprocessor_define(env, define):
+    ''' Add a c preprocessor define that will only
+        be used in the driver configuration '''
+    env.Append(**{MB_WINDOWS_STANDARD_CONFIG_DEFINES : [define]})
 
 def mb_windows_add_api_import(env, api_import):
     ''' Add an API define that is used in code this project depends on '''
@@ -162,13 +169,18 @@ def configuration_group(configuration, configuration_type, debug, target_name, e
 def standard_project_configurations(debug, bitness):
     return project_configurations(configuration_string(debug), bitness)
 
-def standard_configuration_group(project_name, debug, configuration_type):
+def standard_configuration_group(project_name, debug, configuration_type, standard_config_defines):
     configuration = configuration_string(debug)
 
     extra_props = [
         '<!-- We use dynamic linkage against the C++ runtime by default -->',
         '<runtimeLinkType>DLL</runtimeLinkType>',
         '<importSiblings>' + DLL_IMPORT + '</importSiblings>',
+        '<!-- There are some preprocessor defines that we only want in the standard config -->',
+        '<PreprocessorDefinitions>',
+        one_per_line('  ', standard_config_defines, ';'),
+        '  $(PreprocessorDefinitions)',
+        '</PreprocessorDefinitions>'
     ]
 
     target_name = expand_project_name(project_name, configuration_type, debug)
@@ -193,6 +205,7 @@ def driver_configuration_group(project_name, debug):
     target_name = expand_project_name(project_name, STATIC_LIB_TYPE, debug)
     target_name += DRIVER_SUFFIX
 
+    # we sometimes need things set in the driver but not otherwise
     extra_props = [
     ]
 
@@ -209,6 +222,7 @@ def fill_in_the_blanks(debug,
                        api_imports,
                        api_export,
                        configuration_type,
+                       standard_config_defines,
                        preprocessor_defines,
                        debugging_path,
                        use_sdl_check,
@@ -232,7 +246,7 @@ def fill_in_the_blanks(debug,
         '    <RootNamespace>' + project_name + '</RootNamespace>',
         '  </PropertyGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
-        standard_configuration_group(project_name, debug, configuration_type),
+        standard_configuration_group(project_name, debug, configuration_type, standard_config_defines),
         driver_configuration_group(project_name, debug) if APPLICATION_TYPE != configuration_type else '',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />',
         '  <ImportGroup Label="ExtensionSettings">',
@@ -283,6 +297,7 @@ def fill_in_the_blanks(debug,
         '        $(MBPreprocessorDebugDefs);',
         '        $(MBPreprocessorAPIDefs);',
         one_per_line('        ', preprocessor_defines, ';'),
+        '        $(PreprocessorDefinitions);',
         '        %(PreprocessorDefinitions)',
         '      </PreprocessorDefinitions>',
         '      <AdditionalIncludeDirectories>',
@@ -376,6 +391,7 @@ def gen_vcxproj(env, target, source, target_type):
             api_imports = env[MB_WINDOWS_API_IMPORTS],
             api_export = env[MB_WINDOWS_API_EXPORT],
             configuration_type = target_type,
+            standard_config_defines = env[MB_WINDOWS_STANDARD_CONFIG_DEFINES],
             debugging_path = libpath,
             compiler_flags = env['CCFLAGS'],
             preprocessor_defines = cppdefines,
@@ -508,6 +524,7 @@ def generate(env):
 
     # make sure that some necessary env variables exist
     env.SetDefault(**{
+        MB_WINDOWS_STANDARD_CONFIG_DEFINES : [],
         MB_WINDOWS_PLATFORM_BITNESS : DEFAULT_PLATFORM_BITNESS,
         MB_WINDOWS_USE_SDL_CHECK : DEFAULT_USE_SDL_CHECK,
         MB_WINDOWS_IGNORED_LIBS : [],
@@ -521,6 +538,8 @@ def generate(env):
     env.AddMethod(mb_windows_is_64_bit, 'MBWindowsIs64Bit')
     env.AddMethod(mb_windows_is_32_bit, 'MBWindowsIs32Bit')
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
+    env.AddMethod(mb_windows_add_standard_configuration_preprocessor_define,
+        'MBWindowsAddStandardConfigurationPreprocessorDefine')
     env.AddMethod(mb_windows_add_api_import, 'MBWindowsAddAPIImport')
     env.AddMethod(mb_windows_set_api_export, 'MBWindowsSetAPIExport')
     env.AddMethod(mb_windows_set_default_api_export, 'MBWindowsSetDefaultAPIExport')
