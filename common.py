@@ -305,6 +305,14 @@ def mb_depends_on_vtk(env):
     env.Append(LIBPATH = env.MBGetPath(MB_VTK_LIBPATH))
     env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
 
+def mb_add_boost_libs(env, libs):
+    if env.MBIsLinux():
+        env.Append(LIBS=libs)
+    elif env.MBIsMac():
+        env.Append(LIBS=[lib + '-clang-darwin42-mt-1_53' for lib in libs])
+    elif env.MBIsWindows():
+        env.Append(LIBS=[lib + '-vc110-mt-1_53' for lib in libs])
+
 def add_openmp_option(env):
     """Add a '--disable-openmp' command-line option"""
     env.MBAddOption(
@@ -363,6 +371,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
     env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
     env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
+    env.AddMethod(mb_add_boost_libs, 'MBAddBoostLibs')
 
     env.AddMethod(mb_setup_openmp, 'MBSetupOpenMP')
 
