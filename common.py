@@ -305,7 +305,7 @@ def mb_depends_on_vtk(env):
     env.Append(LIBPATH = env.MBGetPath(MB_VTK_LIBPATH))
     env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
 
-def mb_add_openmp_option(env):
+def add_openmp_option(env):
     """Add a '--disable-openmp' command-line option"""
     env.MBAddOption(
         '--disable-openmp',
@@ -316,12 +316,12 @@ def mb_add_openmp_option(env):
 def mb_setup_openmp(env):
     """Add OpenMP compiler flags if OpenMP is supported and enabled
 
-    Calls mb_add_openmp_option() to add a SCons flag for disabling
+    Calls add_openmp_option() to add a SCons flag for disabling
     OpenMP.
 
     If OpenMP is enabled, the appropriate flags are set for MSVC and
     G++. Clang does not support OpenMP yet."""
-    mb_add_openmp_option(env)
+    add_openmp_option(env)
     if env.GetOption('openmp_enabled') != False:
         compiler = env['CXX']
         if compiler == 'g++':
