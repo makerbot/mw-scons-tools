@@ -393,21 +393,6 @@ def set_install_paths(env):
                        MB_CONFIG_DIR = os.path.join(prefix, 'MakerWare'),
                        MB_EGG_DIR = os.path.join(prefix, 'MakerWare', 'python'))
 
-    #extract the build version
-    version_file = open(str(env.File('#/mb_version')))
-    env['MB_VERSION'] = version_file.readline()
-    version_file.close()
-    env['MB_VERSION'] = string.strip(env['MB_VERSION'])
-    if env.MBIsWindows():
-        quoted = '\"' + env['MB_VERSION'] + '\"'
-    else:
-        quoted = '\\\"' + env['MB_VERSION'] + '\\\"'
-    env.Append(CPPDEFINES='MB_VERSION_STR=' + quoted)
-
-    #make sure LIBS is initialized
-    if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
-        env['LIBS'] = []
-
 def set_compiler_flags(env):
     ''' Sets flags required by all projects.
 
@@ -621,6 +606,21 @@ def generate(env):
     env.Tool('vcxproj')
 
     env['MB_INSTALL_TARGETS'] = []
+
+    #extract the build version
+    version_file = open(str(env.File('#/mb_version')))
+    env['MB_VERSION'] = version_file.readline()
+    version_file.close()
+    env['MB_VERSION'] = string.strip(env['MB_VERSION'])
+    if env.MBIsWindows():
+        quoted = '\"' + env['MB_VERSION'] + '\"'
+    else:
+        quoted = '\\\"' + env['MB_VERSION'] + '\\\"'
+    env.Append(CPPDEFINES='MB_VERSION_STR=' + quoted)
+
+    #make sure LIBS is initialized
+    if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
+        env['LIBS'] = []
 
     # Unpleasant state tracker: in case MBInstallHeaders is called
     # multiple times on OSX, ensure that the symlink command isn't
