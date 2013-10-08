@@ -348,6 +348,9 @@ def mb_setup_openmp(env):
     else:
         print('OpenMP disabled')
 
+def mb_build_number(env):
+    return os.environ.get('BUILD_NUMBER', '1337')
+
 def load_version(env):
     # extract the build version
     with open(str(env.File('#/mb_version'))) as version_file:
@@ -384,6 +387,8 @@ def generate(env):
     env.AddMethod(mb_add_boost_libs, 'MBAddBoostLibs')
 
     env.AddMethod(mb_setup_openmp, 'MBSetupOpenMP')
+
+    env.AddMethod(mb_build_number, 'MBBuildNumber')
 
     set_third_party_paths(env)
 
