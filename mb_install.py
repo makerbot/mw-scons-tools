@@ -607,9 +607,9 @@ def generate(env):
     env['MB_INSTALL_TARGETS'] = []
 
     if env.MBIsWindows():
-        quoted = '\"' + env['MB_VERSION'] + '\"'
+        quoted = '\"' + env.MBVersion() + '\"'
     else:
-        quoted = '\\\"' + env['MB_VERSION'] + '\\\"'
+        quoted = '\\\"' + env.MBVersion() + '\\\"'
     env.Append(CPPDEFINES='MB_VERSION_STR=' + quoted)
 
     #make sure LIBS is initialized
