@@ -359,7 +359,7 @@ def mb_version(env):
 
 def load_version(env):
     # extract the build version
-    with open(str(env.File('#/mb_version'))) as version_file:
+    with open(str(env.File('#/../../mb_version'))) as version_file:
         env['MB_VERSION'] = version_file.readline()
 
     env['MB_VERSION'] = string.strip(env['MB_VERSION'])
