@@ -4,6 +4,7 @@ import fnmatch
 import glob
 import os
 import re
+import string
 import sys
 import SCons
 
@@ -347,10 +348,19 @@ def mb_setup_openmp(env):
     else:
         print('OpenMP disabled')
 
+def load_version(env):
+    # extract the build version
+    with open(str(env.File('#/mb_version'))) as version_file:
+        env['MB_VERSION'] = version_file.readline()
+
+    env['MB_VERSION'] = string.strip(env['MB_VERSION'])
+
 def generate(env):
     env.Tool('options')
 
     common_arguments(env)
+
+    load_version(env)
 
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
     env.AddMethod(mb_debug_build, 'MBDebugBuild')

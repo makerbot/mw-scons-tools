@@ -1,5 +1,4 @@
 import os
-import string
 import re
 import SCons
 
@@ -607,11 +606,6 @@ def generate(env):
 
     env['MB_INSTALL_TARGETS'] = []
 
-    #extract the build version
-    version_file = open(str(env.File('#/mb_version')))
-    env['MB_VERSION'] = version_file.readline()
-    version_file.close()
-    env['MB_VERSION'] = string.strip(env['MB_VERSION'])
     if env.MBIsWindows():
         quoted = '\"' + env['MB_VERSION'] + '\"'
     else:
