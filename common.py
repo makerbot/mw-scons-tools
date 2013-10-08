@@ -349,7 +349,13 @@ def mb_setup_openmp(env):
         print('OpenMP disabled')
 
 def mb_build_number(env):
+    ''' Returns the jenkins build number (the value of the BUILD_NUMBER
+        environment variable) or 1337 for a dev build. '''
     return os.environ.get('BUILD_NUMBER', '1337')
+
+def mb_version(env):
+    ''' Returns the version number for the current build. '''
+    return env['MB_VERSION']
 
 def load_version(env):
     # extract the build version
@@ -389,6 +395,7 @@ def generate(env):
     env.AddMethod(mb_setup_openmp, 'MBSetupOpenMP')
 
     env.AddMethod(mb_build_number, 'MBBuildNumber')
+    env.AddMethod(mb_version, 'MBVersion')
 
     set_third_party_paths(env)
 
