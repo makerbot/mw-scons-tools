@@ -32,6 +32,8 @@ MB_WINDOWS_API_EXPORT = 'MB_WINDOWS_API_EXPORT'
 
 MB_WINDOWS_STANDARD_CONFIG_DEFINES = 'MB_WINDOWS_STANDARD_CONFIG_DEFINES'
 
+MB_WINDOWS_RESOURCES = 'MB_WINDOWS_RESOURCES'
+
 DLL_IMPORT = '__declspec(dllimport)'
 DLL_EXPORT = '__declspec(dllexport)'
 
@@ -55,6 +57,10 @@ def mb_windows_add_standard_configuration_preprocessor_define(env, define):
     ''' Add a c preprocessor define that will only
         be used in the driver configuration '''
     env.Append(**{MB_WINDOWS_STANDARD_CONFIG_DEFINES : [define]})
+
+def mb_windows_add_resource(env, rc):
+    ''' Add a .rc file to the windows compilation '''
+    env.Append(**{MB_WINDOWS_RESOURCES : [rc]})
 
 def mb_windows_add_api_import(env, api_import):
     ''' Add an API define that is used in code this project depends on '''
@@ -229,6 +235,7 @@ def fill_in_the_blanks(debug,
                        compiler_flags,
                        include_paths,
                        sources,
+                       resources,
                        libs,
                        ignored_libs,
                        lib_paths,
@@ -330,6 +337,9 @@ def fill_in_the_blanks(debug,
         '  <ItemGroup>',
         one_per_line('    <ClCompile Include="', strip_obj(sources), '" />'),
         '  </ItemGroup>',
+        '  <ItemGroup>',
+        one_per_line('    <ResourceCompile Include="', strip_obj(resources), '" />'),
+        '  </ItemGroup>',
         '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />',
         '</Project>'])
 
@@ -399,6 +409,7 @@ def gen_vcxproj(env, target, source, target_type):
             use_sdl_check = env[MB_WINDOWS_USE_SDL_CHECK],
             include_paths = cpppath,
             sources = desconsify(source),
+            resources = desconsify(env[MB_WINDOWS_RESOURCES]),
             libs = libs,
             ignored_libs = ignored_libs,
             lib_paths = libpath,
@@ -440,6 +451,7 @@ def mb_build_vcxproj(env, target, source, target_type):
     target_list = env.Command(target, source, ' '.join(command))
     return target_list
 
+this_file = os.path.abspath(__file__)
 def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     ''' Combines generating and building a vcxproj.
         Also sets up some dependencies.
@@ -447,13 +459,20 @@ def windows_binary(env, target, source, configuration_type, *args, **kwargs):
     env.MBSetWindowsProjectName(target)
     vcxproj_name = target + ('_32' if env.MBWindowsIs32Bit() else '_64')
     vcxproj_name += ('d' if env.MBDebugBuild() else '')
+
+    # TODO(ted): we can probably make this only regenerate if the version changes
+    # TODO(ted): this path is kind of a hack, will probably cause trouble when something changes
+    version_rc = env.MBGenerateVersionResource(vcxproj_name + '_version.rc')
+    env.MBWindowsAddResource(version_rc)
+
     if APPLICATION_TYPE == configuration_type:
       vcxproj = env.MBAppVcxproj(vcxproj_name, source)
     elif DYNAMIC_LIB_TYPE == configuration_type:
       vcxproj = env.MBDLLVcxproj(vcxproj_name, source)
     elif STATIC_LIB_TYPE == configuration_type:
       vcxproj = env.MBLibVcxproj(vcxproj_name, source)
-    this_file = os.path.abspath(__file__)
+
+    env.Depends(vcxproj, version_rc)
     env.Depends(vcxproj, this_file)
     result = env.MBBuildVcxproj(target, vcxproj, configuration_type)
     env.Depends(result, source)
@@ -519,12 +538,14 @@ def add_common_defines(env):
 def generate(env):
     env.Tool('common')
     env.Tool('log')
+    env.Tool('rc')
 
     if env.MBIsWindows():
       common_arguments(env)
 
     # make sure that some necessary env variables exist
     env.SetDefault(**{
+        MB_WINDOWS_RESOURCES : [],
         MB_WINDOWS_STANDARD_CONFIG_DEFINES : [],
         MB_WINDOWS_PLATFORM_BITNESS : DEFAULT_PLATFORM_BITNESS,
         MB_WINDOWS_USE_SDL_CHECK : DEFAULT_USE_SDL_CHECK,
@@ -541,6 +562,7 @@ def generate(env):
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
     env.AddMethod(mb_windows_add_standard_configuration_preprocessor_define,
         'MBWindowsAddStandardConfigurationPreprocessorDefine')
+    env.AddMethod(mb_windows_add_resource, 'MBWindowsAddResource')
     env.AddMethod(mb_windows_add_api_import, 'MBWindowsAddAPIImport')
     env.AddMethod(mb_windows_set_api_export, 'MBWindowsSetAPIExport')
     env.AddMethod(mb_windows_set_default_api_export, 'MBWindowsSetDefaultAPIExport')
