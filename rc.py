@@ -4,13 +4,6 @@ import os
 import re
 
 def mb_generate_version_resource(env, outfile):
-    version_regex = re.compile('(?P<major>[0-9]+)\.(?P<minor>[0-9]+)\.(?P<point>[0-9]+)')
-
-    try:
-        version = version_regex.match(env.MBVersion())
-    except Exception as e:
-        raise Exception("could not parse version number")
-
     template_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         'templates',
@@ -22,10 +15,10 @@ def mb_generate_version_resource(env, outfile):
         version_text = version_text.decode('utf-16')
 
         subst = {
-            'major': version.group('major'),
-            'minor': version.group('minor'),
-            'point': version.group('point'),
-            'build': env.MBBuildNumber(),
+            'major': env.MBVersionMajor(),
+            'minor': env.MBVersionMinor(),
+            'point': env.MBVersionPoint(),
+            'build': env.MBVersionBuild(),
             'file_description': "TODO",
             'internal_name': "TODO",
             'original_filename': "TODO",
