@@ -424,6 +424,18 @@ def mb_dll_vcxproj(target, source, env):
 def mb_lib_vcxproj(target, source, env):
     gen_vcxproj(env, target, source, STATIC_LIB_TYPE)
 
+def mb_run_msbuild(env, target, source, configuration, platform, properties = []):
+    command = [
+        'msbuild',
+        '/p:Configuration=' + configuration,
+        '/p:Platform=' + platform]
+    command += ['/p:' + property for property in properties]
+
+    command += ['$SOURCE']
+
+    target_list = env.Command(target, source, ' '.join(command))
+    return target_list
+
 def mb_build_vcxproj(env, target, source, target_type):
     ''' Build the given vcxproj '''
     expandedname = os.path.join(
@@ -440,15 +452,12 @@ def mb_build_vcxproj(env, target, source, target_type):
     if target_type == DYNAMIC_LIB_TYPE:
         target += [expandedname + '.lib']
 
-    command = [
-        'msbuild',
-        '/p:Configuration=' + configuration_string(env.MBDebugBuild()),
-        '/p:Platform=' + env.MBWindowsBitness()]
-    command += ['/p:' + property for property in vcxproj_properties(env)]
-
-    command += ['$SOURCE']
-
-    target_list = env.Command(target, source, ' '.join(command))
+    target_list = env.MBRunMSBuild(
+        target,
+        source,
+        configuration_string(env.MBDebugBuild()),
+        env.MBWindowsBitness(),
+        vcxproj_properties(env))
     return target_list
 
 this_file = os.path.abspath(__file__)
@@ -590,6 +599,7 @@ def generate(env):
                 emitter = mb_gen_vcxproj_emitter,
                 source_scanner = SCons.Tool.SourceFileScanner)})
 
+    env.AddMethod(mb_run_msbuild, 'MBRunMSBuild')
     env.AddMethod(mb_build_vcxproj, 'MBBuildVcxproj')
 
     env.AddMethod(mb_windows_program, 'MBWindowsProgram')
