@@ -3,7 +3,12 @@
 import os
 import re
 
-def mb_generate_version_resource(env, outfile):
+def mb_generate_version_resource(env,
+                                 outfile,
+                                 file_description,
+                                 internal_name,
+                                 original_filename,
+                                 product_name):
     template_file = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
         'templates',
@@ -19,10 +24,10 @@ def mb_generate_version_resource(env, outfile):
             'minor': env.MBVersionMinor(),
             'point': env.MBVersionPoint(),
             'build': env.MBVersionBuild(),
-            'file_description': "TODO",
-            'internal_name': "TODO",
-            'original_filename': "TODO",
-            'product_name': "TODO"
+            'file_description': file_description,
+            'internal_name': internal_name,
+            'original_filename': original_filename,
+            'product_name': product_name
         }
         version_text = version_text % subst
 

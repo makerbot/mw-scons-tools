@@ -471,7 +471,12 @@ def windows_binary(env, target, source, configuration_type, *args, **kwargs):
 
     # TODO(ted): we can probably make this only regenerate if the version changes
     # TODO(ted): this path is kind of a hack, will probably cause trouble when something changes
-    version_rc = env.MBGenerateVersionResource(vcxproj_name + '_version.rc')
+    version_rc = env.MBGenerateVersionResource(
+        vcxproj_name + '_version.rc',
+        file_description = 'MakerBot Software',
+        internal_name = target,
+        original_filename = target,
+        product_name = target)
     env.MBWindowsAddResource(version_rc)
 
     if APPLICATION_TYPE == configuration_type:
