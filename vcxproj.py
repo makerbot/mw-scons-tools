@@ -213,6 +213,7 @@ def driver_configuration_group(project_name, debug):
 
     # we sometimes need things set in the driver but not otherwise
     extra_props = [
+        '<driverConfiguration>true</driverConfiguration>',
     ]
 
     return configuration_group(
@@ -314,6 +315,8 @@ def fill_in_the_blanks(debug,
         '      <BufferSecurityCheck>' + ('true' if debug else 'false') + '</BufferSecurityCheck>',
         '      <!-- We use dynamic linkage against the C++ runtime by default, but the driver uses static linkage -->',
         '      <RuntimeLibrary>MultiThreaded' + ('Debug' if debug else '') + '$(runtimeLinkType)</RuntimeLibrary>',
+        '      <!-- Apparently the windows driver requires StdCall (but only on Win32, x64 has its own calling conventions -->',
+        '      <CallingConvention Condition="\'$(driverConfiguration)\'==\'true\'">StdCall</CallingConvention>' if bitness == 'Win32' else '',
         '    </ClCompile>',
         '    <Link>',
         '      <GenerateDebugInformation>true</GenerateDebugInformation>',
