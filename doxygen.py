@@ -125,8 +125,6 @@ def generate(env):
 
             # Generate Doxygen output
             DoxygenBinary.invoke(config_subst_path)
-        else:
-            print('Doxygen not found')
 
     def DoxygenPrintAction(env, target, source):
         print('Building Doxygen from {}'.format(str(target[0])))
