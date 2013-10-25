@@ -25,6 +25,8 @@ MB_WINDOWS_USE_SDL_CHECK = 'MB_WINDOWS_USE_SDL_CHECK'
 
 MB_WINDOWS_IGNORED_LIBS = 'MB_WINDOWS_IGNORED_LIBS'
 
+MB_WINDOWS_DISABLED_WARNINGS = 'MB_WINDOWS_DISABLED_WARNINGS'
+
 MB_WINDOWS_IS_WINDOWED_APPLICATION = 'MB_WINDOWS_IS_WINDOWED_APPLICATION'
 
 MB_WINDOWS_API_IMPORTS = 'MB_WINDOWS_API_IMPORTS'
@@ -90,6 +92,40 @@ def mb_set_windows_is_windowed_application(env, is_windowed = True):
         have any effect on this project '''
     env[MB_WINDOWS_IS_WINDOWED_APPLICATION] = is_windowed
 
+def validate_reason_to_disable(reason):
+    """
+    HEY YOU
+
+    Yeah, I'm talkin' to you.
+
+    Are you trying to avoid typing a valid reason?
+
+    It's less work to write a valid reason than it is to figure out how
+    to not give a valid reason.
+
+    Obviously we can't really make sure a reason is valid,
+    but we can discourage people from giving garbage.
+    """
+    reason = reason.strip()
+    invalid = (len(reason) < 10) or (len(reason.split()) < 3)
+    if invalid:
+        raise Exception(''.join([
+            'Hey, "',
+            reason,
+            '" is a terrible explanation of why a warning is being disabled. ',
+            'Could you write a fuller explanation?']))
+
+def mb_windows_disable_warning(env, warning, valid_reason_to_disable):
+    """
+    Adds warning to the list of disabled warnings with a comment containing
+    The reason for disabling.
+    """
+    validate_reason_to_disable(valid_reason_to_disable)
+
+    env.Append(
+        **{MB_WINDOWS_DISABLED_WARNINGS : [(warning, valid_reason_to_disable)]})
+
+
 def make_guid(project_name, debug, bitness):
     ''' We want to make sure the guids are always the same per project name.
         Produces a guid in {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} form
@@ -115,6 +151,14 @@ def expand_project_name(project_name, target_type, debug):
         expandedname = 'lib' + expandedname
 
     return expandedname
+
+def format_disabled_warnings(prefix, warnings):
+    """ Formats a list of (warning, explanation) pairs """
+    return '\n'.join([
+        ''.join([
+            prefix, '<!--', warning[1], '-->', '\n',
+            prefix, warning[0], ';'])
+        for warning in warnings])
 
 def configuration_string(debug):
     return 'Debug' if debug else 'Release'
@@ -240,7 +284,8 @@ def fill_in_the_blanks(debug,
                        libs,
                        ignored_libs,
                        lib_paths,
-                       hide_console):
+                       hide_console,
+                       disabled_warnings):
     ''' this contains the template where the blanks can be filled in '''
     vcxproj_contents = '\n'.join([
         '<?xml version="1.0" encoding="utf-8"?>',
@@ -317,6 +362,10 @@ def fill_in_the_blanks(debug,
         '      <RuntimeLibrary>MultiThreaded' + ('Debug' if debug else '') + '$(runtimeLinkType)</RuntimeLibrary>',
         '      <!-- Apparently the windows driver requires StdCall (but only on Win32, x64 has its own calling conventions -->',
         '      <CallingConvention Condition="\'$(driverConfiguration)\'==\'true\'">StdCall</CallingConvention>' if bitness == 'Win32' else '',
+        '      <DisableSpecificWarnings>',
+        format_disabled_warnings('        ', disabled_warnings),
+        '        %(DisableSpecificWarnings)',
+        '      </DisableSpecificWarnings>',
         '    </ClCompile>',
         '    <Link>',
         '      <GenerateDebugInformation>true</GenerateDebugInformation>',
@@ -416,7 +465,8 @@ def gen_vcxproj(env, target, source, target_type):
             libs = libs,
             ignored_libs = ignored_libs,
             lib_paths = libpath,
-            hide_console = hide_console(env)))
+            hide_console = hide_console(env),
+            disabled_warnings = env[MB_WINDOWS_DISABLED_WARNINGS]))
 
 def mb_app_vcxproj(target, source, env):
     gen_vcxproj(env, target, source, APPLICATION_TYPE)
@@ -569,7 +619,8 @@ def generate(env):
         MB_WINDOWS_IGNORED_LIBS : [],
         MB_WINDOWS_IS_WINDOWED_APPLICATION : False,
         MB_WINDOWS_API_IMPORTS: [],
-        MB_WINDOWS_API_EXPORT: ''
+        MB_WINDOWS_API_EXPORT: '',
+        MB_WINDOWS_DISABLED_WARNINGS: []
     })
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
@@ -586,6 +637,7 @@ def generate(env):
     env.AddMethod(mb_set_windows_use_sdl_check, 'MBSetWindowsUseSDLCheck')
     env.AddMethod(mb_add_windows_ignored_lib, 'MBAddWindowsIgnoredLib')
     env.AddMethod(mb_set_windows_is_windowed_application, 'MBSetWindowsIsWindowedApplication')
+    env.AddMethod(mb_windows_disable_warning, 'MBWindowsDisableWarning')
 
     import SCons.Tool
     env.Append(
@@ -613,6 +665,13 @@ def generate(env):
     env.AddMethod(mb_windows_program, 'MBWindowsProgram')
     env.AddMethod(mb_windows_shared_library, 'MBWindowsSharedLibrary')
     env.AddMethod(mb_windows_static_library, 'MBWindowsStaticLibrary')
+
+    env.MBWindowsDisableWarning(
+        '4251',
+        '\n'.join([
+            'C4251 warns that a function/class will not be usable by consumers of the generated DLL.',
+            'This only matters if we try to use the function being warned about,',
+            'in which case we would get errors anyway.']))
 
     if env.MBIsWindows():
       add_common_defines(env)
