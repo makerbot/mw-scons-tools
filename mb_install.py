@@ -481,7 +481,7 @@ def mb_depends_on_json_cpp(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport('JSON_API')
     else:
-        define_api_nothing(env, 'JSON_API')
+        env.Append(CPPDEFINES={'JSON_API': ''})
 
 def mb_depends_on_json_rpc(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsonrpc'))
