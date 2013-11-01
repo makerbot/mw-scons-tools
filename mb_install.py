@@ -558,20 +558,28 @@ def mb_static_library(env, target, source, *args, **kwargs):
     env.Alias(target, library)
     return library
 
-def mb_explicit_moc_fixme(env, sources):
+def mb_get_moc_files(env, sources):
     target = []
+    sources = SCons.Util.flatten(sources)
     for source in sources:
-        # this explicit putting it in the variant dir relative to the root
-        # should satisfy both mac and windows
-        moc_file = os.path.join(
-                '#',
-                env.MBVariantDir(),
-                'moc',
-                'moc_${SOURCE.file}.cpp')
-        mocced = env.ExplicitMoc5(
-                moc_file,
-                env.File(source))
-        target.append(mocced)
+        with open(str(source), 'r') as contents:
+            while True:
+                line = contents.readline()
+                if line == '':
+                    break
+                if 'Q_OBJECT' in line:
+                    # this explicit putting it in the variant dir relative
+                    # to the root should satisfy both mac and windows
+                    moc_file = os.path.join(
+                            '#',
+                            env.MBVariantDir(),
+                            'moc',
+                            'moc_${SOURCE.file}.cpp')
+                    mocced = env.ExplicitMoc5(
+                            moc_file,
+                            env.File(source))
+                    target.append(mocced)
+                    break
     return target
 
 def common_arguments(env):
@@ -605,6 +613,9 @@ def generate(env):
     env.Tool('vcxproj')
 
     env['MB_INSTALL_TARGETS'] = []
+
+    # turn off automoccing
+    env['QT5_AUTOSCAN'] = 0
 
     if env.MBIsWindows():
         quoted = '\"' + env.MBVersion() + '\"'
@@ -657,7 +668,7 @@ def generate(env):
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
     env.AddMethod(mb_program, 'MBProgram')
 
-    env.AddMethod(mb_explicit_moc_fixme, 'MBExplicitMocFixme')
+    env.AddMethod(mb_get_moc_files, 'MBGetMocFiles')
 
     set_default_prefix(env)
     set_install_paths(env)
