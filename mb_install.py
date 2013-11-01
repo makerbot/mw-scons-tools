@@ -569,7 +569,7 @@ def mb_get_moc_files(env, sources):
     target = []
     sources = SCons.Util.flatten(sources)
     for source in sources:
-        with open(str(source), 'r') as contents:
+        with open(str(env.File(os.path.join('#', str(source)))), 'r') as contents:
             while True:
                 line = contents.readline()
                 if line == '':
