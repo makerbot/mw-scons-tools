@@ -425,7 +425,12 @@ def set_compiler_flags(env):
                    '-Wl,-rpath,\'/usr/lib/makerbot\'')
 
 def mb_set_lib_sym_name(env, name):
-    if env.MBIsMac() and not env.MBUseDevelLibs():
+    if (env.MBIsMac() and
+       (not env.MBUseDevelLibs()) and
+       (env.get('MB_LIB_SYM_NAME', None) != None)):
+
+        env.SetDefault(MB_LIB_SYM_NAME=name)
+
         libpath = os.path.join('/',
                                'Library',
                                'Frameworks',
@@ -544,6 +549,7 @@ def mb_shared_library(env, target, source, *args, **kwargs):
         library = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
     else:
         define_api_nothing(env, target)
+        env.MBSetLibSymName(target)
         library = env.SharedLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
     return library
@@ -554,6 +560,7 @@ def mb_static_library(env, target, source, *args, **kwargs):
         library = env.MBWindowsStaticLibrary(target, source, *args, **kwargs)
     else:
         define_api_nothing(env, target)
+        env.MBSetLibSymName(target)
         library = env.StaticLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
     return library
