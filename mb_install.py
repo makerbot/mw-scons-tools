@@ -425,10 +425,9 @@ def set_compiler_flags(env):
                    '-Wl,-rpath,\'/usr/lib/makerbot\'')
 
 def mb_set_lib_sym_name(env, name):
-    print name
     if (env.MBIsMac() and
        (not env.MBUseDevelLibs()) and
-       (env.get('MB_LIB_SYM_NAME', None) != None)):
+       (env.get('MB_LIB_SYM_NAME', None) == None)):
 
         env.SetDefault(MB_LIB_SYM_NAME=name)
 
