@@ -467,7 +467,7 @@ def windows_debug_tweak(env, lib):
     return lib
 
 def mb_depends_on_mb_core_utils(env):
-    env.MBAddDevelIncludePath('#/../MBCoreUtils/' + env.MBVariantDir() + '/include')
+    env.MBAddDevelIncludePath('#/../MBCoreUtils/include')
 
 def mb_depends_on_mbqtutils(env):
     env.MBAddLib(windows_debug_tweak(env, 'mbqtutils'))
