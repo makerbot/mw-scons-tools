@@ -532,6 +532,15 @@ def mb_depends_on_toolpathviz(env):
     else:
         define_api_nothing(env, 'toolpathviz')
 
+def mb_depends_on_tinything(env):
+    env.MBAddLib(windows_debug_tweak(env, 'tinything'))
+    env.MBAddDevelLibPath('#/../libtinything/obj')
+    env.MBAddDevelIncludePath('#/../libtinything/' + env.MBVariantDir() + '/include')
+    if env.MBIsWindows():
+        env.MBWindowsAddAPIImport(api_define(env, 'tinything'))
+    else:
+        define_api_nothing(env, 'tinything')
+
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         env.MBWindowsSetDefaultAPIExport(api_define(env, target))
@@ -669,6 +678,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
     env.AddMethod(mb_depends_on_toolpathviz, 'MBDependsOnToolPathViz')
+    env.AddMethod(mb_depends_on_tinything, 'MBDependsOnTinything')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
