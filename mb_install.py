@@ -568,7 +568,6 @@ def mb_static_library(env, target, source, *args, **kwargs):
         library = env.MBWindowsStaticLibrary(target, source, *args, **kwargs)
     else:
         define_api_nothing(env, target)
-        env.MBSetLibSymName(target)
         library = env.StaticLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
     return library
