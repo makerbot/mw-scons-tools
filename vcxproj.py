@@ -477,12 +477,12 @@ def mb_dll_vcxproj(target, source, env):
 def mb_lib_vcxproj(target, source, env):
     gen_vcxproj(env, target, source, STATIC_LIB_TYPE)
 
-def mb_run_msbuild(env, target, source, configuration, platform, properties = []):
+def mb_run_msbuild(env, target, source, configuration, platform, properties = {}):
     command = [
         'msbuild',
         '/p:Configuration=' + configuration,
         '/p:Platform=' + platform]
-    command += ['/p:' + property for property in properties]
+    command += ['/p:{}={}'.format(key, value) for key, value in properties.items()]
 
     command += ['$SOURCE']
 
@@ -510,7 +510,7 @@ def mb_build_vcxproj(env, target, source, target_type):
         source,
         configuration_string(env.MBDebugBuild()),
         env.MBWindowsBitness(),
-        vcxproj_properties(env))
+        env.MBVcxprojProperties(env))
     return target_list
 
 this_file = os.path.abspath(__file__)
@@ -578,8 +578,16 @@ def common_arguments(env):
         default=None,
         help='WINDOWS_ONLY: overrides the Platform setting. Use either Win32 or x64')
 
-def vcxproj_properties(env):
-    return env.MBGetOption('vcxproj_properties')
+def mb_vcxproj_properties(env):
+    properties = {}
+    properties_list = env.MBGetOption('vcxproj_properties')
+    for property_pair in properties_list:
+        try:
+            key, value = property_pair.split('=')
+        except ValueError:
+            raise Exception('Incorrectly specified property: need <property name>=<value>')
+        properties[key] = value
+    return properties
 
 def bitness_override(env):
     return env.MBGetOption('bitness_override')
@@ -624,6 +632,7 @@ def generate(env):
     })
 
     env.AddMethod(mb_add_windows_devel_lib_path, 'MBAddWindowsDevelLibPath')
+    env.AddMethod(mb_vcxproj_properties, 'MBVcxprojProperties')
     env.AddMethod(mb_windows_bitness, 'MBWindowsBitness')
     env.AddMethod(mb_windows_is_64_bit, 'MBWindowsIs64Bit')
     env.AddMethod(mb_windows_is_32_bit, 'MBWindowsIs32Bit')
