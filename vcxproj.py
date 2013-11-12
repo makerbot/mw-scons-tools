@@ -510,7 +510,7 @@ def mb_build_vcxproj(env, target, source, target_type):
         source,
         configuration_string(env.MBDebugBuild()),
         env.MBWindowsBitness(),
-        env.MBVcxprojProperties(env))
+        env.MBVcxprojProperties())
     return target_list
 
 this_file = os.path.abspath(__file__)
