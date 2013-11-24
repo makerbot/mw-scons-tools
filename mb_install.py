@@ -452,11 +452,30 @@ def mb_set_lib_sym_name(env, name):
                                     env['MB_VERSION']])
 
 def api_define(env, target_name):
-    api = re.sub('-', '', target_name)
-    api = re.sub('_', '', api)
-    api = api.upper()
-    api = api + '_API'
-    return api
+    """Return the API macro name for specified target.
+
+    For most targets this is the target name upcased with special
+    characters removed and "_API" appended.
+
+    A special case for JsonCpp is hardcoded as it is an external
+    dependency and so does not conform to our naming standard.
+    """
+    if target_name == 'jsoncpp':
+        return 'JSON_API'
+    else:
+        return re.sub('[-_]', '', target_name).upper() + '_API'
+
+def define_api_visibility_public(env, target_name):
+    """Set the API macro to make symbols public on g++/clang++."""
+    if env.MBIsLinux():
+        env.Append(CPPDEFINES={
+            api_define(env, target_name):
+            '__attribute__ ((visibility (\\"default\\")))'})
+    elif env.MBIsMac():
+        # TODO(nicholasbishop): the same __attribute__ as above can
+        # probably be used on Mac, but I don't have a Mac to test on
+        # right now.
+        define_api_nothing(env, target_name)
 
 def define_api_nothing(env, target):
     env.Append(CPPDEFINES={api_define(env, target): ''})
@@ -476,7 +495,7 @@ def mb_depends_on_mbqtutils(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'mbqtutils'))
     else:
-        define_api_nothing(env, 'mbqtutils')
+        define_api_visibility_public(env, 'mbqtutils')
 
 def mb_depends_on_json_cpp(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsoncpp'))
@@ -485,7 +504,7 @@ def mb_depends_on_json_cpp(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport('JSON_API')
     else:
-        env.Append(CPPDEFINES={'JSON_API': ''})
+        define_api_visibility_public(env, 'jsoncpp')
 
 def mb_depends_on_json_rpc(env):
     env.MBAddLib(windows_debug_tweak(env, 'jsonrpc'))
@@ -494,7 +513,7 @@ def mb_depends_on_json_rpc(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'jsonrpc'))
     else:
-        define_api_nothing(env, 'jsonrpc')
+        define_api_visibility_public(env, 'jsonrpc')
 
 def mb_depends_on_thing(env):
     env.MBAddLib(windows_debug_tweak(env, 'thing'))
@@ -503,7 +522,7 @@ def mb_depends_on_thing(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'thing'))
     else:
-        define_api_nothing(env, 'thing')
+        define_api_visibility_public(env, 'thing')
 
 def mb_depends_on_conveyor(env):
     env.MBAddLib(windows_debug_tweak(env, 'conveyor'))
@@ -512,7 +531,7 @@ def mb_depends_on_conveyor(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'conveyor'))
     else:
-        define_api_nothing(env, 'conveyor')
+        define_api_visibility_public(env, 'conveyor')
 
 def mb_depends_on_conveyor_ui(env):
     env.MBAddLib(windows_debug_tweak(env, 'conveyor-ui'))
@@ -521,7 +540,7 @@ def mb_depends_on_conveyor_ui(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'conveyor-ui'))
     else:
-        define_api_nothing(env, 'conveyor-ui')
+        define_api_visibility_public(env, 'conveyor-ui')
 
 def mb_depends_on_toolpathviz(env):
     env.MBAddLib(windows_debug_tweak(env, 'toolpathviz'))
@@ -530,7 +549,7 @@ def mb_depends_on_toolpathviz(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'toolpathviz'))
     else:
-        define_api_nothing(env, 'toolpathviz')
+        define_api_visibility_public(env, 'toolpathviz')
 
 def mb_depends_on_tinything(env):
     env.MBAddLib(windows_debug_tweak(env, 'tinything'))
@@ -539,7 +558,7 @@ def mb_depends_on_tinything(env):
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, 'tinything'))
     else:
-        define_api_nothing(env, 'tinything')
+        define_api_visibility_public(env, 'tinything')
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
@@ -556,7 +575,12 @@ def mb_shared_library(env, target, source, *args, **kwargs):
         env.MBWindowsSetDefaultAPIExport(api_define(env, target))
         library = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
     else:
-        define_api_nothing(env, target)
+        define_api_visibility_public(env, target)
+        if env.MBIsLinux():
+            # TODO(nicholasbishop): this flag can probably also be
+            # used on Mac, but I don't have a Mac to test on right
+            # now.
+            env.Append(CCFLAGS=['-fvisibility=hidden'])
         env.MBSetLibSymName(target)
         library = env.SharedLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
