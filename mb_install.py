@@ -515,6 +515,15 @@ def mb_depends_on_json_rpc(env):
     else:
         define_api_visibility_public(env, 'jsonrpc')
 
+def mb_depends_on_mbcamera(env):
+    env.MBAddLib(windows_debug_tweak(env, 'mbcamera'))
+    env.MBAddDevelLibPath('#/../mbcamera/obj')
+    env.MBAddDevelIncludePath('#/../mbcamera/' + env.MBVariantDir() + '/include')
+    if env.MBIsWindows():
+        env.MBWindowsAddAPIImport(api_define(env, 'mbcamera'))
+    else:
+        define_api_visibility_public(env, 'mbcamera')
+
 def mb_depends_on_thing(env):
     env.MBAddLib(windows_debug_tweak(env, 'thing'))
     env.MBAddDevelLibPath('#/../libthing-surprise/obj')
@@ -697,6 +706,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_mbqtutils, 'MBDependsOnMBQtUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
+    env.AddMethod(mb_depends_on_mbcamera, 'MBDependsOnMBCamera')
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
