@@ -467,15 +467,10 @@ def api_define(env, target_name):
 
 def define_api_visibility_public(env, target_name):
     """Set the API macro to make symbols public on g++/clang++."""
-    if env.MBIsLinux():
+    if env.MBIsLinux() or env.MBIsMac():
         env.Append(CPPDEFINES={
             api_define(env, target_name):
             '__attribute__ ((visibility (\\"default\\")))'})
-    elif env.MBIsMac():
-        # TODO(nicholasbishop): the same __attribute__ as above can
-        # probably be used on Mac, but I don't have a Mac to test on
-        # right now.
-        define_api_nothing(env, target_name)
 
 def define_api_nothing(env, target):
     env.Append(CPPDEFINES={api_define(env, target): ''})
@@ -585,10 +580,7 @@ def mb_shared_library(env, target, source, *args, **kwargs):
         library = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
     else:
         define_api_visibility_public(env, target)
-        if env.MBIsLinux():
-            # TODO(nicholasbishop): this flag can probably also be
-            # used on Mac, but I don't have a Mac to test on right
-            # now.
+        if env.MBIsLinux() or env.MBIsMac():
             env.Append(CCFLAGS=['-fvisibility=hidden'])
         env.MBSetLibSymName(target)
         library = env.SharedLibrary(target, source, *args, **kwargs)
