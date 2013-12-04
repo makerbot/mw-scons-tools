@@ -574,14 +574,27 @@ def mb_program(env, target, source, *args, **kwargs):
     env.Alias(target, program)
     return program
 
+def set_shared_library_visibility_flags(env, target):
+    # MSVC doesn't need a flag, it has this behavior by default
+    if env.MBIsLinux() or env.MBIsMac():
+        # Sad hack. Ted will probably yell at me when he sees
+        # this. Basically there are issues with setting the visibility
+        # flag when typeinfo is needed. Mostly we don't use typeinfo,
+        # but OpenMesh does use dynamic_cast.
+        #
+        # For now we just disable this in the case of libthing, but it
+        # might yet be possible to fix this properly with more
+        # research.
+        if target != 'thing':
+            env.Append(CCFLAGS=['-fvisibility=hidden'])
+
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         env.MBWindowsSetDefaultAPIExport(api_define(env, target))
         library = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
     else:
         define_api_visibility_public(env, target)
-        if env.MBIsLinux() or env.MBIsMac():
-            env.Append(CCFLAGS=['-fvisibility=hidden'])
+        set_shared_library_visibility_flags(env, target)
         env.MBSetLibSymName(target)
         library = env.SharedLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
