@@ -403,6 +403,7 @@ def mb_gen_vcxproj_emitter(target, source, env):
     return target, source
 
 def clean_cppdefines(unclean):
+    cppdefines = []
     for define in unclean:
         if isinstance(define, tuple):
             try:
@@ -418,6 +419,8 @@ def clean_cppdefines(unclean):
         else:
             # string
             cppdefines.append(define)
+
+    return cppdefines
 
 def gen_vcxproj(env, target, source, target_type):
     ''' Create an XML .vcxproj file
