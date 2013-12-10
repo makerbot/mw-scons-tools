@@ -705,11 +705,11 @@ def generate(env):
         QT5DIR  = _detect(env),
         QT5_BINPATH = os.path.join('$QT5DIR', 'bin'),
         # TODO: This is not reliable to QT5DIR value changes but needed in order to support '-qt5' variants
-        QT5_MOC = locateQt5Command(env,'moc', env['QT5DIR']),
-        QT5_UIC = locateQt5Command(env,'uic', env['QT5DIR']),
-        QT5_RCC = locateQt5Command(env,'rcc', env['QT5DIR']),
-        QT5_LUPDATE = locateQt5Command(env,'lupdate', env['QT5DIR']),
-        QT5_LRELEASE = locateQt5Command(env,'lrelease', env['QT5DIR']),
+        QT5_MOC = '"' + locateQt5Command(env,'moc', env['QT5DIR']) + '"',
+        QT5_UIC = '"' + locateQt5Command(env,'uic', env['QT5DIR']) + '"',
+        QT5_RCC = '"' + locateQt5Command(env,'rcc', env['QT5DIR']) + '"',
+        QT5_LUPDATE = '"' + locateQt5Command(env,'lupdate', env['QT5DIR']) + '"',
+        QT5_LRELEASE = '"' + locateQt5Command(env,'lrelease', env['QT5DIR']) + '"',
 
         QT5_AUTOSCAN = 1, # Should the qt5 tool try to figure out, which sources are to be moc'ed?
         QT5_AUTOSCAN_STRATEGY = 0, # While scanning for files to moc, should we search for includes in qtsolutions style?
