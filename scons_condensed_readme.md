@@ -2,21 +2,19 @@
 
 This document is supposed to act as a minimal guide to how we should use SCons, so you don't have to read the entire ----ing manual.
 
-The entire ----ing manual can be found [here](http://www.scons.org/doc/HTML/scons-man.html)
+The entire ----ing manual can be found in these [two](http://www.scons.org/doc/HTML/scons-man.html) [documents](http://www.scons.org/doc/2.3.0/HTML/scons-user/index.html) (two is better than one, right?)
+
 
 ## Basic concepts
 
 Scons reads through your SConstruct & Sconscripts and builds a dependency tree before it actually tries to create anything. In general, when writing your own build steps, do the scons-y thing and make sure the work is done at dependency tree execution (not creation) time.
 
-When calling a top-level SCons function like Action or Builder anything you expect the environment to expand will be expanded when that Action or Builder is actually called. If you call env.Action or env.Builder, variable expansion happens immediately.
-
-###
 
 ## Basic Components
 
 ### Builders
 
-Full docs [here](http://www.scons.org/doc/HTML/scons-man.html#lbAH), [here](http://www.scons.org/doc/HTML/scons-man.html#lbAP), and [here (v2.3.0)](http://www.scons.org/doc/2.3.0/HTML/scons-user/c3621.html)
+Full docs [here][Builder Methods], [here][Builder Objects], and [here (v2.3.0)][Writing Your Own Builders]
 
 Builders are basically compile steps. They take a source and produce a target. A builder has an 'action' associated with it that should do all the work of producing the target. The action will happen only if scons decides it's needed to resolve a dependency.
 
@@ -58,6 +56,7 @@ modifies the targets and sources based on the environment
         # Code to change target or source lists or build new lists
         return target, source
 
+
 ### Methods
 
 Methods are just python functions that are added to an environment using env.AddMethod
@@ -75,9 +74,9 @@ Mostly they're good for grouping calls to builders or the construction environme
 
 ### Actions
 
-Full docs [here](http://www.scons.org/doc/HTML/scons-man.html#lbAQ)
+Full docs [here][Action Objects]
 
-Actions represent a thing to be done.
+Actions represent a thing to be done. They can be made to happen at dependency tree building time with the [Execute] function or delayed to dependency tree execution time by wrapping them in a Builder.
 
 The type of object passed to action determines how the action is created. Notably,
 
@@ -93,6 +92,24 @@ or
 
 would do the right thing.
 
+Also, when creating an object you can specify that it can execute a batch of files at once, e.g. compiling multiple .c files in a single call. If you do that use `$CHANGED_SOURCES` instead of `$SOURCES` and `$CHANGED_TARGETS` instead of `$TARGETS`
+
+
+## Variable Substitution & Construction Variable Expansion
+
+Full docs [here][Construction Variables], [here][Construction Environments], [here][Variable Substitution]
+
+Scons supports variable replacement in many strings, especially those representing commands.
+
+If you want to manually do substitution on a string, use the [`subst`] method
+
+When calling a top-level SCons function like Action or Builder anything you expect the environment to expand will be expanded when that Action or Builder is actually called. If you call env.Action or env.Builder, variable expansion happens immediately.
+
+### In an Action
+
+Use `$SOURCE`, `$SOURCES`, `$CHANGED_SOURCES`, `$UNCHANGED_SOURCES`, `$TARGET`, `$TARGETS`, `$CHANGED_TARGETS`, and `$UNCHANGED_TARGETS` as appropriate
+
+You can
 
 ## Questions to be determined experimentally
 
@@ -111,5 +128,12 @@ I know that you can use 'something_fake' as a target and assuming it doesn't act
 
 This might be a good way to make the windows builder depend on flags passed to it? Or there might be a better way.
 
-
-
+[Action Objects]: http://www.scons.org/doc/HTML/scons-man.html#lbAQ
+[Builder Methods]: http://www.scons.org/doc/HTML/scons-man.html#lbAH
+[Builder Objects]: http://www.scons.org/doc/HTML/scons-man.html#lbAP
+[Writing Your Own Builders]: http://www.scons.org/doc/2.3.0/HTML/scons-user/c3621.html
+[Construction Environments]: http://www.scons.org/doc/2.3.0/HTML/scons-user/x1444.html
+[Construction Variables]: http://www.scons.org/doc/HTML/scons-man.html#lbAK
+[Variable Substitution]: http://www.scons.org/doc/HTML/scons-man.html#lbAQ
+[Execute]: http://www.scons.org/doc/2.3.0/HTML/scons-user/x3095.html
+[subst]: http://www.scons.org/doc/2.3.0/HTML/scons-user/x1444.html#AEN1498
