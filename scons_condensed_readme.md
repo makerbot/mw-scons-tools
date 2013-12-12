@@ -14,13 +14,19 @@ Scons reads through your SConstruct & Sconscripts and builds a dependency tree b
 
 ### Builders
 
-Full docs [here][Builder Methods], [here][Builder Objects], and [here (v2.3.0)][Writing Your Own Builders]
+Full docs [here][Builder Methods], [here][Builder Objects], [here][Command], and [here][Writing Your Own Builders]
 
 Builders are basically compile steps. They take a source and produce a target. A builder has an 'action' associated with it that should do all the work of producing the target. The action will happen only if scons decides it's needed to resolve a dependency.
 
-Builders can also be passes custom environment overrides, so if you build three different binaries in a SConscript there's no need for three different Environments, or cloning your environment multiple times.
+Builders can also be passed custom environment overrides, so if you build three different binaries in a SConscript there's no need for three different Environments or cloning your environment multiple times.
 
-**Custom Builders**
+Example:
+
+    env.Append(CCFLAGS=common_flags)
+    env.MBProgram('conveyor', conveyor_sources, LIBS=conveyor_libs)
+    env.MBProgram('ping',     ping_sources,     LIBS=ping_libs)
+
+**[Custom Builders][Writing Your Own Builders]**
 
 can be made in a few ways
 
@@ -94,22 +100,30 @@ would do the right thing.
 
 Also, when creating an object you can specify that it can execute a batch of files at once, e.g. compiling multiple .c files in a single call. If you do that use `$CHANGED_SOURCES` instead of `$SOURCES` and `$CHANGED_TARGETS` instead of `$TARGETS`
 
+### Scanners
+
+Full Docs [here][Scanner Objects] and [here][Writing Scanners]
+
+Scanners look at the contents of files and create dependencies based on the contents. Like seeing that a .cpp has a #include "something.h" and saying "this .cpp depends on somthing.h"
+
+If you're going to mess with these read the full docs for them
 
 ## Variable Substitution & Construction Variable Expansion
 
-Full docs [here][Construction Variables], [here][Construction Environments], [here][Variable Substitution]
+Full docs [here][Construction Variables], [here][Construction Environments], [here][Variable Substitution], and [here][Python Code Substitution]
 
-Scons supports variable replacement in many strings, especially those representing commands.
+Scons supports variable replacement in many strings, especially those representing commands. If you want to manually do substitution on a string, use the [subst] method, which will recursively expand a string, or array access `env['thing']`.
 
-If you want to manually do substitution on a string, use the [subst] method
+You can use curly braces to separate the variable from other characters, like `${TARGET}_bakup`. You can also access attributes of the thing being replaced like `${THING.member}` or `${LIST[0]}`. In fact, code between ${ and } is run through python eval, so comparisons and ternarys are valid as well.
 
 When calling a top-level SCons function like Action or Builder anything you expect the environment to expand will be expanded when that Action or Builder is actually called. If you call env.Action or env.Builder, variable expansion happens immediately.
 
-### In an Action
+### In an Action/Command (Variable Substitution)
 
 Use `$SOURCE`, `$SOURCES`, `$CHANGED_SOURCES`, `$UNCHANGED_SOURCES`, `$TARGET`, `$TARGETS`, `$CHANGED_TARGETS`, and `$UNCHANGED_TARGETS` as appropriate
 
-You can
+These variables are reserved and should not be explicitly set. They also have certain attributes you can access, the most useful of which are the obvious things like `file`, `abspath`, and `suffix` as well as things like `srcpath` and `srcdir`, which will give the version of the file in the variant dir. A list of all such attributes is [here][Variable Substitution]
+
 
 ## Questions to be determined experimentally
 
@@ -132,8 +146,12 @@ This might be a good way to make the windows builder depend on flags passed to i
 [Builder Methods]: http://www.scons.org/doc/HTML/scons-man.html#lbAH
 [Builder Objects]: http://www.scons.org/doc/HTML/scons-man.html#lbAP
 [Writing Your Own Builders]: http://www.scons.org/doc/2.3.0/HTML/scons-user/c3621.html
+[Command]: http://www.scons.org/doc/2.3.0/HTML/scons-user/c3895.html
 [Construction Environments]: http://www.scons.org/doc/2.3.0/HTML/scons-user/x1444.html
 [Construction Variables]: http://www.scons.org/doc/HTML/scons-man.html#lbAK
-[Variable Substitution]: http://www.scons.org/doc/HTML/scons-man.html#lbAQ
+[Variable Substitution]: http://www.scons.org/doc/HTML/scons-man.html#lbAS
+[Python Code Substitution]: http://www.scons.org/doc/HTML/scons-man.html#lbAT
 [Execute]: http://www.scons.org/doc/2.3.0/HTML/scons-user/x3095.html
 [subst]: http://www.scons.org/doc/2.3.0/HTML/scons-user/x1444.html#AEN1498
+[Scanner Objects]: http://www.scons.org/doc/HTML/scons-man.html#lbAU
+[Writing Scanners]: http://www.scons.org/doc/2.3.0/HTML/scons-user/c3966.html
