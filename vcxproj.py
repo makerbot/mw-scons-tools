@@ -402,26 +402,6 @@ def mb_gen_vcxproj_emitter(target, source, env):
     target = [str(target[0]) + '.vcxproj']
     return target, source
 
-def clean_cppdefines(unclean):
-    cppdefines = []
-    for define in unclean:
-        if isinstance(define, tuple):
-            try:
-                # 2-tuple
-                cppdefines.append(define[0] + '=' + str(define[1]))
-            except IndexError:
-                # 1-tuple
-                cppdefines.append(define[0])
-        elif isinstance(define, dict):
-            # dict
-            for item in define.items():
-                cppdefines.append(item[0] + '=' + str(item[1]))
-        else:
-            # string
-            cppdefines.append(define)
-
-    return cppdefines
-
 def gen_vcxproj(env, target, source, target_type):
     ''' Create an XML .vcxproj file
         Does most of the wrangling to get the data in an easily-printable
@@ -429,9 +409,7 @@ def gen_vcxproj(env, target, source, target_type):
 
     filename = str(target[0])
 
-    # clean up the CPPDEFINES, which can be
-    # strings, 1-tuples, 2-tuples, or dicts
-    cppdefines = clean_cppdefines(env['CPPDEFINES'])
+    cppdefines = env.subst('$_CPPDEFFLAGS').split()
 
     cpppath = desconsify(env['CPPPATH'])
     cpppath = scons_to_msbuild_env_substitution(cpppath)
