@@ -20,7 +20,7 @@ Builders are basically compile steps. They take a source and produce a target. A
 
 Builders can also be passes custom environment overrides, so if you build three different binaries in a SConscript there's no need for three different Environments, or cloning your environment multiple times.
 
-*Custom Builders*
+**Custom Builders**
 
 can be made in a few ways
 
@@ -48,7 +48,7 @@ and added to the environment like:
 
     env.Append(BUILDERS={'BuilderName': b})
 
-*Emitters*
+**Emitters**
 
 modifies the targets and sources based on the environment
 
@@ -101,7 +101,7 @@ Full docs [here][Construction Variables], [here][Construction Environments], [he
 
 Scons supports variable replacement in many strings, especially those representing commands.
 
-If you want to manually do substitution on a string, use the [`subst`] method
+If you want to manually do substitution on a string, use the [subst] method
 
 When calling a top-level SCons function like Action or Builder anything you expect the environment to expand will be expanded when that Action or Builder is actually called. If you call env.Action or env.Builder, variable expansion happens immediately.
 
