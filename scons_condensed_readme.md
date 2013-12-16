@@ -9,6 +9,7 @@ The entire ----ing manual can be found in these [two](http://www.scons.org/doc/H
 
 Scons reads through your SConstruct & Sconscripts and builds a dependency tree before it actually tries to create anything. In general, when writing your own build steps, do the scons-y thing and make sure the work is done at dependency tree execution (not creation) time.
 
+When using scons build-in builders, the scons doc says that they are all *potentially* available out of the box. If you find one that throws an error when you try to use it, it may actually be in your scons source tree, just not on the environment. Try grepping around for it. For example, to use the Substfile and Textfile builders you have to specify the 'textfile' tool to actually use them, even though the docs don't mention it.
 
 ## Basic Components
 
