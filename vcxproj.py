@@ -407,6 +407,8 @@ def gen_vcxproj(env, target, source, target_type):
 
     filename = str(target[0])
 
+    # MSBuild will handle the prefixing
+    env['CPPDEFPREFIX'] = ''
     cppdefines = env.subst('$_CPPDEFFLAGS').split()
 
     cpppath = desconsify(env['CPPPATH'])
