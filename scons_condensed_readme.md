@@ -125,23 +125,16 @@ Use `$SOURCE`, `$SOURCES`, `$CHANGED_SOURCES`, `$UNCHANGED_SOURCES`, `$TARGET`, 
 
 These variables are reserved and should not be explicitly set. They also have certain attributes you can access, the most useful of which are the obvious things like `file`, `abspath`, and `suffix` as well as things like `srcpath` and `srcdir`, which will give the version of the file in the variant dir. A list of all such attributes is [here][Variable Substitution]
 
+## Non-file Dependencies
 
-## Questions to be determined experimentally
+Dependencies are handled via nodes in a dependency tree. There are File, Dir, and Value Nodes (maybe others as well?)
 
-### non-file dependencies
+Value Nodes let us do dependencies on non-files. In the SConstruct below, whenever the value of val changes, com will be rebuilt
 
-I know that you can use 'something_fake' as a target and assuming it doesn't actually get built, that dependency will be unsatisfied when it comes to building '.' (building everything), but can you say
-
-    def add_flags(target, source, env):
-        env.Append(FLAG=source)
-    b = env.Builder(action=add_flags)
-    env.Append(BUILDERS={'AddFlags': b})
-
-    flags = env.AddFlags('special_flags', ['flagA', 'flagB'])
-    prog = env.Program('program', sources)
-    env.Depends(prog, flags)
-
-This might be a good way to make the windows builder depend on flags passed to it? Or there might be a better way.
+    env = Environment()
+    val = env.Value('test')
+    com = env.Command('out.txt', 'in.txt', 'type $SOURCE > $TARGET')
+    env.Depends(com, val)
 
 [Action Objects]: http://www.scons.org/doc/HTML/scons-man.html#lbAQ
 [Builder Methods]: http://www.scons.org/doc/HTML/scons-man.html#lbAH
