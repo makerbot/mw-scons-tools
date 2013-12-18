@@ -68,7 +68,7 @@ modifies the targets and sources based on the environment
 
 Methods are just python functions that are added to an environment using env.AddMethod
 
-Mostly they're good for grouping calls to builders or the construction environment
+Mostly they're good for grouping calls to builders or modifications to the construction environment
 
     method_func(env, other arguments...):
         # Modify env
