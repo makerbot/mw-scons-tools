@@ -136,6 +136,12 @@ Value Nodes let us do dependencies on non-files. In the SConstruct below, whenev
     com = env.Command('out.txt', 'in.txt', 'type $SOURCE > $TARGET')
     env.Depends(com, val)
 
+## Other
+
+I always find myself looking up this comment in the scons source code. Putting it here for reference.
+
+> The only difference between the Textfile builder and the Substfile builder is that strings are converted to Value() nodes for the former and File() nodes for the latter.  To insert files in the former or strings in the latter, wrap them in a File() or Value(), respectively.
+
 [Action Objects]: http://www.scons.org/doc/HTML/scons-man.html#lbAQ
 [Builder Methods]: http://www.scons.org/doc/HTML/scons-man.html#lbAH
 [Builder Objects]: http://www.scons.org/doc/HTML/scons-man.html#lbAP
