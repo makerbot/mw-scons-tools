@@ -44,6 +44,7 @@ def common_arguments(env):
         '--debug-build',
         dest='debug_build',
         action='store_true',
+        default=False,
         help='Builds in debug mode')
 
     env.MBAddOption(
