@@ -480,89 +480,61 @@ def windows_debug_tweak(env, lib):
         lib += 'd'
     return lib
 
+def define_library_dependency(env, libname, relative_repository_dir,
+                              include_subdir='include'):
+    """Set up internal library dependencies.
+
+    libname: base name of the library, e.g. 'foo' for libfoo.so or
+    foo.dll
+
+    relative_repository_dir: relative top-level path of the repository
+    directory, e.g. '#/../foo'
+
+    include_subdir: path of the header files relative to the
+    relative_repository_dir argument, defaults to 'include'
+
+    """
+    env.MBAddLib(windows_debug_tweak(env, libname))
+    relative_obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
+    env.MBAddDevelLibPath(relative_obj_dir)
+    env.MBAddDevelIncludePath(os.path.join(relative_obj_dir, include_subdir))
+    if env.MBIsWindows():
+        env.MBWindowsAddAPIImport(api_define(env, libname))
+    else:
+        define_api_visibility_public(env, libname)
+
 def mb_depends_on_mb_core_utils(env):
+    # MBCoreUtils is currently header-only so it doesn't use
+    # define_library_dependency'
     env.MBAddDevelIncludePath('#/../MBCoreUtils/include')
 
 def mb_depends_on_mbqtutils(env):
-    env.MBAddLib(windows_debug_tweak(env, 'mbqtutils'))
-    env.MBAddDevelLibPath('#/../libmbqtutils/obj')
-    env.MBAddDevelIncludePath('#/../libmbqtutils/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'mbqtutils'))
-    else:
-        define_api_visibility_public(env, 'mbqtutils')
+    define_library_dependency(env, 'mbqtutils', '#/../libmbqtutils')
 
 def mb_depends_on_json_cpp(env):
-    env.MBAddLib(windows_debug_tweak(env, 'jsoncpp'))
-    env.MBAddDevelLibPath('#/../json-cpp/obj')
-    env.MBAddDevelIncludePath('#/../json-cpp/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport('JSON_API')
-    else:
-        define_api_visibility_public(env, 'jsoncpp')
+    define_library_dependency(env, 'jsoncpp', '#/../json-cpp')
 
 def mb_depends_on_json_rpc(env):
-    env.MBAddLib(windows_debug_tweak(env, 'jsonrpc'))
-    env.MBAddDevelLibPath('#/../jsonrpc/obj')
-    env.MBAddDevelIncludePath('#/../jsonrpc/' + env.MBVariantDir() + '/src/main/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'jsonrpc'))
-    else:
-        define_api_visibility_public(env, 'jsonrpc')
+    define_library_dependency(
+        env, 'jsonrpc', '#/../jsonrpc', include_subdir='src/main/include')
 
 def mb_depends_on_mbcamera(env):
-    env.MBAddLib(windows_debug_tweak(env, 'mbcamera'))
-    env.MBAddDevelLibPath('#/../mbcamera/obj')
-    env.MBAddDevelIncludePath('#/../mbcamera/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'mbcamera'))
-    else:
-        define_api_visibility_public(env, 'mbcamera')
+    define_library_dependency(env, 'mbcamera', '#/../mbcamera')
 
 def mb_depends_on_thing(env):
-    env.MBAddLib(windows_debug_tweak(env, 'thing'))
-    env.MBAddDevelLibPath('#/../libthing-surprise/obj')
-    env.MBAddDevelIncludePath('#/../libthing-surprise/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'thing'))
-    else:
-        define_api_visibility_public(env, 'thing')
+    define_library_dependency(env, 'thing', '#/../libthing-surprise')
 
 def mb_depends_on_conveyor(env):
-    env.MBAddLib(windows_debug_tweak(env, 'conveyor'))
-    env.MBAddDevelLibPath('#/../conveyor/obj')
-    env.MBAddDevelIncludePath('#/../conveyor/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'conveyor'))
-    else:
-        define_api_visibility_public(env, 'conveyor')
+    define_library_dependency(env, 'conveyor', '#/../conveyor')
 
 def mb_depends_on_conveyor_ui(env):
-    env.MBAddLib(windows_debug_tweak(env, 'conveyor-ui'))
-    env.MBAddDevelLibPath('#/../conveyor-ui/obj')
-    env.MBAddDevelIncludePath('#/../conveyor-ui/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'conveyor-ui'))
-    else:
-        define_api_visibility_public(env, 'conveyor-ui')
+    define_library_dependency(env, 'conveyor-ui', '#/../conveyor-ui')
 
 def mb_depends_on_toolpathviz(env):
-    env.MBAddLib(windows_debug_tweak(env, 'toolpathviz'))
-    env.MBAddDevelLibPath('#/../ToolPathViz/obj')
-    env.MBAddDevelIncludePath('#/../ToolPathViz/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'toolpathviz'))
-    else:
-        define_api_visibility_public(env, 'toolpathviz')
+    define_library_dependency(env, 'toolpathviz', '#/../ToolPathViz')
 
 def mb_depends_on_tinything(env):
-    env.MBAddLib(windows_debug_tweak(env, 'tinything'))
-    env.MBAddDevelLibPath('#/../libtinything/obj')
-    env.MBAddDevelIncludePath('#/../libtinything/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'tinything'))
-    else:
-        define_api_visibility_public(env, 'tinything')
+    define_library_dependency(env, 'tinything', '#/../libtinything')
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
