@@ -236,7 +236,10 @@ def set_third_party_paths(env):
             MB_OPENMESH_LIBPATH = e.get(MB_OPENMESH_LIBPATH, []))
     elif env.MBIsWindows():
         env.SetDefault(
-            MB_THIRD_PARTY = e.get(MB_THIRD_PARTY, []))
+            MB_THIRD_PARTY = e.get(MB_THIRD_PARTY, os.path.join(
+                'C:\\', 'third-party-win'))
+        # This could probably be replaced with a scons variable like ${MB_THIRD_PARTY}
+        # Which should then just be replaced correctly by scons
         third_party_dir = env[MB_THIRD_PARTY]
         env.SetDefault(
             MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
