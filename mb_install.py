@@ -427,7 +427,7 @@ def set_compiler_flags(env):
 def mb_set_lib_sym_name(env, name):
     if (env.MBIsMac() and
        (not env.MBUseDevelLibs()) and
-       (env.get('MB_LIB_SYM_NAME', None) != None)):
+       (env.get('MB_LIB_SYM_NAME', None) == None)):
 
         env.SetDefault(MB_LIB_SYM_NAME=name)
 
@@ -452,11 +452,25 @@ def mb_set_lib_sym_name(env, name):
                                     env['MB_VERSION']])
 
 def api_define(env, target_name):
-    api = re.sub('-', '', target_name)
-    api = re.sub('_', '', api)
-    api = api.upper()
-    api = api + '_API'
-    return api
+    """Return the API macro name for specified target.
+
+    For most targets this is the target name upcased with special
+    characters removed and "_API" appended.
+
+    A special case for JsonCpp is hardcoded as it is an external
+    dependency and so does not conform to our naming standard.
+    """
+    if target_name == 'jsoncpp':
+        return 'JSON_API'
+    else:
+        return re.sub('[-_]', '', target_name).upper() + '_API'
+
+def define_api_visibility_public(env, target_name):
+    """Set the API macro to make symbols public on g++/clang++."""
+    if env.MBIsLinux() or env.MBIsMac():
+        env.Append(CPPDEFINES={
+            api_define(env, target_name):
+            '__attribute__ ((visibility (\\"default\\")))'})
 
 def define_api_nothing(env, target):
     env.Append(CPPDEFINES={api_define(env, target): ''})
@@ -466,72 +480,61 @@ def windows_debug_tweak(env, lib):
         lib += 'd'
     return lib
 
+def define_library_dependency(env, libname, relative_repository_dir,
+                              include_subdir='include'):
+    """Set up internal library dependencies.
+
+    libname: base name of the library, e.g. 'foo' for libfoo.so or
+    foo.dll
+
+    relative_repository_dir: relative top-level path of the repository
+    directory, e.g. '#/../foo'
+
+    include_subdir: path of the header files relative to the
+    relative_repository_dir argument, defaults to 'include'
+
+    """
+    env.MBAddLib(windows_debug_tweak(env, libname))
+    relative_obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
+    env.MBAddDevelLibPath(relative_obj_dir)
+    env.MBAddDevelIncludePath(os.path.join(relative_obj_dir, include_subdir))
+    if env.MBIsWindows():
+        env.MBWindowsAddAPIImport(api_define(env, libname))
+    else:
+        define_api_visibility_public(env, libname)
+
 def mb_depends_on_mb_core_utils(env):
-    # MBCoreUtils is currently header-only
-    env.MBAddDevelIncludePath('#/../MBCoreUtils/cpp/include')
+    # MBCoreUtils is currently header-only so it doesn't use
+    # define_library_dependency'
+    env.MBAddDevelIncludePath('#/../MBCoreUtils/include')
 
 def mb_depends_on_mbqtutils(env):
-    env.MBAddLib(windows_debug_tweak(env, 'mbqtutils'))
-    env.MBAddDevelLibPath('#/../libmbqtutils/obj')
-    env.MBAddDevelIncludePath('#/../libmbqtutils/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'mbqtutils'))
-    else:
-        define_api_nothing(env, 'mbqtutils')
+    define_library_dependency(env, 'mbqtutils', '#/../libmbqtutils')
 
 def mb_depends_on_json_cpp(env):
-    env.MBAddLib(windows_debug_tweak(env, 'jsoncpp'))
-    env.MBAddDevelLibPath('#/../json-cpp/obj')
-    env.MBAddDevelIncludePath('#/../json-cpp/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport('JSON_API')
-    else:
-        env.Append(CPPDEFINES={'JSON_API': ''})
+    define_library_dependency(env, 'jsoncpp', '#/../json-cpp')
 
 def mb_depends_on_json_rpc(env):
-    env.MBAddLib(windows_debug_tweak(env, 'jsonrpc'))
-    env.MBAddDevelLibPath('#/../jsonrpc/obj')
-    env.MBAddDevelIncludePath('#/../jsonrpc/' + env.MBVariantDir() + '/src/main/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'jsonrpc'))
-    else:
-        define_api_nothing(env, 'jsonrpc')
+    define_library_dependency(
+        env, 'jsonrpc', '#/../jsonrpc', include_subdir='src/main/include')
+
+def mb_depends_on_mbcamera(env):
+    define_library_dependency(env, 'mbcamera', '#/../mbcamera')
 
 def mb_depends_on_thing(env):
-    env.MBAddLib(windows_debug_tweak(env, 'thing'))
-    env.MBAddDevelLibPath('#/../libthing-surprise/obj')
-    env.MBAddDevelIncludePath('#/../libthing-surprise/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'thing'))
-    else:
-        define_api_nothing(env, 'thing')
+    define_library_dependency(env, 'thing', '#/../libthing-surprise')
 
 def mb_depends_on_conveyor(env):
-    env.MBAddLib(windows_debug_tweak(env, 'conveyor'))
-    env.MBAddDevelLibPath('#/../conveyor/obj')
-    env.MBAddDevelIncludePath('#/../conveyor/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'conveyor'))
-    else:
-        define_api_nothing(env, 'conveyor')
+    define_library_dependency(env, 'conveyor', '#/../conveyor')
 
 def mb_depends_on_conveyor_ui(env):
-    env.MBAddLib(windows_debug_tweak(env, 'conveyor-ui'))
-    env.MBAddDevelLibPath('#/../conveyor-ui/obj')
-    env.MBAddDevelIncludePath('#/../conveyor-ui/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'conveyor-ui'))
-    else:
-        define_api_nothing(env, 'conveyor-ui')
+    define_library_dependency(env, 'conveyor-ui', '#/../conveyor-ui')
 
 def mb_depends_on_toolpathviz(env):
-    env.MBAddLib(windows_debug_tweak(env, 'toolpathviz'))
-    env.MBAddDevelLibPath('#/../ToolPathViz/obj')
-    env.MBAddDevelIncludePath('#/../ToolPathViz/' + env.MBVariantDir() + '/include')
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, 'toolpathviz'))
-    else:
-        define_api_nothing(env, 'toolpathviz')
+    define_library_dependency(env, 'toolpathviz', '#/../ToolPathViz')
+
+def mb_depends_on_tinything(env):
+    define_library_dependency(env, 'tinything', '#/../libtinything')
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
@@ -543,12 +546,27 @@ def mb_program(env, target, source, *args, **kwargs):
     env.Alias(target, program)
     return program
 
+def set_shared_library_visibility_flags(env, target):
+    # MSVC doesn't need a flag, it has this behavior by default
+    if env.MBIsLinux() or env.MBIsMac():
+        # Sad hack. Ted will probably yell at me when he sees
+        # this. Basically there are issues with setting the visibility
+        # flag when typeinfo is needed. Mostly we don't use typeinfo,
+        # but OpenMesh does use dynamic_cast.
+        #
+        # For now we just disable this in the case of libthing, but it
+        # might yet be possible to fix this properly with more
+        # research.
+        if target != 'thing':
+            env.Append(CCFLAGS=['-fvisibility=hidden'])
+
 def mb_shared_library(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         env.MBWindowsSetDefaultAPIExport(api_define(env, target))
         library = env.MBWindowsSharedLibrary(target, source, *args, **kwargs)
     else:
-        define_api_nothing(env, target)
+        define_api_visibility_public(env, target)
+        set_shared_library_visibility_flags(env, target)
         env.MBSetLibSymName(target)
         library = env.SharedLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
@@ -560,7 +578,6 @@ def mb_static_library(env, target, source, *args, **kwargs):
         library = env.MBWindowsStaticLibrary(target, source, *args, **kwargs)
     else:
         define_api_nothing(env, target)
-        env.MBSetLibSymName(target)
         library = env.StaticLibrary(target, source, *args, **kwargs)
     env.Alias(target, library)
     return library
@@ -666,10 +683,12 @@ def generate(env):
     env.AddMethod(mb_depends_on_mbqtutils, 'MBDependsOnMBQtUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
+    env.AddMethod(mb_depends_on_mbcamera, 'MBDependsOnMBCamera')
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
     env.AddMethod(mb_depends_on_toolpathviz, 'MBDependsOnToolPathViz')
+    env.AddMethod(mb_depends_on_tinything, 'MBDependsOnTinything')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
