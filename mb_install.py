@@ -499,7 +499,7 @@ def define_library_dependency(env, libname, relative_repository_dir,
         # Yeah, on windows we still put stuff in obj,
         # even without the 'variant dir'
         lib_path = os.path.join(relative_repository_dir, 'obj')
-        include_path = include_subdir
+        include_path = os.path.join(relative_repository_dir, include_subdir)
     else:
         obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
         lib_path = obj_dir
