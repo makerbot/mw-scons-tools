@@ -495,9 +495,17 @@ def define_library_dependency(env, libname, relative_repository_dir,
 
     """
     env.MBAddLib(windows_debug_tweak(env, libname))
-    relative_obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
-    env.MBAddDevelLibPath(relative_obj_dir)
-    env.MBAddDevelIncludePath(os.path.join(relative_obj_dir, include_subdir))
+    if env.MBIsWindows():
+        # Yeah, on windows we still put stuff in obj,
+        # even without the 'variant dir'
+        lib_path = os.path.join(relative_repository_dir, 'obj')
+        include_path = include_subdir
+    else:
+        obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
+        lib_path = obj_dir
+        include_path = os.path.join(obj_dir, include_subdir)
+    env.MBAddDevelLibPath(lib_path)
+    env.MBAddDevelIncludePath(include_path)
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, libname))
     else:
