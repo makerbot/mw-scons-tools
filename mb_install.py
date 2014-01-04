@@ -279,7 +279,8 @@ def mb_add_standard_compiler_flags(env):
             '-Wall',
             '-Wextra',
             '-Wno-variadic-macros',
-            '-Wno-long-long'
+            '-Wno-long-long',
+            '-Wswitch-enum'
         ]
 
         env.Append(CCFLAGS=flags)
