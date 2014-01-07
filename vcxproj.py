@@ -631,15 +631,15 @@ def _windows_binary(env, target, source):
 
     return binary
 
-def mb_windows_program(env, target, source):
+def mb_windows_program(env, target, source, *args, **kwargs):
     env[MB_WINDOWS_CONFIGURATION_TYPE] = APPLICATION_TYPE
     return _windows_binary(env, target, source)
 
-def mb_windows_shared_library(env, target, source):
+def mb_windows_shared_library(env, target, source, *args, **kwargs):
     env[MB_WINDOWS_CONFIGURATION_TYPE] = DYNAMIC_LIB_TYPE
     return _windows_binary(env, target, source)
 
-def mb_windows_static_library(env, target, source):
+def mb_windows_static_library(env, target, source, *args, **kwargs):
     env[MB_WINDOWS_CONFIGURATION_TYPE] = STATIC_LIB_TYPE
     return _windows_binary(env, target, source)
 
