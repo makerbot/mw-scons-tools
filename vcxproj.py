@@ -385,10 +385,12 @@ def _get_env_substitutions(env):
     cppdefines = _format_list(indent_4, cppdefines, semi_endl)
     cpppath = _format_list(indent_4, cpppath, semi_endl)
     formatted_libpath  = _format_list(indent_4, libpath, semi_endl)
-    ccflags = _format_list(indent_4, ccflags, semi_endl)
     formatted_libs = _format_list(indent_4, libs, semi_endl)
     ignored_libs = _format_list(indent_4, ignored_libs, semi_endl)
     standard_config_defines = _format_list(indent_4, standard_config_defines, semi_endl)
+    # ccflags is a special case because of a bug in msbuild
+    ccflags = _format_list('', ccflags, ';')
+    # debug_path is a special case because of how the environment is specified
     debug_path  = _format_list('', libpath, ';')
     api_imports = _format_list(
         indent_4,
@@ -396,7 +398,7 @@ def _get_env_substitutions(env):
         '=$(importSiblings);\n')
     disabled_warnings = _format_list(
         indent_4,
-        ['<!--{}-->\n{}{};'.format(warning[1], warning[0], indent_4)
+        ['<!--{}-->\n{}{};'.format(warning[1], indent_4, warning[0])
         for warning in disabled_warnings],
         '')
 
