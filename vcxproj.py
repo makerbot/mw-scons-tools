@@ -143,13 +143,17 @@ def _bool_to_string(value):
     """MSBuild uses lowercase boolean strings"""
     return 'true' if value else 'false'
 
-def _replace_scons_nodes(nodes):
-    """Make all the Files and Nodes and Dirs and what-all into strings"""
+def _desconsify(nodes):
+    """Make all the Files and Nodes and Dirs into strings, strip hashtags"""
     result = []
     for node in nodes:
         if isinstance(node, SCons.Node.FS.Base):
+            # denode
             result.append(node.get_abspath())
         else:
+            # de-hashtag
+            if node.startswith('#'):
+                node = node[2:]
             result.append(node)
     return result
 
@@ -279,7 +283,7 @@ def _format_list(prefix, stuff, suffix):
     """
     # Desconsify
     result = SCons.Util.flatten(stuff)
-    result = _replace_scons_nodes(result)
+    result = _desconsify(result)
     # Add prefix/suffix
     result = ["{}{}{}".format(prefix, x, suffix) for x in result]
     result = ''.join(result)
