@@ -1,0 +1,4 @@
+    <ProjectConfiguration Include="#{REPLACEME:configuration}|#{REPLACEME:bitness}">
+      <Configuration>#{REPLACEME:configuration}</Configuration>
+      <Platform>#{REPLACEME:bitness}</Platform>
+    </ProjectConfiguration>

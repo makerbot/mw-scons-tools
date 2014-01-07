@@ -1,23 +1,16 @@
 # Copyright 2013 MakerBot Industries
 
-import os, re
-import xml.etree.ElementTree as ET
-import SCons
+import os
+import string
+import random
 
-'''
-Some conventions to keep this sane:
-  * function definitions are in lowercase_with_underscores
-  * if the function is exported by the tool, it starts with mb_
-  * functions/builders are exported in camelcase, including the initial MB
-  * functions are added in the same order as they appear in this file
-Feel free to change the conventions if you think they're wrong,
-just make sure to update everything to match those conventions
-'''
+import SCons
 
 # environment keys
 DEFAULT_PLATFORM_BITNESS = 'x64'
 MB_WINDOWS_PLATFORM_BITNESS = 'MB_WINDOWS_PLATFORM_BITNESS'
 
+MB_WINDOWS_CONFIGURATION_TYPE = 'MB_WINDOWS_CONFIGURATION_TYPE'
 MB_WINDOWS_PROJECT_NAME = 'MB_WINDOWS_PROJECT_NAME'
 
 DEFAULT_USE_SDL_CHECK = True
@@ -34,8 +27,6 @@ MB_WINDOWS_API_EXPORT = 'MB_WINDOWS_API_EXPORT'
 
 MB_WINDOWS_STANDARD_CONFIG_DEFINES = 'MB_WINDOWS_STANDARD_CONFIG_DEFINES'
 
-MB_WINDOWS_RESOURCES = 'MB_WINDOWS_RESOURCES'
-
 DLL_IMPORT = '__declspec(dllimport)'
 DLL_EXPORT = '__declspec(dllexport)'
 
@@ -44,6 +35,16 @@ DLL_EXPORT = '__declspec(dllexport)'
 APPLICATION_TYPE = {'extension': 'exe', 'project_string': 'Application'}
 STATIC_LIB_TYPE =  {'extension': 'lib', 'project_string': 'StaticLibrary'}
 DYNAMIC_LIB_TYPE = {'extension': 'dll', 'project_string': 'DynamicLibrary'}
+
+DRIVER_SUFFIX = '_lib_srt'
+
+CURRENT_FILE = os.path.abspath(__file__)
+if CURRENT_FILE.endswith('.pyc'):
+      CURRENT_FILE = CURRENT_FILE[:-1]
+
+TEMPLATE_DIR = os.path.join(
+    os.path.dirname(CURRENT_FILE),
+    'templates')
 
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
@@ -59,10 +60,6 @@ def mb_windows_add_standard_configuration_preprocessor_define(env, define):
     ''' Add a c preprocessor define that will only
         be used in the driver configuration '''
     env.Append(**{MB_WINDOWS_STANDARD_CONFIG_DEFINES : [define]})
-
-def mb_windows_add_resource(env, rc):
-    ''' Add a .rc file to the windows compilation '''
-    env.Append(**{MB_WINDOWS_RESOURCES : [rc]})
 
 def mb_windows_add_api_import(env, api_import):
     ''' Add an API define that is used in code this project depends on '''
@@ -92,7 +89,7 @@ def mb_set_windows_is_windowed_application(env, is_windowed = True):
         have any effect on this project '''
     env[MB_WINDOWS_IS_WINDOWED_APPLICATION] = is_windowed
 
-def validate_reason_to_disable(reason):
+def _validate_reason_to_disable(reason):
     """
     HEY YOU
 
@@ -120,28 +117,14 @@ def mb_windows_disable_warning(env, warning, valid_reason_to_disable):
     Adds warning to the list of disabled warnings with a comment containing
     The reason for disabling.
     """
-    validate_reason_to_disable(valid_reason_to_disable)
+    _validate_reason_to_disable(valid_reason_to_disable)
 
     env.Append(
         **{MB_WINDOWS_DISABLED_WARNINGS : [(warning, valid_reason_to_disable)]})
 
 
-def make_guid(project_name, debug, bitness):
-    ''' We want to make sure the guids are always the same per project name.
-        Produces a guid in {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx} form
-        based on the project name (so don't reuse project names). '''
-    # convert project name to something readable as hex
-    fixed_name = ''
-    for char in project_name:
-        fixed_name += str(ord(char))
-    debug = ('D' if debug else '')
-    bitness = ('64' if (bitness == 'x64') else '32')
-    guid_base = bitness + debug + fixed_name + 'abcdef1234567890abcdef1234567890'
-    project_guid = guid_base[0:8]+'-'+guid_base[8:12]+'-'+guid_base[12:16]+'-'+guid_base[16:20]+'-'+guid_base[20:32]
-    return project_guid
-
-def expand_project_name(project_name, target_type, debug):
-    ''' Set up the target name with our naming convention '''
+def _expand_project_name(project_name, target_type, debug):
+    """Set up the project name with our naming convention."""
     expandedname = project_name
 
     if debug:
@@ -152,391 +135,508 @@ def expand_project_name(project_name, target_type, debug):
 
     return expandedname
 
-def format_disabled_warnings(prefix, warnings):
-    """ Formats a list of (warning, explanation) pairs """
-    return '\n'.join([
-        ''.join([
-            prefix, '<!--', warning[1], '-->', '\n',
-            prefix, warning[0], ';'])
-        for warning in warnings])
-
-def configuration_string(debug):
+def _configuration_string(debug):
+    """Returns the vcxproj configuration based on debugness of build."""
     return 'Debug' if debug else 'Release'
 
-def strip_obj(paths):
-    ''' If any path starts with obj, remove the obj '''
-    return [re.sub('^(\\\\|/)*obj(\\\\|/)*', '', path) for path in paths]
+def _bool_to_string(value):
+    """MSBuild uses lowercase boolean strings"""
+    return 'true' if value else 'false'
 
-def replace_hash(paths):
-    ''' Replace the '#' meaning 'root' with '' '''
-    return [re.sub('^#(\\\\|/)*', '', path) for path in paths]
+def _replace_scons_nodes(nodes):
+    """Make all the Files and Nodes and Dirs and what-all into strings"""
+    result = []
+    for node in nodes:
+        if isinstance(node, SCons.Node.FS.Base):
+            result.append(node.get_abspath())
+        else:
+            result.append(node)
+    return result
 
-def replace_scons_nodes(nodes):
-    ''' make all the Files and Nodes and Dirs and what-all into strings '''
-    return [str(x) for x in nodes]
+def _do_substitutions(substitute_in, substitutions):
+    """Replaces parts of a string based on a list of key, value tuples.
 
-def desconsify(stuff):
-    stuff = SCons.Util.flatten(stuff)
-    stuff = replace_scons_nodes(stuff)
-    stuff = replace_hash(stuff)
-    return stuff
+    substitutions takes a list of tuples containing pairs of
+    keys and values.  Each instance in substitute_in of each key will be
+    replaced with that key's value.
 
-def one_per_line(prefix, stringlist, suffix):
-    ''' Takes each element of a list and puts it on a separate
-        line prefixed by 'prefix' and suffixed by 'suffix'.
-        Returns it all as a string. '''
-    return '\n'.join([prefix + s + suffix for s in stringlist])
+    """
+    key_format = 'REPLACEME:{}'
 
-def scons_to_msbuild_env_substitution(stuff):
-    ''' Special handling of include_paths containing $ENVIRONMENT_VARIABLES
-        because something replaces those correctly for other platforms
-        but not on windows. $QT5DIR is the only one I've seen so far. '''
-    return [re.sub('\\$([a-zA-Z0-9_]+)', '$(\\1)', thing) for thing in stuff]
+    # Just used to modify how we find things to replace
+    class _XMLTemplate(string.Template):
+        delimiter = '#'
+        idpattern = key_format.format('[a-zA-Z0-9_]*')
 
-def project_configurations(configuration, bitness):
-    ''' Generate a 'ProjectConfiguration' node for the vcxproj '''
-    return '\n'.join([
-        '    <ProjectConfiguration Include="' + configuration + '|' + bitness + '">',
-        '      <Configuration>' + configuration + '</Configuration>',
-        '      <Platform>' + bitness + '</Platform>',
-        '    </ProjectConfiguration>',
-    ])
+    template = _XMLTemplate(substitute_in)
 
-def configuration_group(configuration, configuration_type, debug, target_name, extra_properties):
-    ''' Generate a 'PropertyGroup' node labeled 'Configuration' for the vcxproj.
-        This is something that Visual Studio looks for. '''
-    return '\n'.join([
-        '  <PropertyGroup Condition="\'$(Configuration)\'==\'' + configuration + '\'" Label="Configuration">',
-        '    <ConfigurationType>' + configuration_type + '</ConfigurationType>',
-        '    <UseDebugLibraries>' + ('true' if debug else 'false') + '</UseDebugLibraries>',
-        '    <PlatformToolset>v110</PlatformToolset>',
-        '    <CharacterSet>Unicode</CharacterSet>',
-        '    <TargetName>' + target_name + '</TargetName>',
-        one_per_line('    ', extra_properties, ''),
-        '  </PropertyGroup>',
-    ])
+    # We make the keys a little more noticable in the xml files
+    fixed_subs = {}
+    for s in substitutions:
+        key = key_format.format(s)
+        fixed_subs[key] = substitutions[s]
 
-def standard_project_configurations(debug, bitness):
-    return project_configurations(configuration_string(debug), bitness)
+    return template.substitute(fixed_subs)
 
-def standard_configuration_group(project_name, debug, configuration_type, standard_config_defines):
-    configuration = configuration_string(debug)
+def _project_configurations(env, debug, bitness, configuration_type):
+    """Create 'ProjectConfiguration' xml element for the vcxproj"""
+    template_file = os.path.join(TEMPLATE_DIR, 'project_configuration.xml')
+    with open(template_file, 'r') as template:
+        template_contents = template.read()
 
-    extra_props = [
-        '<!-- We use dynamic linkage against the C++ runtime by default -->',
-        '<runtimeLinkType>DLL</runtimeLinkType>',
-        '<importSiblings>' + DLL_IMPORT + '</importSiblings>',
-        '<!-- There are some preprocessor defines that we only want in the standard config -->',
-        '<PreprocessorDefinitions>',
-        one_per_line('  ', standard_config_defines, ';'),
-        '  $(PreprocessorDefinitions)',
-        '</PreprocessorDefinitions>'
-    ]
+    configuration = _configuration_string(debug)
 
-    target_name = expand_project_name(project_name, configuration_type, debug)
+    subst_dict = {
+        'configuration': configuration,
+        'bitness': bitness
+    }
+    result = _do_substitutions(
+        template_contents,
+        subst_dict)
 
-    return configuration_group(
-        configuration,
-        configuration_type['project_string'],
-        debug,
-        target_name,
-        extra_props)
+    if configuration_type != APPLICATION_TYPE:
+        subst_dict = {
+            'configuration': configuration + DRIVER_SUFFIX,
+            'bitness': bitness
+        }
+        result += _do_substitutions(
+            template_contents,
+            subst_dict)
 
-DRIVER_SUFFIX = '_lib_srt'
+    return result
 
-def driver_project_configurations(debug, bitness):
-    ''' We have separate configurations for the driver so a .sln can easily call
-        all the driver configurations. '''
-    return project_configurations(configuration_string(debug) + DRIVER_SUFFIX, bitness)
+def _configuration_groups(env, project_name, debug, configuration_type):
+    """
+    Create 'PropertyGroup' xml element labeled 'Configuration' for the vcxproj
+    """
 
-def driver_configuration_group(project_name, debug):
-    configuration = configuration_string(debug) + DRIVER_SUFFIX
+    template_file = os.path.join(TEMPLATE_DIR, 'configuration_group.xml')
+    with open(template_file, 'r') as template:
+        template_contents = template.read()
 
-    target_name = expand_project_name(project_name, STATIC_LIB_TYPE, debug)
-    target_name += DRIVER_SUFFIX
+    configuration = _configuration_string(debug)
+    target_name = _expand_project_name(project_name, configuration_type, debug)
 
-    # we sometimes need things set in the driver but not otherwise
-    extra_props = [
-        '<driverConfiguration>true</driverConfiguration>',
-    ]
+    subst_dict = {
+        'configuration': configuration,
+        'configuration_type': configuration_type['project_string'],
+        'debug': _bool_to_string(debug),
+        'target_name': target_name,
+        'is_driver': _bool_to_string(False)
+    }
+    result = _do_substitutions(
+        template_contents,
+        subst_dict)
 
-    return configuration_group(
-        configuration,
-        STATIC_LIB_TYPE['project_string'],
-        debug,
-        target_name,
-        extra_props)
+    if configuration_type != APPLICATION_TYPE:
+        target_name = _expand_project_name(project_name, STATIC_LIB_TYPE, debug)
+        subst_dict = {
+            'configuration': configuration + DRIVER_SUFFIX,
+            'configuration_type': configuration_type['project_string'],
+            'debug': _bool_to_string(debug),
+            'target_name': target_name + DRIVER_SUFFIX,
+            'is_driver': _bool_to_string(True)
+        }
+        result += _do_substitutions(
+            template_contents,
+            subst_dict)
 
-def fill_in_the_blanks(debug,
-                       bitness,
-                       project_name,
-                       api_imports,
-                       api_export,
-                       configuration_type,
-                       standard_config_defines,
-                       preprocessor_defines,
-                       debugging_path,
-                       use_sdl_check,
-                       compiler_flags,
-                       include_paths,
-                       sources,
-                       resources,
-                       libs,
-                       ignored_libs,
-                       lib_paths,
-                       hide_console,
-                       disabled_warnings):
-    ''' this contains the template where the blanks can be filled in '''
-    vcxproj_contents = '\n'.join([
-        '<?xml version="1.0" encoding="utf-8"?>',
-        '<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">',
-        '  <ItemGroup Label="ProjectConfigurations">',
-        standard_project_configurations(debug, bitness),
-        driver_project_configurations(debug, bitness) if APPLICATION_TYPE != configuration_type else '',
-        '  </ItemGroup>',
-        '  <PropertyGroup Label="Globals">',
-        '    <ProjectGuid>{' + make_guid(project_name, debug, bitness) + '}</ProjectGuid>',
-        '    <RootNamespace>' + project_name + '</RootNamespace>',
-        '  </PropertyGroup>',
-        '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />',
-        standard_configuration_group(project_name, debug, configuration_type, standard_config_defines),
-        driver_configuration_group(project_name, debug) if APPLICATION_TYPE != configuration_type else '',
-        '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />',
-        '  <ImportGroup Label="ExtensionSettings">',
-        '  </ImportGroup>',
-        '  <ImportGroup Label="PropertySheets">',
-        '    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists(\'$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props\')" Label="LocalAppDataPlatform" />',
-        '  </ImportGroup>',
-        '  <PropertyGroup Label="UserMacros" />',
-        '  <PropertyGroup />',
-        '  <PropertyGroup>',
-        '    <!-- If running from scons, some properties may not be set up -->',
-        '    <VCTargetsPath Condition="\'$(VCTargetsPath)\'==\'\'">C:\Program Files (x86)\MSBuild\Microsoft.Cpp\\v4.0\$(PlatformToolset)\</VCTargetsPath>',
-        '    <!-- Paths -->',
-        '    <!-- Standard Paths used by msbuild -->',
-        '    <OutDir>$(ProjectDir)\obj\$(Platform)\</OutDir>',
-        '    <IntDir>$(ProjectDir)\obj\$(RootNamespace)_Int\$(Platform)\$(Configuration)\</IntDir>',
-        '    <!-- Some properties based on the Configuration -->',
-        '    <MBIsDebug>' + ('true' if debug else 'false') + '</MBIsDebug>',
-        '    <MBIsRelease>' + ('false' if debug else 'true') + '</MBIsRelease>',
-        '    <MBPreprocessorDebugDefs Condition="\'$(MBIsDebug)\' == \'true\'">_DEBUG</MBPreprocessorDebugDefs>',
-        '    <MBPreprocessorDebugDefs Condition="\'$(MBIsRelease)\' == \'true\'">NDEBUG</MBPreprocessorDebugDefs>',
-        '    <apiDefine Condition="\'$(ConfigurationType)\' == \'DynamicLibrary\'">' + api_export + '=' + DLL_EXPORT + '</apiDefine>',
-        '    <apiDefine Condition="\'$(ConfigurationType)\' != \'DynamicLibrary\'">' + api_export + '=</apiDefine>',
-        '    <MBPreprocessorAPIDefs>',
-        '      $(apiDefine);',
-        one_per_line('      ', api_imports, '=$(importSiblings);'),
-        '    </MBPreprocessorAPIDefs>',
-        '    <!-- Adds a bunch of stuff to the path for debugging. Formatting matters a lot here. -->',
-        '    <LocalDebuggerEnvironment>PATH=%PATH%;$(QT5DIR)\\bin;' + ';'.join(debugging_path),
-        'QT_PLUGIN_PATH=$(QT5DIR)\plugins',
-        '$(LocalDebuggerEnvironment)',
-        '    </LocalDebuggerEnvironment>',
-        '  </PropertyGroup>',
-        '  <ItemDefinitionGroup>',
-        '    <ClCompile>',
-        '      <DebugInformationFormat>OldStyle</DebugInformationFormat>',
-        '      <WarningLevel>Level3</WarningLevel>',
-        '      <Optimization Condition="$(MBIsDebug)">Disabled</Optimization>',
-        '      <Optimization Condition="$(MBIsRelease)">MaxSpeed</Optimization>',
-        '      <FunctionLevelLinking>$(MBIsRelease)</FunctionLevelLinking>',
-        '      <IntrinsicFunctions>$(MBIsRelease)</IntrinsicFunctions>',
-        '      <SDLCheck>' + ('true' if use_sdl_check else 'false') + '</SDLCheck>',
-        '      <!-- AdditionalOptions cannot be on individual lines because of a bug in msbuild-->',
-        '      <AdditionalOptions>' + ' '.join(compiler_flags) + '%(AdditionalOptions)</AdditionalOptions>',
-        '      <PreprocessorDefinitions>',
-        '        $(MBPreprocessorDebugDefs);',
-        '        $(MBPreprocessorAPIDefs);',
-        one_per_line('        ', preprocessor_defines, ';'),
-        '        $(PreprocessorDefinitions);',
-        '        %(PreprocessorDefinitions)',
-        '      </PreprocessorDefinitions>',
-        '      <AdditionalIncludeDirectories>',
-        one_per_line('        ', strip_obj(include_paths), ';'),
-        '        %(AdditionalIncludeDirectories)',
-        '      </AdditionalIncludeDirectories>',
-        '      <BufferSecurityCheck>' + ('true' if debug else 'false') + '</BufferSecurityCheck>',
-        '      <!-- We use dynamic linkage against the C++ runtime by default, but the driver uses static linkage -->',
-        '      <RuntimeLibrary>MultiThreaded' + ('Debug' if debug else '') + '$(runtimeLinkType)</RuntimeLibrary>',
-        '      <!-- Apparently the windows driver requires StdCall (but only on Win32, x64 has its own calling conventions -->',
-        '      <CallingConvention Condition="\'$(driverConfiguration)\'==\'true\'">StdCall</CallingConvention>' if bitness == 'Win32' else '',
-        '      <DisableSpecificWarnings>',
-        format_disabled_warnings('        ', disabled_warnings),
-        '        %(DisableSpecificWarnings)',
-        '      </DisableSpecificWarnings>',
-        '    </ClCompile>',
-        '    <Link>',
-        '      <GenerateDebugInformation>true</GenerateDebugInformation>',
-        '      <EnableCOMDATFolding>$(MBIsRelease)</EnableCOMDATFolding>',
-        '      <OptimizeReferences>$(MBIsRelease)</OptimizeReferences>',
-        '      <AdditionalDependencies>',
-        one_per_line('        ', libs, ';'),
-        '        %(AdditionalDependencies)',
-        '      </AdditionalDependencies>',
-        '      <IgnoreSpecificDefaultLibraries>',
-        one_per_line('        ', strip_obj(ignored_libs), ';'),
-        '      </IgnoreSpecificDefaultLibraries>',
-        '      <AdditionalLibraryDirectories>',
-        one_per_line('        ', strip_obj(lib_paths), ';'),
-        '        $(OutDir)',
-        '        %(AdditionalLibraryDirectories)',
-        '      </AdditionalLibraryDirectories>',
-        '      <SubSystem>' + ('Windows' if hide_console else 'Console') + '</SubSystem>' if APPLICATION_TYPE == configuration_type else '',
-        '    </Link>',
-        '  </ItemDefinitionGroup>',
-        '  <ItemGroup>',
-        one_per_line('    <ClCompile Include="', strip_obj(sources), '" />'),
-        '  </ItemGroup>',
-        '  <ItemGroup>',
-        one_per_line('    <ResourceCompile Include="', strip_obj(resources), '" />'),
-        '  </ItemGroup>',
-        '  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />',
-        '</Project>'])
+    return result
 
-    return vcxproj_contents
+# Adapted from http://www.scons.org/wiki/FindTargetSources
+def _get_sources(target, ignore={}):
+    """Takes a SCons target and finds all sources it depends on"""
+    sources = []
+    for item in target:
+        if SCons.Util.is_List(item):
+            sources += _get_sources(item, ignore)
+        else:
+            sources += _get_sources(item.children(scan=1), ignore)
 
-def mb_gen_vcxproj_emitter(target, source, env):
-    ''' An Emitter that adds '.vcxproj' to the target '''
-    target = [str(target[0]) + '.vcxproj']
+            # Values don't have an abspath
+            if isinstance(item, SCons.Node.Python.Value):
+                continue
+            if item.abspath in ignore:
+                continue
+
+            abspath = item.abspath
+            ignore[abspath] = True
+            sources.append(abspath)
+
+    return sources
+
+def _format_list(prefix, stuff, suffix):
+    """Takes a potentially sconsy list and turns it into a single string
+
+    prefix/suffix will be added to the beginning and end of each element in the
+    list.
+
+    Example:
+      > sconsy_list = ['a', File('b'), [Dir('c'), 'd']]
+      > _format_list('_', sconsy_list, '_ ')
+      '_a_ _b_ _c_ _d_'
+
+    """
+    # Desconsify
+    result = SCons.Util.flatten(stuff)
+    result = _replace_scons_nodes(result)
+    # Add prefix/suffix
+    result = ["{}{}{}".format(prefix, x, suffix) for x in result]
+    result = ''.join(result)
+    return result
+
+def _remove_dlls(env, libs):
+    """Takes the list of libs and removes every item ending with '.dll'
+
+    We can't link against dlls and there's probably a .lib in there for
+    it anyway.
+
+    Also flattens the list and converts any scons nodes to strings.
+    """
+    dllless_libs = []
+    # For each item in the list, if it's a .dll, discard it.
+    for lib in SCons.Util.flatten(libs):
+        lib = str(lib)
+        if lib.endswith('.dll'):
+            continue
+        elif lib.endswith('.lib'):
+            dllless_libs.append(lib)
+        else:
+            # manually append '.lib' if it's missing
+            dllless_libs.append(lib + '.lib')
+    return dllless_libs
+
+def _subsystem(env, configuration_type, hide_console):
+    """Create the SubSytem xml element for the vcxproj Link element"""
+    if APPLICATION_TYPE == configuration_type:
+        return '<SubSystem>{}</SubSystem>'.format(
+            'Windows' if hide_console else 'Console')
+    else:
+        return ''
+
+def _make_guid(project_name, debug, bitness):
+    """Creates a predictable guid for a vcxproj based on the given inputs.
+
+    We want to make sure the guids are always the same for each
+    project name, debugness, bitness combo.
+
+    The guid produced is in the form {xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}
+
+    Don't reuse project names!
+
+    """
+    # convert project name to something readable as hex
+    fixed_name = ''
+    for char in project_name:
+        fixed_name += str(ord(char))
+    debug = ('D' if debug else '')
+    bitness = ('64' if (bitness == 'x64') else '32')
+    guid_base = bitness + debug + fixed_name + 'abcdef1234567890abcdef123456789'
+    return '{{{}-{}-{}-{}-{}}}'.format(
+        guid_base[0:8],
+        guid_base[8:12],
+        guid_base[12:16],
+        guid_base[16:20],
+        guid_base[20:32])
+
+def _get_env_substitutions(env):
+    """Extract the environment values we care about, and create a subst dict
+
+    This handles most of the formatting of environment variables into the
+    substitution dict for the vcxproj generation.
+
+    """
+    #
+    # also, any strings that affect formatting and the project_confs/conf_groups
+    # basically, all inputs that alter what actually gets built
+    configuration_type = env[MB_WINDOWS_CONFIGURATION_TYPE]
+    debug = env.MBDebugBuild()
+    bitness = env.MBWindowsBitness()
+    project_name = env[MB_WINDOWS_PROJECT_NAME]
+    hide_console = (
+        env.MBGetOption('hide_console') and
+        env[MB_WINDOWS_IS_WINDOWED_APPLICATION])
+
+    cppdefines = env['CPPDEFINES']
+    cpppath = env['CPPPATH']
+    libs = _remove_dlls(env, env['LIBS'])
+    libpath = env['LIBPATH']
+    ccflags = env['CCFLAGS']
+    ignored_libs = env[MB_WINDOWS_IGNORED_LIBS]
+    standard_config_defines = env[MB_WINDOWS_STANDARD_CONFIG_DEFINES]
+    api_imports = env[MB_WINDOWS_API_IMPORTS]
+    api_export = env[MB_WINDOWS_API_EXPORT]
+    use_sdl_check = env[MB_WINDOWS_USE_SDL_CHECK]
+    disabled_warnings = env[MB_WINDOWS_DISABLED_WARNINGS]
+
+    indent_3 = '      '
+    indent_4 = '        '
+    semi_endl = ';\n'
+
+    project_configurations = _project_configurations(env, debug, bitness, configuration_type)
+    configuration_groups = _configuration_groups(env, project_name, debug, configuration_type)
+    subsystem = _subsystem(env, configuration_type, hide_console)
+
+    # additional formatting
+    cppdefines = _format_list(indent_4, cppdefines, semi_endl)
+    cpppath = _format_list(indent_4, cpppath, semi_endl)
+    formatted_libpath  = _format_list(indent_4, libpath, semi_endl)
+    ccflags = _format_list(indent_4, ccflags, semi_endl)
+    formatted_libs = _format_list(indent_4, libs, semi_endl)
+    ignored_libs = _format_list(indent_4, ignored_libs, semi_endl)
+    standard_config_defines = _format_list(indent_4, standard_config_defines, semi_endl)
+    debug_path  = _format_list('', libpath, ';')
+    api_imports = _format_list(
+        indent_4,
+        api_imports,
+        '=$(importSiblings);\n')
+    disabled_warnings = _format_list(
+        indent_4,
+        ['<!--{}-->\n{}{};'.format(warning[1], warning[0], indent_4)
+        for warning in disabled_warnings],
+        '')
+
+    substitutions = {
+        'project_configurations': project_configurations,
+        'project_guid': _make_guid(project_name, debug, bitness),
+        'root_namespace': project_name,
+        'configuration_groups': configuration_groups,
+        'mb_is_debug': _bool_to_string(debug),
+        'mb_is_release': _bool_to_string(not debug),
+        'api_export': api_export,
+        'api_imports': api_imports,
+        'standard_config_preprocessor_defines': standard_config_defines,
+        'debugging_path': debug_path,
+        'sdl_check': _bool_to_string(use_sdl_check),
+        'buffer_security_check': _bool_to_string(debug),
+        'additional_options': ccflags,
+        'preprocessor_definitions': cppdefines,
+        'additional_include_directories': cpppath,
+        'runtime_library_debugness': 'Debug' if debug else '',
+        'disable_specific_warnings': disabled_warnings,
+        'additional_dependencies': formatted_libs,
+        'ignore_specific_default_libraries': ignored_libs,
+        'additional_library_directories': formatted_libpath,
+        'subsystem': subsystem,
+    }
+
+    return substitutions
+
+def _get_source_substitutions(target):
+    """Get the c++ files from the target and format them for substitution
+
+    Filters out the headers, sources, and resources from the target's
+    dependencies and formats them for addition to the vcxproj.
+
+    """
+    # NB: because this is not being called from a builder, it may not pick up
+    # any changes to the dependent headers made after the call to MBGenVcxproj
+    all_sources = _get_sources(target)
+
+    source_extensions = [".c", ".cxx", ".cpp", ".c++", ".cc"]
+    header_extensions = [".h", ".hxx", ".hpp", ".hh"]
+    resource_extensions = [".rc"]
+
+    def _filter_ext(sources, extensions):
+        result = []
+        for source in sources:
+            for extension in extensions:
+                if source.lower().endswith(extension.lower()):
+                    result.append(source)
+                    break
+        return result
+
+    formatted_sources = _format_list(
+        '    <ClCompile Include="',
+        _filter_ext(all_sources, source_extensions),
+        '" />\n')
+    formatted_headers = _format_list(
+        '    <ClInclude Include="',
+        _filter_ext(all_sources, header_extensions),
+        '" />\n')
+    formatted_resources = _format_list(
+        '    <ResourceCompile Include="',
+        _filter_ext(all_sources, resource_extensions),
+        '" />\n')
+
+    substitutions = {
+        'cl_compile': formatted_sources,
+        'cl_include': formatted_headers,
+        'resource_compile': formatted_resources
+    }
+
+    return substitutions
+
+def _fill_vcxproj_template(target_file, substitutions):
+    """Load the vcxproj template, fill in the substitutions, and write it out"""
+    template_file = os.path.join(TEMPLATE_DIR, 'vcxproj.xml')
+
+    # load the template
+    with open(template_file, "r") as source:
+        source_contents = source.read()
+
+    target_contents = _do_substitutions(source_contents, substitutions)
+
+    # write the file
+    with open(target_file, "w") as target:
+        target.write(target_contents)
+        # This solves the following problem:
+        #
+        # We know that we're going to be running msbuild on this vcxproj,
+        # but the MBRunMSBuild Method can't access the headers that the
+        # sources listed in this file depend on.  In fact, MBRunMSBuild
+        # should be run whenever this is rebuilt, but it's hard for us to
+        # pass that information from one builder to another.  Instead we
+        # add this here random number, so that each time this rebuilds it
+        # makes MBRunMSBuild run, too.
+        target.write(
+            '<!--This random value ensures that'
+            ' msbuild will be run on this file-->\n')
+        target.write('<!--{}-->\n'.format(random.random()))
+
+def _gen_vcxproj_emitter(env, target, source):
+    """SCons emitter for the vcxproj builder
+
+    This emitter also messes with the env, which I think emitters are not
+    supposed to do, but this seems cleaner than any other means of setting up
+    the dependency on the environment variables.  The other options that I
+    considered:
+    * Using the varlist argument to the Action constructor.
+        This would require that we keep a thorough list of all environment
+        variables used.  Many of the variables are currently accessed through
+        other functions with complicated logic, so it would be quite difficult
+        to keep track of all those programatically or manually.
+    * Setting dependencies in the action function.
+        Does not work.
+    * Calculating the substitutions, but not stashing them in the environment.
+        Seems unnecessarily computationally intensive.
+
+    """
+    vcxproj = str(target[0])
+    vcxproj += ('_32' if env.MBWindowsIs32Bit() else '_64')
+    vcxproj += ('d' if env.MBDebugBuild() else '')
+    vcxproj += '.vcxproj'
+    target = [env.File(vcxproj)]
+
+    # Get the environment-based substitutions
+    substitutions = _get_env_substitutions(env)
+    env['ENV_SUBSTITUTIONS'] = substitutions
+    substitution_dependency = SCons.Node.Python.Value(substitutions)
+    env.Depends(target, substitution_dependency)
+
     return target, source
 
-def gen_vcxproj(env, target, source, target_type):
-    ''' Create an XML .vcxproj file
-        Does most of the wrangling to get the data in an easily-printable
-        format before passing it off to fill_in_the_blanks. '''
+def _gen_vcxproj_action(target, source, env):
+    """A SCons action function for a Builder that creates a vcxproj file.
 
-    filename = str(target[0])
+    """
+    substitutions = env['ENV_SUBSTITUTIONS']
+    # Get the source-based substitutions separately, because the
+    # target is not set up quite right until after the emitter has finished
+    # TODO(ted): could I just pass the list of sources to _find_headers and move
+    # this into the emitter?
+    substitutions.update(_get_source_substitutions(target))
 
-    # MSBuild will handle the prefixing
-    env['CPPDEFPREFIX'] = ''
-    cppdefines = env.subst('$_CPPDEFFLAGS').split()
+    _fill_vcxproj_template(target[0].abspath, substitutions)
 
-    cpppath = desconsify(env['CPPPATH'])
-    cpppath = scons_to_msbuild_env_substitution(cpppath)
-    libpath = desconsify(env['LIBPATH'])
-    libpath = scons_to_msbuild_env_substitution(libpath)
+    # Success
+    return 0
 
-    libs = desconsify(env['LIBS'])
-    # If there's a .dll, discard it. we can't link against dlls
-    # and there's probably a .lib in there for it anyway.
-    dllless_libs = []
-    for lib in libs:
-        if not lib.endswith('.dll'):
-            dllless_libs.append(lib)
-    libs = dllless_libs
-    # manually append '.lib' if it's missing
-    libs = [lib if lib.endswith('.lib') else lib + '.lib' for lib in libs]
+def _run_msbuild_method(env, target, source):
+    """A SCons Method function which runs msbuild on a target.
 
-    # we do less processing on ignored libs
-    ignored_libs = SCons.Util.flatten(env[MB_WINDOWS_IGNORED_LIBS])
+    If any vcxproj properties are passed via the command line,
+    they will be passed to msbuild.
 
-    with open(filename, 'w') as f:
-        f.write(fill_in_the_blanks(
-            debug = env.MBDebugBuild(),
-            bitness = env.MBWindowsBitness(),
-            project_name = env[MB_WINDOWS_PROJECT_NAME],
-            api_imports = env[MB_WINDOWS_API_IMPORTS],
-            api_export = env[MB_WINDOWS_API_EXPORT],
-            configuration_type = target_type,
-            standard_config_defines = env[MB_WINDOWS_STANDARD_CONFIG_DEFINES],
-            debugging_path = libpath,
-            compiler_flags = env['CCFLAGS'],
-            preprocessor_defines = cppdefines,
-            use_sdl_check = env[MB_WINDOWS_USE_SDL_CHECK],
-            include_paths = cpppath,
-            sources = desconsify(source),
-            resources = desconsify(env[MB_WINDOWS_RESOURCES]),
-            libs = libs,
-            ignored_libs = ignored_libs,
-            lib_paths = libpath,
-            hide_console = hide_console(env),
-            disabled_warnings = env[MB_WINDOWS_DISABLED_WARNINGS]))
+    """
+    properties = env.MBVcxprojProperties()
 
-def mb_app_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, APPLICATION_TYPE)
-
-def mb_dll_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, DYNAMIC_LIB_TYPE)
-
-def mb_lib_vcxproj(target, source, env):
-    gen_vcxproj(env, target, source, STATIC_LIB_TYPE)
-
-def mb_run_msbuild(env, target, source, configuration, platform, properties = {}):
     command = [
         'msbuild',
-        '/p:Configuration=' + configuration,
-        '/p:Platform=' + platform]
-    command += ['/p:{}={}'.format(key, value) for key, value in properties.items()]
+        '/p:Configuration=' + _configuration_string(env.MBDebugBuild()),
+        '/p:Platform=' + env.MBWindowsBitness()
+    ]
+    command += ['/p:{}={}'.format(key, value) for key, value in properties]
 
     command += ['$SOURCE']
 
-    target_list = env.Command(target, source, ' '.join(command))
-    return target_list
+    result = env.Command(target, source, ' '.join(command))
 
-def mb_build_vcxproj(env, target, source, target_type):
-    ''' Build the given vcxproj '''
-    expandedname = os.path.join(
-        'obj',
-        env.MBWindowsBitness(),
-        expand_project_name(env[MB_WINDOWS_PROJECT_NAME],
-                            target_type,
-                            env.MBDebugBuild()))
+    return result
 
-    target = [expandedname + '.' + target_type['extension']]
+def _get_windows_binary_target(env):
+    """Creates a SCons target for what we expect MSBuild to produce
+
+    Actually, only lists the things we care about installing, but if we wanted
+    we could add pdbs and stuff like that to debug builds.
+
+    """
+    configuration_type = env[MB_WINDOWS_CONFIGURATION_TYPE]
+
+    project_name = _expand_project_name(
+        env[MB_WINDOWS_PROJECT_NAME],
+        configuration_type,
+        env.MBDebugBuild())
+    expandedname = os.path.join('obj', env.MBWindowsBitness(), project_name)
+
+    target = [env.File(expandedname + '.' + configuration_type['extension'])]
 
     # For .dlls on windows we actually link against
     # the .lib that's generated, so return that, too
-    if target_type == DYNAMIC_LIB_TYPE:
-        target += [expandedname + '.lib']
+    if configuration_type == DYNAMIC_LIB_TYPE:
+        target += [env.File(expandedname + '.lib')]
 
-    target_list = env.MBRunMSBuild(
-        target,
-        source,
-        configuration_string(env.MBDebugBuild()),
-        env.MBWindowsBitness(),
-        env.MBVcxprojProperties())
-    return target_list
+    return target
 
-this_file = os.path.abspath(__file__)
-def windows_binary(env, target, source, configuration_type, *args, **kwargs):
-    ''' Combines generating and building a vcxproj.
-        Also sets up some dependencies.
-        Also alters the names of the vcxproj files slightly. '''
+def _windows_binary(env, target, source):
+    """Sets up Builders & dependencies on windows for compiling a binary
+
+    The type of binary is set by MB_WINDOWS_CONFIGURATION_TYPE.
+
+    This creates a .vcxproj and a .rc file to build from.
+
+    """
     env.MBSetWindowsProjectName(target)
-    vcxproj_name = target + ('_32' if env.MBWindowsIs32Bit() else '_64')
-    vcxproj_name += ('d' if env.MBDebugBuild() else '')
 
     # TODO(ted): we can probably make this only regenerate if the version changes
     # TODO(ted): this path is kind of a hack, will probably cause trouble when something changes
     version_rc = env.MBGenerateVersionResource(
-        vcxproj_name + '_version.rc',
+        target + '_version.rc',
         file_description = 'MakerBot Software',
         internal_name = target,
         original_filename = target,
         product_name = target)
-    env.MBWindowsAddResource(version_rc)
 
-    if APPLICATION_TYPE == configuration_type:
-      vcxproj = env.MBAppVcxproj(vcxproj_name, source)
-    elif DYNAMIC_LIB_TYPE == configuration_type:
-      vcxproj = env.MBDLLVcxproj(vcxproj_name, source)
-    elif STATIC_LIB_TYPE == configuration_type:
-      vcxproj = env.MBLibVcxproj(vcxproj_name, source)
+    source += [version_rc]
 
-    env.Depends(vcxproj, version_rc)
-    env.Depends(vcxproj, this_file)
-    result = env.MBBuildVcxproj(target, vcxproj, configuration_type)
-    env.Depends(result, source)
-    return result
+    vcxproj = env.MBGenVcxproj(target, source)
 
-def mb_windows_program(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, APPLICATION_TYPE, *args, **kwargs)
+    binary = env.MBRunMSBuild(
+        _get_windows_binary_target(env),
+        vcxproj)
 
-def mb_windows_shared_library(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, DYNAMIC_LIB_TYPE, *args, **kwargs)
+    env.Depends(binary, source)
 
-def mb_windows_static_library(env, target, source, *args, **kwargs):
-    return windows_binary(env, target, source, STATIC_LIB_TYPE, *args, **kwargs)
+    # Pick up any changes to this file that might not be seen by scons
+    # This isn't normally necessary for a final product build system,
+    # but when it's under development...
+    env.Depends(vcxproj, env.File(CURRENT_FILE))
+    env.Depends(binary, env.File(CURRENT_FILE))
+
+    return binary
+
+def mb_windows_program(env, target, source):
+    env[MB_WINDOWS_CONFIGURATION_TYPE] = APPLICATION_TYPE
+    return _windows_binary(env, target, source)
+
+def mb_windows_shared_library(env, target, source):
+    env[MB_WINDOWS_CONFIGURATION_TYPE] = DYNAMIC_LIB_TYPE
+    return _windows_binary(env, target, source)
+
+def mb_windows_static_library(env, target, source):
+    env[MB_WINDOWS_CONFIGURATION_TYPE] = STATIC_LIB_TYPE
+    return _windows_binary(env, target, source)
+
 
 # Set up command line args used by every scons script
 def common_arguments(env):
@@ -588,9 +688,6 @@ def mb_windows_is_64_bit(env):
 def mb_windows_is_32_bit(env):
     return 'Win32' == env.MBWindowsBitness()
 
-def hide_console(env):
-    return env.MBGetOption('hide_console') and env[MB_WINDOWS_IS_WINDOWED_APPLICATION]
-
 def add_common_defines(env):
     env.Append(CPPDEFINES = ['_CRT_SECURE_NO_WARNINGS'])
 
@@ -598,13 +695,13 @@ def generate(env):
     env.Tool('common')
     env.Tool('log')
     env.Tool('rc')
+    env.Tool('textfile')
 
     if env.MBIsWindows():
       common_arguments(env)
 
     # make sure that some necessary env variables exist
     env.SetDefault(**{
-        MB_WINDOWS_RESOURCES : [],
         MB_WINDOWS_STANDARD_CONFIG_DEFINES : [],
         MB_WINDOWS_PLATFORM_BITNESS : DEFAULT_PLATFORM_BITNESS,
         MB_WINDOWS_USE_SDL_CHECK : DEFAULT_USE_SDL_CHECK,
@@ -623,7 +720,6 @@ def generate(env):
     env.AddMethod(mb_set_windows_project_name, 'MBSetWindowsProjectName')
     env.AddMethod(mb_windows_add_standard_configuration_preprocessor_define,
         'MBWindowsAddStandardConfigurationPreprocessorDefine')
-    env.AddMethod(mb_windows_add_resource, 'MBWindowsAddResource')
     env.AddMethod(mb_windows_add_api_import, 'MBWindowsAddAPIImport')
     env.AddMethod(mb_windows_set_api_export, 'MBWindowsSetAPIExport')
     env.AddMethod(mb_windows_set_default_api_export, 'MBWindowsSetDefaultAPIExport')
@@ -632,32 +728,21 @@ def generate(env):
     env.AddMethod(mb_set_windows_is_windowed_application, 'MBSetWindowsIsWindowedApplication')
     env.AddMethod(mb_windows_disable_warning, 'MBWindowsDisableWarning')
 
-    import SCons.Tool
-    env.Append(
-        BUILDERS = {
-            'MBAppVcxproj': env.Builder(
-                action = mb_app_vcxproj,
-                emitter = mb_gen_vcxproj_emitter,
-                source_scanner = SCons.Tool.SourceFileScanner)})
-    env.Append(
-        BUILDERS = {
-            'MBDLLVcxproj': env.Builder(
-                action = mb_dll_vcxproj,
-                emitter = mb_gen_vcxproj_emitter,
-                source_scanner = SCons.Tool.SourceFileScanner)})
-    env.Append(
-        BUILDERS = {
-            'MBLibVcxproj': env.Builder(
-                action = mb_lib_vcxproj,
-                emitter = mb_gen_vcxproj_emitter,
-                source_scanner = SCons.Tool.SourceFileScanner)})
 
-    env.AddMethod(mb_run_msbuild, 'MBRunMSBuild')
-    env.AddMethod(mb_build_vcxproj, 'MBBuildVcxproj')
+    _gen_vcxproj_builder = SCons.Builder.Builder(
+        action=SCons.Action.Action(
+            _gen_vcxproj_action,
+            "Creating vcxproj: '$TARGET'"),
+        emitter=_gen_vcxproj_emitter,
+        source_scanner=SCons.Tool.SourceFileScanner)
+
+    env.Append(BUILDERS={'MBGenVcxproj': _gen_vcxproj_builder})
+    env.AddMethod(_run_msbuild_method, 'MBRunMSBuild')
 
     env.AddMethod(mb_windows_program, 'MBWindowsProgram')
     env.AddMethod(mb_windows_shared_library, 'MBWindowsSharedLibrary')
     env.AddMethod(mb_windows_static_library, 'MBWindowsStaticLibrary')
+
 
     env.MBWindowsDisableWarning(
         '4251',
