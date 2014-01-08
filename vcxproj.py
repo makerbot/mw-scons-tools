@@ -368,8 +368,12 @@ def _get_env_substitutions(env):
         values = SCons.Util.flatten(values)
         return env.subst(values)
 
+    # We do this processing to convert the defines from dicts, tuples,
+    # or strings into just strings.  We do it here, and assign back to
+    # the env because _substituted_var would convert dicts & tuples to
+    # strings on its own in the wrong way.
+    env['CPPDEFINES'] = SCons.Defaults.processDefines(env['CPPDEFINES'])
     cppdefines = _substituted_var('CPPDEFINES')
-    cppdefines = SCons.Defaults.processDefines(cppdefines)
     cpppath = _substituted_var('CPPPATH')
     libs = _substituted_var('LIBS')
     libs = _remove_dlls(env, libs)
