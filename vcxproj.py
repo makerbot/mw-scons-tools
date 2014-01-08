@@ -613,7 +613,7 @@ def _windows_binary(env, target, source):
         original_filename = target,
         product_name = target)
 
-    source += [version_rc]
+    source = [source, version_rc]
 
     vcxproj = env.MBGenVcxproj(target, source)
 
