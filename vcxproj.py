@@ -393,7 +393,7 @@ def _get_env_substitutions(env):
     # debug_path is a special case because of how the environment is specified
     debug_path  = _format_list('', libpath, ';')
     api_imports = _format_list(
-        indent_4,
+        indent_3,
         api_imports,
         '=$(importSiblings);\n')
     disabled_warnings = _format_list(
