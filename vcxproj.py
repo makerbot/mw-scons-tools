@@ -248,8 +248,10 @@ def _configuration_groups(env, project_name, debug, configuration_type):
     return result
 
 # Adapted from http://www.scons.org/wiki/FindTargetSources
-def _get_sources(target, ignore={}):
+def _get_sources(target, ignore=None):
     """Takes a SCons target and finds all sources it depends on"""
+    if ignore is None:
+        ignore = {}
     sources = []
     for item in target:
         if SCons.Util.is_List(item):
