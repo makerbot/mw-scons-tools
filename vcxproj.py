@@ -365,9 +365,14 @@ def _get_env_substitutions(env):
 
     cppdefines = SCons.Defaults.processDefines(env['CPPDEFINES'])
     cpppath = env['CPPPATH']
-    libs = _remove_dlls(env, env['LIBS'])
+    cpppath = env.subst(cpppath)
+    libs = env['LIBS']
+    libs = env.subst(libs)
+    libs = _remove_dlls(env, libs)
     libpath = env['LIBPATH']
+    libpath = env.subst(libpath)
     ccflags = env['CCFLAGS']
+    ccflags = env.subst(ccflags)
     ignored_libs = env[MB_WINDOWS_IGNORED_LIBS]
     standard_config_defines = env[MB_WINDOWS_STANDARD_CONFIG_DEFINES]
     api_imports = env[MB_WINDOWS_API_IMPORTS]
