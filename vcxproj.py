@@ -366,7 +366,7 @@ def _get_env_substitutions(env):
     def _substituted_var(var):
         return env.subst(env[var])
 
-    cppdefines = _substituted_var(env['CPPDEFINES'])
+    cppdefines = _substituted_var('CPPDEFINES')
     cppdefines = SCons.Defaults.processDefines(cppdefines)
     cpppath = _substituted_var('CPPPATH')
     libs = _substituted_var('LIBS')
