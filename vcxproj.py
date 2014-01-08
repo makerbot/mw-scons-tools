@@ -361,7 +361,7 @@ def _get_env_substitutions(env):
         env.MBGetOption('hide_console') and
         env[MB_WINDOWS_IS_WINDOWED_APPLICATION])
 
-    cppdefines = env['CPPDEFINES']
+    cppdefines = SCons.Defaults.processDefines(env['CPPDEFINES'])
     cpppath = env['CPPPATH']
     libs = _remove_dlls(env, env['LIBS'])
     libpath = env['LIBPATH']
