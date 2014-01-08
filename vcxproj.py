@@ -363,16 +363,16 @@ def _get_env_substitutions(env):
         env.MBGetOption('hide_console') and
         env[MB_WINDOWS_IS_WINDOWED_APPLICATION])
 
-    cppdefines = SCons.Defaults.processDefines(env['CPPDEFINES'])
-    cpppath = env['CPPPATH']
-    cpppath = env.subst(cpppath)
-    libs = env['LIBS']
-    libs = env.subst(libs)
+    def _substituted_var(var):
+        return env.subst(env[var])
+
+    cppdefines = _substituted_var(env['CPPDEFINES'])
+    cppdefines = SCons.Defaults.processDefines(cppdefines)
+    cpppath = _substituted_var('CPPPATH')
+    libs = _substituted_var('LIBS')
     libs = _remove_dlls(env, libs)
-    libpath = env['LIBPATH']
-    libpath = env.subst(libpath)
-    ccflags = env['CCFLAGS']
-    ccflags = env.subst(ccflags)
+    libpath = _substituted_var('LIBPATH')
+    ccflags = _substituted_var('CCFLAGS')
     ignored_libs = env[MB_WINDOWS_IGNORED_LIBS]
     standard_config_defines = env[MB_WINDOWS_STANDARD_CONFIG_DEFINES]
     api_imports = env[MB_WINDOWS_API_IMPORTS]
