@@ -352,9 +352,6 @@ def _get_env_substitutions(env):
     substitution dict for the vcxproj generation.
 
     """
-    #
-    # also, any strings that affect formatting and the project_confs/conf_groups
-    # basically, all inputs that alter what actually gets built
     configuration_type = env[MB_WINDOWS_CONFIGURATION_TYPE]
     debug = env.MBDebugBuild()
     bitness = env.MBWindowsBitness()
