@@ -516,7 +516,7 @@ def _fill_vcxproj_template(target_file, substitutions):
 def _gen_vcxproj_emitter(env, target, source):
     """SCons emitter for the vcxproj builder
 
-    This emitter also messes with the env, which I think emitters are not
+    This emitter messes with the env, which I think emitters are not
     supposed to do, but this seems cleaner than any other means of setting up
     the dependency on the environment variables.  The other options that I
     considered:
@@ -531,12 +531,6 @@ def _gen_vcxproj_emitter(env, target, source):
         Seems unnecessarily computationally intensive.
 
     """
-    vcxproj = str(target[0])
-    vcxproj += ('_32' if env.MBWindowsIs32Bit() else '_64')
-    vcxproj += ('d' if env.MBDebugBuild() else '')
-    vcxproj += '.vcxproj'
-    target = [env.File(vcxproj)]
-
     # Get the environment-based substitutions
     substitutions = _get_env_substitutions(env)
     env['ENV_SUBSTITUTIONS'] = substitutions
@@ -607,6 +601,11 @@ def _get_windows_binary_target(env):
 
     return target
 
+def _mangle_binary_target(env, target):
+    target += ('_32' if env.MBWindowsIs32Bit() else '_64')
+    target += ('d' if env.MBDebugBuild() else '')
+    return target
+
 def _windows_binary(env, target, source):
     """Sets up Builders & dependencies on windows for compiling a binary
 
@@ -617,14 +616,16 @@ def _windows_binary(env, target, source):
     """
     env.MBSetWindowsProjectName(target)
 
+    target = _mangle_binary_target(env, target)
+
     # TODO(ted): we can probably make this only regenerate if the version changes
     # TODO(ted): this path is kind of a hack, will probably cause trouble when something changes
     version_rc = env.MBGenerateVersionResource(
-        target + '_version.rc',
-        file_description = 'MakerBot Software',
-        internal_name = target,
-        original_filename = target,
-        product_name = target)
+        target,
+        file_description='MakerBot Software',
+        internal_name=target,
+        original_filename=target,
+        product_name=target)
 
     source = [source, version_rc]
 
@@ -753,7 +754,8 @@ def generate(env):
             _gen_vcxproj_action,
             "Creating vcxproj: '$TARGET'"),
         emitter=_gen_vcxproj_emitter,
-        source_scanner=SCons.Tool.SourceFileScanner)
+        source_scanner=SCons.Tool.SourceFileScanner,
+        suffix='.vcxproj')
 
     env.Append(BUILDERS={'MBGenVcxproj': _gen_vcxproj_builder})
     env.AddMethod(_run_msbuild_method, 'MBRunMSBuild')
