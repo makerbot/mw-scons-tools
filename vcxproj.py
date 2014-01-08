@@ -363,8 +363,13 @@ def _get_env_substitutions(env):
         env.MBGetOption('hide_console') and
         env[MB_WINDOWS_IS_WINDOWED_APPLICATION])
 
+    # SCons normally does variable replacement in all of its stuff
+    # we have to do it manually
     def _substituted_var(var):
-        return env.subst(env[var])
+        values = env[var]
+        # In case we get recursive lists
+        values = SCons.Util.flatten(values)
+        return env.subst(values)
 
     cppdefines = _substituted_var('CPPDEFINES')
     cppdefines = SCons.Defaults.processDefines(cppdefines)
