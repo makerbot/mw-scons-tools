@@ -30,8 +30,8 @@
     <!-- Some properties based on the Configuration -->
     <MBIsDebug>#{REPLACEME:mb_is_debug}</MBIsDebug>
     <MBIsRelease>#{REPLACEME:mb_is_release}</MBIsRelease>
-    <MBPreprocessorDebugDefs Condition="'$(MBIsDebug)' == 'true'">_DEBUG</MBPreprocessorDebugDefs>
-    <MBPreprocessorDebugDefs Condition="'$(MBIsRelease)' == 'true'">NDEBUG</MBPreprocessorDebugDefs>
+    <MBPreprocessorDebugDefs Condition="$(MBIsDebug)">_DEBUG</MBPreprocessorDebugDefs>
+    <MBPreprocessorDebugDefs Condition="$(MBIsRelease)">NDEBUG</MBPreprocessorDebugDefs>
     <apiDefine Condition="'$(ConfigurationType)' == 'DynamicLibrary'">#{REPLACEME:api_export}=__declspec(dllexport)</apiDefine>
     <apiDefine Condition="'$(ConfigurationType)' != 'DynamicLibrary'">#{REPLACEME:api_export}=</apiDefine>
     <!-- We use dynamic linkage against the C++ runtime by default -->
