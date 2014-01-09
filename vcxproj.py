@@ -557,7 +557,7 @@ def _gen_vcxproj_action(target, source, env):
     # Success
     return 0
 
-def _run_msbuild_method(env, target, source):
+def _run_msbuild_method(env, target, source, additional_properties=None):
     """A SCons Method function which runs msbuild on a target.
 
     If any vcxproj properties are passed via the command line,
@@ -565,13 +565,15 @@ def _run_msbuild_method(env, target, source):
 
     """
     properties = env.MBVcxprojProperties()
+    if additional_properties is not None:
+        properties.update(additional_properties)
 
     command = [
         'msbuild',
         '/p:Configuration=' + _configuration_string(env.MBDebugBuild()),
         '/p:Platform=' + env.MBWindowsBitness()
     ]
-    command += ['/p:{}={}'.format(key, value) for key, value in properties]
+    command += ['/p:{}={}'.format(key, properties[key]) for key in properties]
 
     command += ['$SOURCE']
 
