@@ -42,9 +42,9 @@ CURRENT_FILE = os.path.abspath(__file__)
 if CURRENT_FILE.endswith('.pyc'):
       CURRENT_FILE = CURRENT_FILE[:-1]
 
-TEMPLATE_DIR = os.path.join(
-    os.path.dirname(CURRENT_FILE),
-    'templates')
+TEMPLATE_DIR = os.path.join(os.path.dirname(CURRENT_FILE), 'templates')
+
+VCXPROJ_TEMPLATE = os.path.join(TEMPLATE_DIR, 'vcxproj.xml')
 
 def mb_add_windows_devel_lib_path(env, path, platform = None):
     ''' Adds dependecies on other projects' output '''
@@ -488,10 +488,8 @@ def _get_source_substitutions(target):
 
 def _fill_vcxproj_template(target_file, substitutions):
     """Load the vcxproj template, fill in the substitutions, and write it out"""
-    template_file = os.path.join(TEMPLATE_DIR, 'vcxproj.xml')
-
     # load the template
-    with open(template_file, "r") as source:
+    with open(VCXPROJ_TEMPLATE, "r") as source:
         source_contents = source.read()
 
     target_contents = _do_substitutions(source_contents, substitutions)
@@ -536,6 +534,10 @@ def _gen_vcxproj_emitter(env, target, source):
     env['ENV_SUBSTITUTIONS'] = substitutions
     substitution_dependency = SCons.Node.Python.Value(substitutions)
     env.Depends(target, substitution_dependency)
+
+    # The other templates we use contribute to the substitutions,
+    # but this needs to be explicit.
+    env.Depends(target, env.File(VCXPROJ_TEMPLATE))
 
     return target, source
 
