@@ -571,7 +571,7 @@ def _run_msbuild_method(env, target, source, additional_properties=None):
         '/p:Configuration=' + _configuration_string(env.MBDebugBuild()),
         '/p:Platform=' + env.MBWindowsBitness()
     ]
-    command += ['/p:{}={}'.format(key, value) for key, value in properties]
+    command += ['/p:{}={}'.format(key, properties[key]) for key in properties]
 
     command += ['$SOURCE']
 
