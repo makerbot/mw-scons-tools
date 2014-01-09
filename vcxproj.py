@@ -564,7 +564,7 @@ def _run_msbuild_method(env, target, source, additional_properties=None):
     """
     properties = env.MBVcxprojProperties()
     if additional_properties is not None:
-        properties += additional_properties
+        properties.update(additional_properties)
 
     command = [
         'msbuild',
