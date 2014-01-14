@@ -43,7 +43,6 @@ def bundleEmitter(target, source, env):
 	return target, source
 
 def generate(env) :
-	print "Loading Bundle tool"
 	Builder = SCons.Builder.Builder
 	Action = SCons.Action.Action
 	bundleBuilder = Builder(
