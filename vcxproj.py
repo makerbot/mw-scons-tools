@@ -236,7 +236,7 @@ def _configuration_groups(env, project_name, debug, configuration_type):
         target_name = _expand_project_name(project_name, STATIC_LIB_TYPE, debug)
         subst_dict = {
             'configuration': configuration + DRIVER_SUFFIX,
-            'configuration_type': configuration_type['project_string'],
+            'configuration_type': STATIC_LIB_TYPE['project_string'],
             'debug': _bool_to_string(debug),
             'target_name': target_name + DRIVER_SUFFIX,
             'is_driver': _bool_to_string(True)
