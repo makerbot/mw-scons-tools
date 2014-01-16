@@ -84,6 +84,7 @@ $(LocalDebuggerEnvironment)
 #{REPLACEME:disable_specific_warnings}
         %(DisableSpecificWarnings)
       </DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
