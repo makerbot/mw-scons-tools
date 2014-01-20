@@ -532,6 +532,7 @@ def mb_depends_on_mbcamera(env):
 
 def mb_depends_on_thing(env):
     define_library_dependency(env, 'thing', '#/../libthing-surprise')
+    env.MBDependsOnOpenMesh()
 
 def mb_depends_on_conveyor(env):
     define_library_dependency(env, 'conveyor', '#/../conveyor')
