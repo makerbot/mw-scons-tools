@@ -96,7 +96,19 @@ class DoxygenBinary:
         """Run Doxygen on specificed configuration file"""
         subprocess.call(['doxygen', config_path])
 
+# Set up command line args used by every scons script
+def common_arguments(env):
+    env.MBAddOption(
+        '--doxygen',
+        dest='doxygen',
+        action='store_true',
+        default=False,
+        help='Produces doxygen stuff.')
+
 def generate(env):
+    env.Tool('options')
+    common_arguments(env)
+
     expected_output = os.path.join('html', 'index.html')
 
     def DoxygenBuilderAction(env, target, source):
@@ -138,13 +150,15 @@ def generate(env):
 
     def BuildDoxygen(env, configuration, *sources):
         """Run Doxygen using configuration on specified sources"""
-        all_source = (configuration,) + sources
-        env.DoxygenBuilder(
-            'doxygen/' + expected_output,
-            all_source)
-        # Ensure that documentation is built if only the
-        # "install" target is specified
-        env.Append(MB_INSTALL_TARGETS = env.File('doxygen/html/index.html'))
+        if env.MBGetOption('doxygen'):
+            all_source = (configuration,) + sources
+            env.DoxygenBuilder(
+                'doxygen/' + expected_output,
+                all_source)
+            # Ensure that documentation is built if only the
+            # "install" target is specified
+            # TODO: that ^ is not what this v does.
+            env.Append(MB_INSTALL_TARGETS = env.File('doxygen/html/index.html'))
 
     env.AddMethod(BuildDoxygen, 'BuildDoxygen')
 
