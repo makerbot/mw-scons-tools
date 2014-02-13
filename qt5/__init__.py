@@ -911,6 +911,8 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
     debugSuffix = ''
     if sys.platform in ["linux2"] and not crosscompiling :
         if debug : debugSuffix = '_debug'
+        if 'QtOpenGL' in modules:
+            self.AppendUnique(LIBS=['GL'])
         for module in modules :
             if module not in pclessModules : continue
             self.AppendUnique(LIBS=[module.replace('Qt','Qt5')+debugSuffix])
