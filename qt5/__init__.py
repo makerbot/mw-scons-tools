@@ -929,8 +929,7 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
         self.AppendUnique(RPATH=[os.path.join("$QT5DIR","lib")])
         self.ParseConfig('pkg-config %s --libs --cflags'% ' '.join(pcmodules))
         self["QT5_MOCCPPPATH"] = self["CPPPATH"]
-        return
-    if sys.platform == "win32" or crosscompiling :
+    elif sys.platform == "win32" or crosscompiling :
         if crosscompiling:
             transformedQtdir = transformToWinePath(self['QT5DIR'])
             self['QT5_MOC'] = "QT5DIR=%s %s"%( transformedQtdir, self['QT5_MOC'])
@@ -956,9 +955,7 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
         else :
             self["QT5_MOCCPPPATH"] = self["CPPPATH"]
         self.AppendUnique(LIBPATH=[os.path.join('$QT5DIR','lib')])
-        return
-
-    if sys.platform=="darwin":
+    elif sys.platform=="darwin":
         # Implementation notes:
         #
         # When specifying frameworks explicitly with "-framework", the
