@@ -972,6 +972,9 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
         for m in modules:
             self.AppendUnique(CCFLAGS=['-I$QT5DIR/include/' + m])
             self.AppendUnique(FRAMEWORKS=m)
+
+        if 'QtOpenGL' in modules:
+            self.AppendUnique(FRAMEWORKS=['OpenGL'])
         
 def exists(env):
     return _detect(env)
