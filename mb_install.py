@@ -520,9 +520,7 @@ def define_library_dependency(env, libname, relative_repository_dir,
             define_api_visibility_public(env, libname)
 
 def mb_depends_on_mb_core_utils(env):
-    # MBCoreUtils is currently header-only so it doesn't use
-    # define_library_dependency'
-    env.MBAddDevelIncludePath('#/../MBCoreUtils/include')
+    define_library_dependency(env, 'MBCoreUtils', '#/../MBCoreUtils')
 
 def mb_depends_on_mbqtutils(env):
     define_library_dependency(env, 'mbqtutils', '#/../libmbqtutils')
