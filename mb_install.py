@@ -482,7 +482,8 @@ def windows_debug_tweak(env, lib):
     return lib
 
 def define_library_dependency(env, libname, relative_repository_dir,
-                              include_subdir='include'):
+                              include_subdir='include',
+                              header_only=False):
     """Set up internal library dependencies.
 
     libname: base name of the library, e.g. 'foo' for libfoo.so or
@@ -493,6 +494,9 @@ def define_library_dependency(env, libname, relative_repository_dir,
 
     include_subdir: path of the header files relative to the
     relative_repository_dir argument, defaults to 'include'
+
+    header_only: if true, only include path is set, not library or
+    library path.
 
     """
     if env.MBIsWindows():
@@ -507,13 +511,13 @@ def define_library_dependency(env, libname, relative_repository_dir,
 
     env.MBAddDevelIncludePath(include_path)
 
-    env.MBAddDevelLibPath(lib_path)
-    env.MBAddLib(windows_debug_tweak(env, libname))
-
-    if env.MBIsWindows():
-        env.MBWindowsAddAPIImport(api_define(env, libname))
-    else:
-        define_api_visibility_public(env, libname)
+    if not header_only:
+        env.MBAddDevelLibPath(lib_path)
+        env.MBAddLib(windows_debug_tweak(env, libname))
+        if env.MBIsWindows():
+            env.MBWindowsAddAPIImport(api_define(env, libname))
+        else:
+            define_api_visibility_public(env, libname)
 
 def mb_depends_on_mb_core_utils(env):
     # MBCoreUtils is currently header-only so it doesn't use
