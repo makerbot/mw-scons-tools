@@ -520,7 +520,8 @@ def define_library_dependency(env, libname, relative_repository_dir,
             define_api_visibility_public(env, libname)
 
 def mb_depends_on_mb_core_utils(env):
-    define_library_dependency(env, 'MBCoreUtils', '#/../MBCoreUtils')
+    define_library_dependency(env, 'MBCoreUtils', '#/../MBCoreUtils',
+                              header_only=True)
 
 def mb_depends_on_mbqtutils(env):
     define_library_dependency(env, 'mbqtutils', '#/../libmbqtutils')
