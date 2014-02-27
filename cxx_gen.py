@@ -100,8 +100,11 @@ def append_trailing_commas(lines):
         result.append(line)
     return result
 
-def gen_enum(name, members):
-    head = 'enum ' + name
+def gen_enum(name, members, cxx11=False):
+    head = 'enum '
+    if cxx11:
+        head += 'class '
+    head += name
     body = []
     for m in members:
         # Enum member
