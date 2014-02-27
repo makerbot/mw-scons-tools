@@ -126,3 +126,44 @@ def gen_header(guard, body):
              ''] +
             body +
             ['', '#endif  // ' + guard])
+
+def camel_case_from_underscored(underscored):
+    result = ''
+    upcase = True
+    for c in underscored:
+        if c == '_':
+            upcase = True
+        elif upcase:
+            upcase = False
+            result += c.upper()
+        else:
+            result += c
+    return result
+            
+            
+def gen_if(condition_block_pairs, else_block=None):
+    """Generate a C++ if/else if/else chain
+
+    condition_block_pairs is a sequence of pairs, where the first part
+    of the pair is the conditional and the second part is the block
+    associated with that condition.
+
+    else_block is an optional code block that will cause an else to be
+    added at the end of the chain.
+
+    An exception is thrown if condition_block_pairs is an empty
+    sequence.
+
+    """
+    code = []
+    for pair in condition_block_pairs:
+        condition = pair[0]
+        block = pair[1]
+        prefix = '' if len(code) == 0 else 'else '
+        control = ['{}if ({})'.format(prefix, condition)]
+        code += gen_block(control, block)
+    if not code:
+        raise Exception('condition_block_pairs is empty')
+    if else_block:
+        code += gen_block(['else'], else_block)
+    return code
