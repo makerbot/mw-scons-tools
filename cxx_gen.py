@@ -42,6 +42,10 @@ def gen_applied_arg_list(code, elems):
     code += args[1:]
     return code
 
+# DEPRECATED
+#
+# TODO(nicholasbishop): fix the users of this method and then remove
+# it
 def gen_function(return_type, name, args,
                  static=False, body=None, class_name=None):
     qual = 'static ' if static and not body else ''
@@ -51,6 +55,22 @@ def gen_function(return_type, name, args,
         return_type += ' '
     code = [qual + return_type + name]
     code = gen_applied_arg_list(code, args)
+    if body:
+        code = gen_block(code, body)
+    else:
+        code[-1] += ';'
+    return code
+
+def gen_func(return_type, name, args, body, static=False, inline=False):
+    line = ''
+    if static:
+        line += 'static '
+    if inline:
+        line += 'inline '
+    if return_type:
+        line += return_type + ' '
+    line += name
+    code = gen_applied_arg_list([line], args)
     if body:
         code = gen_block(code, body)
     else:
