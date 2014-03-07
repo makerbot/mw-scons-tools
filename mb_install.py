@@ -355,8 +355,7 @@ def set_install_paths(env):
         env['MB_FRAMEWORK_DIR'] = os.path.join(prefix, 'Library/Frameworks')
 
         if not env.MBUseDevelLibs():
-            env.Append(CCFLAGS = ['-F' + env['MB_FRAMEWORK_DIR']])
-            env.Append(LINKFLAGS = ['-F' + env['MB_FRAMEWORK_DIR']])
+            env.AppendUnique(FRAMEWORKPATH = [env['MB_FRAMEWORK_DIR']])
     else:
         env.Append(LIBPATH = [lib_dir])
         env.Append(CPPPATH = [include_dir])
