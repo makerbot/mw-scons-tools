@@ -503,7 +503,7 @@ def add_mac_framework_dependency_hack(env, libname):
         return
 
     install_prefix = env['MB_PREFIX']
-    hack_path = os.path.join(install_prefix, 'header_hack')
+    hack_path = os.path.join(install_prefix, os.pardir, 'header_hack')
 
     # Create the top-level hack path if it doesn't exist
     if not os.path.exists(hack_path):
