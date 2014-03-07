@@ -519,7 +519,8 @@ def add_mac_framework_dependency_hack(env, libname):
     # Create symlink, deleting it first if it already exists (in case
     # it was pointed at the wrong place)
     hack_header_path = os.path.join(hack_path, libname)
-    shutil.rmtree(hack_header_path, ignore_errors=True)
+    if os.path.exists(hack_header_path):
+        os.unlink(hack_header_path)
     print('Symlink {} -> {}'.format(framework_header_path, hack_header_path))
     os.symlink(framework_header_path, hack_header_path)
 
