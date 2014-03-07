@@ -296,11 +296,11 @@ def mb_add_devel_lib_path(env, path):
         if env.MBIsWindows():
             env.MBAddWindowsDevelLibPath(path)
         else:
-            env.Prepend(LIBPATH = [str(env.Dir(path))])
+            env.PrependUnique(LIBPATH = [str(env.Dir(path))])
 
 def mb_add_devel_include_path(env, path):
     if env.MBUseDevelLibs():
-        env.Prepend(CPPPATH = [str(env.Dir(path))])
+        env.PrependUnique(CPPPATH = [str(env.Dir(path))])
 
 def set_default_prefix(env):
     #setup the default install root
