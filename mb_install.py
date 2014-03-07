@@ -481,51 +481,6 @@ def windows_debug_tweak(env, lib):
         lib += 'd'
     return lib
 
-def add_mac_framework_dependency_hack(env, libname):
-    """Add explicit include paths to framework headers.
-
-    This is a nasty hack to work around this SCons bug:
-    scons.tigris.org/issues/show_bug.cgi?id=2123
-
-    The bug is that SCons does not correctly scan dependencies when
-    framework paths are used (e.g. when Prototype includes a conveyor
-    header, that dependency is not found by SCons when doing a release
-    build.)
-
-    Unfortunately we can't just add -I paths that point into the
-    frameworks because framework don't have the right file system
-    layout. We create symlinks in another directory to work around
-    this.
-
-    """
-    # Ignore non-Mac builds and non-release builds
-    if not env.MBIsMac() or env.MBUseDevelLibs():
-        return
-
-    install_prefix = env['MB_PREFIX']
-    hack_path = os.path.join(install_prefix, os.pardir, 'header_hack')
-
-    # Create the top-level hack path if it doesn't exist
-    if not os.path.exists(hack_path):
-        os.mkdir(hack_path)
-
-    # Path to the real files
-    framework_header_path = os.path.join(
-        install_prefix,
-        'Library/Frameworks',
-        libname + '.framework',
-        'Headers')
-
-    # Create symlink, deleting it first if it already exists (in case
-    # it was pointed at the wrong place)
-    hack_header_path = os.path.join(hack_path, libname)
-    if os.path.exists(hack_header_path):
-        os.unlink(hack_header_path)
-    print('Symlink {} -> {}'.format(framework_header_path, hack_header_path))
-    os.symlink(framework_header_path, hack_header_path)
-
-    env.MBAddIncludePaths([hack_path])
-
 def define_library_dependency(env, libname, relative_repository_dir,
                               include_subdir='include',
                               header_only=False):
@@ -554,7 +509,16 @@ def define_library_dependency(env, libname, relative_repository_dir,
         lib_path = obj_dir
         include_path = os.path.join(obj_dir, include_subdir)
 
-    add_mac_framework_dependency_hack(env, libname)
+    if env.MBIsMac():
+        # This is a hack to work around this SCons bug:
+        #
+        # scons.tigris.org/issues/show_bug.cgi?id=2123
+        #
+        # Basically SCons doesn't find header dependencies correctly
+        # through framework directories, so add the sibling includes
+        # instead. Without this, SCons may fail to rebuild a file
+        # because it doesn't know that an included file changed.
+        env.MBAddIncludePaths(include_path)
 
     env.MBAddDevelIncludePath(include_path)
 
