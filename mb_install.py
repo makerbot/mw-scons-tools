@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import SCons
 
 '''
@@ -480,7 +481,7 @@ def windows_debug_tweak(env, lib):
         lib += 'd'
     return lib
 
-def add_mac_framework_dependency_hack(env, libname, include_subdir):
+def add_mac_framework_dependency_hack(env, libname):
     """Add explicit include paths to framework headers.
 
     This is a nasty hack to work around this SCons bug:
@@ -502,21 +503,11 @@ def add_mac_framework_dependency_hack(env, libname, include_subdir):
         return
 
     install_prefix = env['MB_PREFIX']
-
-    # Create the top-level hack directory if necessary
     hack_path = os.path.join(install_prefix, 'header_hack')
-    try:
-        os.mkdir(header_hack)
-    except:
-        pass
 
-    # [Re]create the hack header path
-    hack_header_path = os.path.join(hack_path, libname)
-    try:
-        os.unlink(hack_header_path)
-    except:
-        pass
-    os.mkdir(hack_header_path)
+    # Create the top-level hack path if it doesn't exist
+    if not os.path.exists(hack_path):
+        os.mkdir(hack_path)
 
     # Path to the real files
     framework_header_path = os.path.join(
@@ -525,12 +516,14 @@ def add_mac_framework_dependency_hack(env, libname, include_subdir):
         libname + '.framework',
         'Headers')
 
-    # Create symlink from the framework into the hack directory
-    os.symlink(
-        framework_header_path,
-        os.path.join(hack_header_path, include_subdir))
+    # Create symlink, deleting it first if it already exists (in case
+    # it was pointed at the wrong place)
+    hack_header_path = os.path.join(hack_path, libname)
+    shutil.rmtree(hack_header_path, ignore_errors=True)
+    print('Symlink {} -> {}'.format(framework_header_path, hack_header_path))
+    os.symlink(framework_header_path, hack_header_path)
 
-    env.MBAddIncludePaths([hack_header_path])
+    env.MBAddIncludePaths([hack_path])
 
 def define_library_dependency(env, libname, relative_repository_dir,
                               include_subdir='include',
@@ -560,7 +553,7 @@ def define_library_dependency(env, libname, relative_repository_dir,
         lib_path = obj_dir
         include_path = os.path.join(obj_dir, include_subdir)
 
-    add_mac_framework_dependency_hack(env, libname, include_subdir)
+    add_mac_framework_dependency_hack(env, libname)
 
     env.MBAddDevelIncludePath(include_path)
 
