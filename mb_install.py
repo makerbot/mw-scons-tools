@@ -480,6 +480,58 @@ def windows_debug_tweak(env, lib):
         lib += 'd'
     return lib
 
+def add_mac_framework_dependency_hack(env, libname, include_subdir):
+    """Add explicit include paths to framework headers.
+
+    This is a nasty hack to work around this SCons bug:
+    scons.tigris.org/issues/show_bug.cgi?id=2123
+
+    The bug is that SCons does not correctly scan dependencies when
+    framework paths are used (e.g. when Prototype includes a conveyor
+    header, that dependency is not found by SCons when doing a release
+    build.)
+
+    Unfortunately we can't just add -I paths that point into the
+    frameworks because framework don't have the right file system
+    layout. We create symlinks in another directory to work around
+    this.
+
+    """
+    # Ignore non-Mac builds and non-release builds
+    if not env.MBIsMac() or env.MBUseDevelLibs():
+        return
+
+    install_prefix = env['MB_PREFIX']
+
+    # Create the top-level hack directory if necessary
+    hack_path = os.path.join(install_prefix, 'header_hack')
+    try:
+        os.mkdir(header_hack)
+    except:
+        pass
+
+    # [Re]create the hack header path
+    hack_header_path = os.path.join(hack_path, libname)
+    try:
+        os.unlink(hack_header_path)
+    except:
+        pass
+    os.mkdir(hack_header_path)
+
+    # Path to the real files
+    framework_header_path = os.path.join(
+        install_prefix,
+        'Library/Frameworks',
+        libname + '.framework',
+        'Headers')
+
+    # Create symlink from the framework into the hack directory
+    os.symlink(
+        framework_header_path,
+        os.path.join(hack_header_path, include_subdir))
+
+    env.MBAddIncludePaths([hack_header_path])
+
 def define_library_dependency(env, libname, relative_repository_dir,
                               include_subdir='include',
                               header_only=False):
@@ -507,6 +559,8 @@ def define_library_dependency(env, libname, relative_repository_dir,
         obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
         lib_path = obj_dir
         include_path = os.path.join(obj_dir, include_subdir)
+
+    add_mac_framework_dependency_hack(env)
 
     env.MBAddDevelIncludePath(include_path)
 
