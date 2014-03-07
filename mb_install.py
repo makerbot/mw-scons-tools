@@ -560,7 +560,7 @@ def define_library_dependency(env, libname, relative_repository_dir,
         lib_path = obj_dir
         include_path = os.path.join(obj_dir, include_subdir)
 
-    add_mac_framework_dependency_hack(env)
+    add_mac_framework_dependency_hack(env, libname, include_subdir)
 
     env.MBAddDevelIncludePath(include_path)
 
