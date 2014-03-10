@@ -668,12 +668,6 @@ def generate(env):
     # turn off automoccing
     env['QT5_AUTOSCAN'] = 0
 
-    if env.MBIsWindows():
-        quoted = '\"' + env.MBVersion() + '\"'
-    else:
-        quoted = '\\\"' + env.MBVersion() + '\\\"'
-    env.Append(CPPDEFINES='MB_VERSION_STR=' + quoted)
-
     #make sure LIBS is initialized
     if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
         env['LIBS'] = []
