@@ -568,7 +568,6 @@ def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
     else:
-        define_api_nothing(env, target)
         program = env.Program(target, source, *args, **kwargs)
     env.Alias(target, program)
     return program
