@@ -566,7 +566,6 @@ def mb_depends_on_tinything(env):
 
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
-        env.MBWindowsSetDefaultAPIExport(api_define(env, target))
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
     else:
         define_api_nothing(env, target)
