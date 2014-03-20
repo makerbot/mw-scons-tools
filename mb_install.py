@@ -160,13 +160,14 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         symlink_key = symlink_key.replace('.', '_')
 
         if make_current_link and symlink_key not in env:
-            current_link = env.Command(os.path.join(framework, 'Versions',
-                                                    current_dir),
-                                       headers,
-                                       'cd ' + os.path.join(framework,
-                                                            'Versions')
-                                       + ';ln -sf ' +
-                                       env['MB_VERSION'] + ' ' + current_dir)
+            current_link = env.Command(
+                os.path.join(framework, 'Versions', current_dir),
+                headers,
+                'cd {base_dir}; ln -sf {from_dir} {to_dir}'.format(
+                    base_dir=os.path.join(framework, 'Versions'),
+                    from_dir=env['MB_VERSION'],
+                    to_dir=current_dir))
+
             targets.append(current_link)
 
         #make a relative symlink for the current headers
