@@ -163,7 +163,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
             current_link = env.Command(
                 os.path.join(framework, 'Versions', current_dir),
                 headers,
-                'cd {base_dir}; ln -sf {from_dir} {to_dir}'.format(
+                'cd {base_dir} && ln -sf {from_dir} {to_dir}'.format(
                     base_dir=os.path.join(framework, 'Versions'),
                     from_dir=env['MB_VERSION'],
                     to_dir=current_dir))
