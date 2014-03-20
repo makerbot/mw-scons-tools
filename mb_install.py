@@ -56,14 +56,14 @@ def mb_install_lib(env, source, name, dest=''):
                                                 current_dir),
                                    libinst,
                                    'cd ' + os.path.join(framework, 'Versions')
-                                   + ';ln -sf ' +
+                                   + ' && ln -sf ' +
                                    env['MB_VERSION'] + ' ' + current_dir)
         targets.append(current_link)
 
         #make a relative symlink for the current lib
         targets.append(env.Command(os.path.join(framework, name),
                                    current_link, 'cd ' + framework +
-                                   ';ln -sf ' +
+                                   ' && ln -sf ' +
                                    os.path.join('Versions', current_dir, name)
                                              + ' ' + name))
 
@@ -177,7 +177,7 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
             targets.append(env.Command(
                 target_path,
                 targets, 'cd ' + framework +
-                ';ln -sf ' + os.path.join('Versions',
+                ' && ln -sf ' + os.path.join('Versions',
                                           current_dir,
                                           'Headers')
                 + ' ' + toplink))
@@ -239,7 +239,7 @@ def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python',
     egg = env.Command(
         eggify(egg_name, version),
         source + [env.File('setup.py')],
-        python + ' -c "import setuptools; execfile(\'setup.py\')" bdist_egg',
+        python + ' -c "import setuptools && execfile(\'setup.py\')" bdist_egg',
         ENV = environment)
 
     env.Depends(egg, deps)
@@ -570,7 +570,7 @@ def mb_program(env, target, source, *args, **kwargs):
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
     else:
         define_api_nothing(env, target)
-        program = env.Program(target, source, *args, **kwargs);
+        program = env.Program(target, source, *args, **kwargs)
     env.Alias(target, program)
     return program
 
