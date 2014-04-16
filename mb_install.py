@@ -403,8 +403,8 @@ def set_compiler_flags(env):
         env.Replace(CC='clang')
         env.Replace(CXX='clang++')
         env.Append(CXXFLAGS='-arch x86_64 -arch i386 '+
-                   '-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.6 '+
-                   '-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.6mb.sdk ' +
+                   '-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.7 '+
+                   '-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk ' +
                    '-U__STRICT_ANSI__ '
                    '-I/usr/local/clang/include '+
                    '-I/usr/local/clang/include/c++/v1 ' +
@@ -412,10 +412,10 @@ def set_compiler_flags(env):
                    # used a lot in Qt header files
                    '-Wno-nested-anon-types')
         env.Append(CCFLAGS='-arch x86_64 -arch i386 '+
-                   '-stdlib=libc++ -mmacosx-version-min=10.6 '+
+                   '-stdlib=libc++ -mmacosx-version-min=10.7 '+
                    '-I/usr/local/clang/include')
         env.Append(LINKFLAGS='-arch x86_64 -arch i386 -stdlib=libc++ '+
-                   '-mmacosx-version-min=10.6 -L/usr/local/clang/lib')
+                   '-mmacosx-version-min=10.7 -L/usr/local/clang/lib')
         env.Append(FRAMEWORKS='CoreFoundation')
     elif env.MBIsLinux():
         env.Append(CXXFLAGS='-std=c++11 ' +
