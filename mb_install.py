@@ -402,20 +402,15 @@ def set_compiler_flags(env):
     if env.MBIsMac():
         env.Replace(CC='clang')
         env.Replace(CXX='clang++')
-        env.Append(CXXFLAGS='-arch x86_64 -arch i386 '+
-                   '-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.7 '+
-                   '-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk ' +
-                   '-U__STRICT_ANSI__ '
-                   '-I/usr/local/clang/include '+
-                   '-I/usr/local/clang/include/c++/v1 ' +
-                   # Disabling this warning since this extension is
-                   # used a lot in Qt header files
-                   '-Wno-nested-anon-types')
-        env.Append(CCFLAGS='-arch x86_64 -arch i386 '+
-                   '-stdlib=libc++ -mmacosx-version-min=10.7 '+
-                   '-I/usr/local/clang/include')
-        env.Append(LINKFLAGS='-arch x86_64 -arch i386 -stdlib=libc++ '+
-                   '-mmacosx-version-min=10.7 -L/usr/local/clang/lib')
+        env.Append(CXXFLAGS='-arch x86_64  -std=c++11 -stdlib=libc++ ' +
+                             '-mmacosx-version-min=10.7 ' +
+                             # Disabling this warning since this extension is
+                             # used a lot in Qt header files
+                             '-Wno-nested-anon-types')
+        env.Append(CCFLAGS='-arch x86_64 -stdlib=libc++ ' +
+                           '-mmacosx-version-min=10.7 ')
+        env.Append(LINKFLAGS='-arch x86_64 -stdlib=libc++ ' +
+                             '-mmacosx-version-min=10.7')
         env.Append(FRAMEWORKS='CoreFoundation')
     elif env.MBIsLinux():
         env.Append(CXXFLAGS='-std=c++11 ' +
