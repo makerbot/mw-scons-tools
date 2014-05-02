@@ -239,7 +239,7 @@ def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python',
     egg = env.Command(
         eggify(egg_name, version),
         source + [env.File('setup.py')],
-        python + ' -c "import setuptools && execfile(\'setup.py\')" bdist_egg',
+        python + ' -c "import setuptools; execfile(\'setup.py\')" bdist_egg',
         ENV = environment)
 
     env.Depends(egg, deps)
