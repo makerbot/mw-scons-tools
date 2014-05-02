@@ -962,22 +962,29 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
     elif sys.platform=="darwin":
         # Implementation notes:
         #
-        # When specifying frameworks explicitly with "-framework", the
-        # include path that results isn't compatible with the way our
-        # source code includes Qt files (e.g. "#include <QString>"),
-        # so we use explicit "-I" options.
+        # On Mac Qt ships as frameworks, which require some special handling.
+        #
+        # The scons FRAMEWORKS variable will be used at _link_ time, but to
+        # get the correct behavior for includes we have two options:
+        # * Use framework-style includes in all our sources (e.g.
+        #   "#include <QtCore/QString>" rather than "#include <QString>")
+        # * Point to where the headers are in the frameworks
+        #
+        # The latter is somewhat hacky, but is also a much smaller change,
+        # especially since I'm hoping to switch build systems soon, so
+        # this is "temporary" code (though I know how long our hacks last).
+        #
 
-        # Add path to all Qt frameworks
+        # Add path to Qt frameworks
         self.AppendUnique(FRAMEWORKPATH='$QT5DIR/lib')
-        self.AppendUnique(CCFLAGS=['-I$QT5DIR/include'])
 
         # Each module adds an include path and a framework link option
         for m in modules:
-            self.AppendUnique(CCFLAGS=['-I$QT5DIR/include/' + m])
+            self.AppendUnique(CCFLAGS=['-I$QT5DIR/lib/' + m + '.framework/Versions/5/Headers'])
             self.AppendUnique(FRAMEWORKS=m)
 
         if 'QtOpenGL' in modules:
             self.AppendUnique(FRAMEWORKS=['OpenGL'])
-        
+
 def exists(env):
     return _detect(env)
