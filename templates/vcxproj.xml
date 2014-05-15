@@ -69,6 +69,7 @@ $(LocalDebuggerEnvironment)
         $(MBPreprocessorDebugDefs);
         $(MBPreprocessorAPIDefs);
 #{REPLACEME:preprocessor_definitions}
+        $(standardConfigPreprocessorDefinitions);
         $(PreprocessorDefinitions);
         %(PreprocessorDefinitions)
       </PreprocessorDefinitions>
