@@ -459,6 +459,12 @@ def _get_source_substitutions(target):
     def _filter_ext(sources, extensions):
         result = []
         for source in sources:
+            # a certain boost file with a cpp extension seems to belong in
+            # the headers list. #SpecialCase
+            if source.lower().endswith('error_code.cpp'):
+                if ".h" in extensions:
+                    result.append(source)
+                continue
             for extension in extensions:
                 if source.lower().endswith(extension.lower()):
                     result.append(source)
