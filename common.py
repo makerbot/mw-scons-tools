@@ -247,18 +247,10 @@ def set_third_party_paths(env):
             MB_VTK_LIBPATH = e.get(MB_VTK_LIBPATH, []),
             MB_OPENCV_CPPPATH = e.get(MB_OPENCV_CPPPATH, []),
             MB_OPENCV_LIBPATH = e.get(MB_OPENCV_LIBPATH, []),
-            MB_BOOST_64_CPPPATH =
-                e.get(MB_BOOST_64_CPPPATH,
-                os.path.join(third_party_dir, 'Boost-1.53', 'boost-64', 'include')),
-            MB_BOOST_64_LIBPATH =
-                e.get(MB_BOOST_64_LIBPATH,
-                os.path.join(third_party_dir, 'Boost-1.53', 'boost-64', 'lib')),
-            MB_BOOST_32_CPPPATH =
-                e.get(MB_BOOST_32_CPPPATH,
-                os.path.join(third_party_dir, 'Boost-1.53', 'boost-32', 'include')),
-            MB_BOOST_32_LIBPATH =
-                e.get(MB_BOOST_32_LIBPATH,
-                os.path.join(third_party_dir, 'Boost-1.53', 'boost-32', 'lib')),
+            MB_BOOST_64_CPPPATH = e.get(MB_BOOST_64_CPPPATH, 'C:\\local\\boost_1_55_0'),
+            MB_BOOST_64_LIBPATH = e.get(MB_BOOST_64_LIBPATH, 'C:\\local\\boost_1_55_0\\lib64-msvc-11.0'),
+            MB_BOOST_32_CPPPATH = e.get(MB_BOOST_32_CPPPATH, 'C:\\local\\boost_1_55_0'),
+            MB_BOOST_32_LIBPATH = e.get(MB_BOOST_32_LIBPATH, 'C:\\local\\boost_1_55_0\\lib32-msvc-11.0'),
             MB_OPENMESH_64_CPPPATH =
                 e.get(MB_OPENMESH_64_CPPPATH,
                 os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'include')),
@@ -316,7 +308,7 @@ def mb_add_boost_libs(env, libs):
     elif env.MBIsMac():
         env.Append(LIBS=[lib + '-clang-darwin42-mt-1_55' for lib in libs])
     elif env.MBIsWindows():
-        env.Append(LIBS=[lib + '-vc110-mt-1_53' for lib in libs])
+        env.Append(LIBS=[lib + '-vc110-mt-1_55' for lib in libs])
 
 def add_openmp_option(env):
     """Add a '--disable-openmp' command-line option"""
