@@ -48,11 +48,6 @@ def mb_install_lib(env, source, name, dest=''):
         version_dir = os.path.join('Versions', env['MB_VERSION'])
         libinst = env.InstallAs(os.path.join(framework, version_dir, name),
                                 source)
-        # We've seen an occasional issue where the wrong version is used for a
-        # Jenkins build, and subsequent builds don't rebuild the framework with
-        # a different version. This should fix that.
-        # MW-2877
-        env.Depends(libinst, SCons.Node.Python.Value(env['MB_VERSION']))
         targets.append(libinst)
 
         #make relative symlinks between Current and the new version
@@ -564,12 +559,21 @@ def mb_depends_on_toolpathviz(env):
 def mb_depends_on_tinything(env):
     define_library_dependency(env, 'tinything', '#/../libtinything')
 
+def _common_binary_stuff(env, target, binary):
+    """Encapsulates stuff that we do on all binaries"""
+    env.Alias(target, binary)
+    if env.MBIsMac():
+        version = SCons.Node.Python.Value(
+            env.MBVersion() + '.' + env.MBVersionBuild())
+        env.Depends(binary, version)
+
+
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
     else:
         program = env.Program(target, source, *args, **kwargs)
-    env.Alias(target, program)
+    _common_binary_stuff(env, target, program)
     return program
 
 def set_shared_library_visibility_flags(env, target):
@@ -595,7 +599,7 @@ def mb_shared_library(env, target, source, *args, **kwargs):
         set_shared_library_visibility_flags(env, target)
         env.MBSetLibSymName(target)
         library = env.SharedLibrary(target, source, *args, **kwargs)
-    env.Alias(target, library)
+    _common_binary_stuff(env, target, library)
     return library
 
 def mb_static_library(env, target, source, *args, **kwargs):
@@ -605,7 +609,7 @@ def mb_static_library(env, target, source, *args, **kwargs):
     else:
         define_api_nothing(env, target)
         library = env.StaticLibrary(target, source, *args, **kwargs)
-    env.Alias(target, library)
+    _common_binary_stuff(env, target, library)
     return library
 
 def mb_get_moc_files(env, sources):
