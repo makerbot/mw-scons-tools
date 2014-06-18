@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 import shutil
 import SCons
@@ -671,9 +672,18 @@ def generate(env):
     # turn off automoccing
     env['QT5_AUTOSCAN'] = 0
 
-    #make sure LIBS is initialized
+    # make sure LIBS is initialized
     if 'LIBS' not in env or env['LIBS'] is None or env['LIBS'] is '':
         env['LIBS'] = []
+
+    # Eigen hack:
+    # Don't let eigen use alignment on 32 bit platforms. This allows us to
+    # avoid making some far-reaching changes in Miracle-Grue with respect to
+    # passing aligned types and storing types containing eigen types in std
+    # containers.
+    if ((env.MBIsWindows() and env.MBWindowsIs32Bit()) or
+       (platform.machine() == 'i386')):
+        env.Append(CPPDEFINES=['EIGEN_DONT_ALIGN'])
 
     # Unpleasant state tracker: in case MBInstallHeaders is called
     # multiple times on OSX, ensure that the symlink command isn't
