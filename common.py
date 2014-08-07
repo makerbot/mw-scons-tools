@@ -313,7 +313,10 @@ def mb_add_boost_libs(env, libs):
     elif env.MBIsMac():
         env.Append(LIBS=[lib + '-clang-darwin42-mt-1_55' for lib in libs])
     elif env.MBIsWindows():
-        env.Append(LIBS=[lib + '-vc110-mt-1_55' for lib in libs])
+        if env.MBDebugBuild():
+            env.Append(LIBS=[lib + '-vc110-mt-gd-1_55' for lib in libs])
+        else:
+            env.Append(LIBS=[lib + '-vc110-mt-1_55' for lib in libs])
 
 def add_openmp_option(env):
     """Add a '--disable-openmp' command-line option"""
