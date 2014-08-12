@@ -104,7 +104,7 @@ def mb_debug_build(env):
     return env.MBGetOption('debug_build')
 
 def mb_build_tests(env):
-    return env.MBGetOption('build_tests')
+    return env.MBGetOption('build_tests') or env.MBGetOption('run_tests')
 
 def mb_run_tests(env):
     return env.MBGetOption('run_tests')
