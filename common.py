@@ -307,16 +307,27 @@ def mb_depends_on_vtk(env):
     env.Append(LIBPATH = env.MBGetPath(MB_VTK_LIBPATH))
     env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
 
+def _windows_boost_format(lib, debug):
+    return lib + ('-vc110-mt-gd-1_55' if debug else '-vc110-mt-1_55')
+
 def mb_add_boost_libs(env, libs):
-    if env.MBIsLinux():
-        env.Append(LIBS=libs)
-    elif env.MBIsMac():
-        env.Append(LIBS=[lib + '-clang-darwin42-mt-1_55' for lib in libs])
+    if env.MBIsMac():
+        libs = [lib + '-clang-darwin42-mt-1_55' for lib in libs]
     elif env.MBIsWindows():
-        if env.MBDebugBuild():
-            env.Append(LIBS=[lib + '-vc110-mt-gd-1_55' for lib in libs])
+        libs = [_windows_boost_format(lib, env.MBDebugBuild()) for lib in libs]
+    env.Append(LIBS=libs)
+
+def mb_install_boost_libs(env, libs):
+    # we use the installed boost libs on linux, and
+    # use some otool magic on mac, so this is windows only
+    if env.MBIsWindows():
+        if env.MBWindowsIs32Bit():
+            libpath = env[MB_BOOST_32_LIBPATH]
         else:
-            env.Append(LIBS=[lib + '-vc110-mt-1_55' for lib in libs])
+            libpath = env[MB_BOOST_64_LIBPATH]
+        libs = [_windows_boost_format(lib, env.MBDebugBuild()) for lib in libs]
+        libs = [libpath + '/' + lib + '.dll' for lib in libs]
+        env.MBInstallResources(libs)
 
 def add_openmp_option(env):
     """Add a '--disable-openmp' command-line option"""
@@ -425,6 +436,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
     env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
     env.AddMethod(mb_add_boost_libs, 'MBAddBoostLibs')
+    env.AddMethod(mb_install_boost_libs, 'MBInstallBoostLibs')
 
     env.AddMethod(mb_setup_openmp, 'MBSetupOpenMP')
 
