@@ -563,6 +563,10 @@ def mb_depends_on_toolpathviz(env):
 def mb_depends_on_tinything(env):
     define_library_dependency(env, 'tinything', '#/../libtinything')
 
+def mb_scons_tools_path(env, path):
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_dir, path)
+
 def _common_binary_stuff(env, target, binary):
     """Encapsulates stuff that we do on all binaries"""
     env.Alias(target, binary)
@@ -726,6 +730,8 @@ def generate(env):
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
     env.AddMethod(mb_depends_on_toolpathviz, 'MBDependsOnToolPathViz')
     env.AddMethod(mb_depends_on_tinything, 'MBDependsOnTinything')
+
+    env.AddMethod(mb_scons_tools_path, 'MBSConsToolsPath')
 
     env.AddMethod(mb_shared_library, 'MBSharedLibrary')
     env.AddMethod(mb_static_library, 'MBStaticLibrary')
