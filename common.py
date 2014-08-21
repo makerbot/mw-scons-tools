@@ -410,6 +410,9 @@ def mb_version_build(env):
     return env['MB_VERSION_BUILD']
 
 def generate(env):
+    # let anything using mw-scons-tools easily access anything here
+    sys.path.append(os.path.dirname(__file__))
+
     env.Tool('options')
 
     common_arguments(env)
