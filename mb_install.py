@@ -326,8 +326,8 @@ def set_default_prefix(env):
         elif env.MBIsWindows():
             # If we're building 32 bit on a system that
             # installs 32 bit stuff in "program files (x86)"
-            if env.MBWindowsIs32Bit() and
-                    os.path.exists('c:/Program Files (x86)'):
+            if (env.MBWindowsIs32Bit() and
+                    os.path.exists('c:/Program Files (x86)')):
                 prefix = 'c:/Program Files (x86)/MakerBot'
             else:
                 prefix = 'c:/Program Files/MakerBot'
