@@ -1,0 +1,12 @@
+Source: mw-scons-tools
+Section: libdevel
+Priority: extra
+Maintainer: MakerBot Industries dev team <dev@makerbot.com>
+Build-Depends: debhelper (>= 8.0.0), cdbs, scons
+Standards-Version: 3.9.2
+
+Package: mw-scons-tools
+Section: libdevel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, scons
+Description: MakerBot scons utilities
