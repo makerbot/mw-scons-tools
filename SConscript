@@ -31,7 +31,5 @@ if env.MBIsLinux():
             'share', 'scons', 'site_scons', 'site_tools',
             src_path)
         env.MBInstallSystem(elem, dest_path)
-else:
-    Default(None)
 
 env.MBCreateInstallTarget()
