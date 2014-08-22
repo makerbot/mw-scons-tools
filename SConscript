@@ -11,7 +11,7 @@ env = Environment(
 excludes = [
     '(^.*\.git(/.*)?$)',
     '(^.*debian(/.*)?$)',
-    '(^.*obj/(.*)?$)',
+    '(^.*obj/(.*)$)',
     '(^.*\.pyc$)',
     '(^.*\.gitignore$)']
 exclude_pat = '|'.join(excludes)
