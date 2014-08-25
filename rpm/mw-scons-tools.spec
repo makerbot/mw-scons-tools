@@ -1,5 +1,5 @@
 Name:		mw-scons-tools
-Version:	$mw-scons-tools
+Version:	$mw_scons_tools
 Release:	1%{?dist}
 Summary:	MakerBot scons tools for building
 
