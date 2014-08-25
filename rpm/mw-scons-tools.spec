@@ -7,8 +7,8 @@ License:	Proprietary
 URL:		http://www.makerbot.com/makerware
 Source:	        %{name}-%{version}.tar.gz
 
-BuildRequires:	scons
-Requires:	scons
+BuildRequires:	scons >= 2.3.0
+Requires:	scons >= 2.3.0
 %description
 MakerBot scons tools for building
 
