@@ -26,7 +26,7 @@ rm -rf %{build_root}
 scons --install-prefix=%{buildroot}/%{_prefix} install
 
 %files
-%{_datarootdir}/scons/site_scons/site_tools/*
+%{_datarootdir}/scons/site_scons/site_tools/
 
 
 %changelog
