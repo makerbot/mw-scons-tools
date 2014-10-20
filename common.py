@@ -247,28 +247,28 @@ def set_third_party_paths(env):
             MB_VTK_LIBPATH = e.get(MB_VTK_LIBPATH, []),
             MB_OPENCV_CPPPATH = e.get(MB_OPENCV_CPPPATH, []),
             MB_OPENCV_LIBPATH = e.get(MB_OPENCV_LIBPATH, []),
-            MB_BOOST_64_CPPPATH = e.get(MB_BOOST_64_CPPPATH, 'C:\\local\\boost_1_55_0'),
-            MB_BOOST_64_LIBPATH = e.get(MB_BOOST_64_LIBPATH, 'C:\\local\\boost_1_55_0\\lib64-msvc-11.0'),
-            MB_BOOST_32_CPPPATH = e.get(MB_BOOST_32_CPPPATH, 'C:\\local\\boost_1_55_0'),
-            MB_BOOST_32_LIBPATH = e.get(MB_BOOST_32_LIBPATH, 'C:\\local\\boost_1_55_0\\lib32-msvc-11.0'),
+            MB_BOOST_64_CPPPATH = e.get(MB_BOOST_64_CPPPATH, 'C:\\local\\boost_1_56_0'),
+            MB_BOOST_64_LIBPATH = e.get(MB_BOOST_64_LIBPATH, 'C:\\local\\boost_1_56_0\\lib64-msvc-12.0'),
+            MB_BOOST_32_CPPPATH = e.get(MB_BOOST_32_CPPPATH, 'C:\\local\\boost_1_56_0'),
+            MB_BOOST_32_LIBPATH = e.get(MB_BOOST_32_LIBPATH, 'C:\\local\\boost_1_56_0\\lib32-msvc-12.0'),
             MB_OPENMESH_64_CPPPATH =
                 e.get(MB_OPENMESH_64_CPPPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'include')),
+                os.path.join(third_party_dir, 'OpenMesh-3.2', 'openmesh-64', 'include')),
             MB_OPENMESH_64_LIBPATH =
                 e.get(MB_OPENMESH_64_LIBPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64', 'dll')),
+                os.path.join(third_party_dir, 'OpenMesh-3.2', 'openmesh-64', 'dll')),
             MB_OPENMESH_64 =
                 e.get(MB_OPENMESH_64,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-64')),
+                os.path.join(third_party_dir, 'OpenMesh-3.2', 'openmesh-64')),
             MB_OPENMESH_32_CPPPATH =
                 e.get(MB_OPENMESH_32_CPPPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'include')),
+                os.path.join(third_party_dir, 'OpenMesh-3.2', 'openmesh-32', 'include')),
             MB_OPENMESH_32_LIBPATH =
                 e.get(MB_OPENMESH_32_LIBPATH,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32', 'dll')),
+                os.path.join(third_party_dir, 'OpenMesh-3.2', 'openmesh-32', 'dll')),
             MB_OPENMESH_32 =
                 e.get(MB_OPENMESH_32,
-                os.path.join(third_party_dir, 'OpenMesh-2.4', 'openmesh-32')))
+                os.path.join(third_party_dir, 'OpenMesh-3.2', 'openmesh-32')))
 
 def mb_depends_on_openmesh(env):
     libs = ['OpenMeshCore', 'OpenMeshTools']
@@ -308,7 +308,7 @@ def mb_depends_on_vtk(env):
     env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
 
 def _windows_boost_format(lib, debug):
-    return lib + ('-vc110-mt-gd-1_55' if debug else '-vc110-mt-1_55')
+    return lib + ('-vc120-mt-gd-1_56' if debug else '-vc120-mt-1_56')
 
 def mb_add_boost_libs(env, libs):
     if env.MBIsMac():

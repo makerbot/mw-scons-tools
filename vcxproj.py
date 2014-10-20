@@ -586,7 +586,8 @@ def _run_msbuild_method(env, target, source, additional_properties=None):
     command += ['/p:{}={}'.format(key, properties[key]) for key in properties]
 
     command += ['$SOURCE']
-
+    #import pdb
+    #pdb.set_trace()
     result = env.Command(target, source, ' '.join(command))
 
     return result

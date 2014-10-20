@@ -1,7 +1,7 @@
   <PropertyGroup Condition="'$(Configuration)'=='#{REPLACEME:configuration}'" Label="Configuration">
     <ConfigurationType>#{REPLACEME:configuration_type}</ConfigurationType>
     <UseDebugLibraries>#{REPLACEME:debug}</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <TargetName>#{REPLACEME:target_name}</TargetName>
     <!-- We sometimes need things set in the driver but not otherwise -->
