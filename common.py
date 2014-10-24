@@ -215,7 +215,7 @@ def set_third_party_paths(env):
                 '/usr/local/opencv/lib'),
             MB_BOOST_CPPPATH =
                 e.get(MB_BOOST_CPPPATH,
-                '/usr/local/boost/include/boost-1_55'),
+                '/usr/local/boost/include/boost-1_56'),
             MB_BOOST_LIBPATH =
                 e.get(MB_BOOST_LIBPATH,
                 '/usr/local/boost/lib'),
@@ -312,7 +312,7 @@ def _windows_boost_format(lib, debug):
 
 def mb_add_boost_libs(env, libs):
     if env.MBIsMac():
-        libs = [lib + '-clang-darwin42-mt-1_55' for lib in libs]
+        libs = [lib + '-clang-darwin42-mt-1_56' for lib in libs]
     elif env.MBIsWindows():
         libs = [_windows_boost_format(lib, env.MBDebugBuild()) for lib in libs]
     env.Append(LIBS=libs)
