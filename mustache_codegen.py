@@ -326,10 +326,51 @@ def mustache_codegen(env, context_dir, template_dir,
                                               codegen_output_files,
                                               codegen_input_files)
 
+def simple_codegen_action(env, target, source):
+    """
+    MustacheCodegen looks too complicated for some tasks,
+    This is intended as the most straightforward way of
+    doing mustache-style template population.
+
+    Expects the mustache context to be set in the environment,
+    which can easily be passed like:
+      env.SimpleMustacheBuilder(target, source, context=json_context)
+
+    TODO(ted):
+    A slightly odd thing I've done is force this to read and write utf-8.
+    I should change that, because it's going to confuse the ---- out someone.
+    """
+    import codecs
+    with codecs.open(target[0].abspath, mode='w', encoding='utf8') as outf:
+        with codecs.open(source[0].abspath, mode='r', encoding='utf8') as in_template:
+            try:
+                outf.write(
+                    pystache.render(in_template.read(), env['context'])
+                )
+            except Exception as e:
+                raise Exception("Failed to render {0} : {1}"
+                                .format(str(source[0]), e))
+
+
+_simple_mustache_builder = Builder(
+    action=simple_codegen_action,
+    single_source=True)
+
+
+def simple_mustache_codegen(env, target, template, context):
+    """
+    A wrapper around SimpleMustacheBuilder to make sure you pass context?
+
+    TODO(ted): decide if this is necessary
+    """
+    return env.SimpleMustacheBuilder(target, template, context=context)
+
 
 def generate(env):
     print('Loading Mustache code generation tool')
     env.AddMethod(mustache_codegen, "MustacheCodegen")
+    env.Append(BUILDERS={'SimpleMustacheBuilder': _simple_mustache_builder})
+    env.AddMethod(simple_mustache_codegen, "SimpleMustacheCodegen")
 
 
 def exists(env):
