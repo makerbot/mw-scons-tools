@@ -5,6 +5,8 @@ import json
 import copy
 import imp
 
+import SCons
+
 # Use our local copy of pystache
 sys.path.insert(
     0,
@@ -326,6 +328,7 @@ def mustache_codegen(env, context_dir, template_dir,
                                               codegen_output_files,
                                               codegen_input_files)
 
+
 def simple_codegen_action(env, target, source):
     """
     MustacheCodegen looks too complicated for some tasks,
@@ -351,9 +354,8 @@ def simple_codegen_action(env, target, source):
                 raise Exception("Failed to render {0} : {1}"
                                 .format(str(source[0]), e))
 
-
 _simple_mustache_builder = Builder(
-    action=simple_codegen_action,
+    action=SCons.Action.Action(simple_codegen_action, varlist=['context']),
     single_source=True)
 
 
