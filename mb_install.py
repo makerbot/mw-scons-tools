@@ -352,8 +352,8 @@ def set_install_paths(env):
         include_dir = prefix + '/Library/Frameworks/MakerBot.framework/Include'
 
     elif env.MBIsWindows():
-        lib_dir = prefix + '/SDK/msvc11/lib'
-        include_dir = prefix + '/SDK/msvc11/include'
+        lib_dir = prefix + '/SDK/msvc12/lib'
+        include_dir = prefix + '/SDK/msvc12/include'
 
     #OSX doesn't use the standard link lines
     if env.MBIsMac():
