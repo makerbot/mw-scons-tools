@@ -215,16 +215,16 @@ def set_third_party_paths(env):
                 '/usr/local/opencv/lib'),
             MB_BOOST_CPPPATH =
                 e.get(MB_BOOST_CPPPATH,
-                '/usr/local/boost/include/boost-1_56'),
+                '/usr/local/boost-1_56/include/boost-1_56'),
             MB_BOOST_LIBPATH =
                 e.get(MB_BOOST_LIBPATH,
-                '/usr/local/boost/lib'),
+                '/usr/local/boost-1_56/lib'),
             MB_OPENMESH_CPPPATH =
                 e.get(MB_OPENMESH_CPPPATH,
-                '/usr/local/openmesh/include'),
+                '/usr/local/openmesh-3.2/include'),
             MB_OPENMESH_LIBPATH =
                 e.get(MB_OPENMESH_LIBPATH,
-                '/usr/local/openmesh/lib/OpenMesh'))
+                '/usr/local/openmesh-3.2/lib/OpenMesh'))
     elif env.MBIsLinux():
         env.SetDefault(
             MB_VTK_CPPPATH = e.get(MB_VTK_CPPPATH, []),
@@ -312,7 +312,8 @@ def _windows_boost_format(lib, debug):
 
 def mb_add_boost_libs(env, libs):
     if env.MBIsMac():
-        libs = [lib + '-clang-darwin42-mt-1_56' for lib in libs]
+    	#there is no suffox with the new boost on mac
+        libs = [lib + '' for lib in libs]
     elif env.MBIsWindows():
         libs = [_windows_boost_format(lib, env.MBDebugBuild()) for lib in libs]
     env.Append(LIBS=libs)
