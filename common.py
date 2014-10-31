@@ -271,7 +271,7 @@ def set_third_party_paths(env):
                 os.path.join(third_party_dir, 'OpenMesh-3.2', 'openmesh-32')))
 
 def mb_depends_on_openmesh(env):
-    libs = ['OpenMeshCore.3.2', 'OpenMeshTools.3.2']
+    libs = ['OpenMeshCore', 'OpenMeshTools']
 
     if env.MBIsWindows():
         bitness = '64' if env.MBWindowsIs64Bit() else '32'
@@ -285,6 +285,10 @@ def mb_depends_on_openmesh(env):
         env.Append(LIBPATH = env.MBGetPath(MB_OPENMESH_LIBPATH))
         env.Append(CPPPATH = env.MBGetPath(MB_OPENMESH_CPPPATH))
 
+		if env.MBDebugBuild():
+			libs = [lib + 'd' for lib in libs]
+
+		libs = [lib + ".3.2" for lib in libs]
     if env.MBDebugBuild():
         env.Append(CPPDEFINES = 'OPENMESH_DEBUG')
 
