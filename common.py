@@ -286,7 +286,7 @@ def mb_depends_on_openmesh(env):
         env.Append(CPPPATH = env.MBGetPath(MB_OPENMESH_CPPPATH))
         if env.MBDebugBuild():
             libs = [lib + 'd' for lib in libs]
-		libs = [lib + ".3.2" for lib in libs]
+        libs = [lib + ".3.2" for lib in libs]
     if env.MBDebugBuild():
         env.Append(CPPDEFINES = 'OPENMESH_DEBUG')
 
