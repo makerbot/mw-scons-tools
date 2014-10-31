@@ -271,7 +271,7 @@ def set_third_party_paths(env):
                 os.path.join(third_party_dir, 'OpenMesh-3.2', 'openmesh-32')))
 
 def mb_depends_on_openmesh(env):
-    libs = ['OpenMeshCore', 'OpenMeshTools']
+    libs = ['OpenMeshCore.3.2', 'OpenMeshTools.3.2']
 
     if env.MBIsWindows():
         bitness = '64' if env.MBWindowsIs64Bit() else '32'
