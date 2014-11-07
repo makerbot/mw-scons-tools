@@ -402,7 +402,7 @@ def _get_env_substitutions(env):
     ignored_libs = _format_list(indent_4, ignored_libs, semi_endl)
     standard_config_defines = _format_list(indent_4, standard_config_defines, semi_endl)
     # ccflags is a special case because of a bug in msbuild
-    ccflags = _format_list('', ccflags, ';')
+    ccflags = _format_list('', ccflags, ' ')
     # HACK: to add openssl to the debug environment
     openssl_path = "{}\\OpenSSL-1.0.1i\\openssl-{}\\bin".format(
         env['MB_THIRD_PARTY'],
