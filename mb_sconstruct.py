@@ -34,6 +34,7 @@ def mb_sconscript(env, sconscript, python_project = False):
 def generate(env):
     env.Tool('options')
     env.Tool('common')
+    env.Tool('version')
 
     common_arguments(env)
 
