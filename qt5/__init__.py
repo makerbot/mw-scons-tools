@@ -927,7 +927,6 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
             pcmodules.remove("Qt5Assistant")
             pcmodules.append("Qt5AssistantClient")
         self.AppendUnique(RPATH=[os.path.join("$QT5DIR","lib")])
-        print(os.environ['PKG_CONFIG_PATH'])
         self.ParseConfig('pkg-config %s --libs --cflags'% ' '.join(pcmodules))
         self["QT5_MOCCPPPATH"] = self["CPPPATH"]
     elif sys.platform == "win32" or crosscompiling :
