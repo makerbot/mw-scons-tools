@@ -668,7 +668,6 @@ def common_arguments(env):
 
 
 def generate(env):
-    print(env['ENV'])
     env.Tool('mb_sconstruct')
 
     common_arguments(env)
