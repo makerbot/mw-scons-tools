@@ -668,7 +668,7 @@ def common_arguments(env):
 
 
 def generate(env):
-    print("From mb_install(generate): ",env['ENV'])
+    print("From mb_install(generate): " + env['ENV'])
     env.Tool('mb_sconstruct')
 
     common_arguments(env)
