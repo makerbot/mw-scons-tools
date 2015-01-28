@@ -523,10 +523,11 @@ def define_library_dependency(env, libname, relative_repository_dir,
     env.MBAddDevelIncludePath(include_path)
 
     if not header_only:
-        env.MBAddDevelLibPath(lib_path)
         if static_lib:
+            env.Append(LIBPATH=[lib_path])
             env.Append(LIBS=[libname])
         else:
+            env.MBAddDevelLibPath(lib_path)
             env.MBAddLib(windows_debug_tweak(env, libname))
             if env.MBIsWindows():
                 env.MBWindowsAddAPIImport(api_define(env, libname))
