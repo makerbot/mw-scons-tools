@@ -563,6 +563,10 @@ def mb_depends_on_toolpathviz(env):
 def mb_depends_on_tinything(env):
     define_library_dependency(env, 'tinything', '#/../libtinything')
 
+def mb_depends_on_botfacade(env):
+    define_library_dependency(env, 'facade', '#/../botfacade','lib/src/include')
+    define_library_dependency(env, 'mbutility', '#/../botfacade','utilities/src/include')
+
 def mb_scons_tools_path(env, path):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_dir, path)
@@ -730,6 +734,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
     env.AddMethod(mb_depends_on_toolpathviz, 'MBDependsOnToolPathViz')
     env.AddMethod(mb_depends_on_tinything, 'MBDependsOnTinything')
+    env.AddMethod(mb_depends_on_botfacade, 'MBDependsOnBotfacade')
 
     env.AddMethod(mb_scons_tools_path, 'MBSConsToolsPath')
 
