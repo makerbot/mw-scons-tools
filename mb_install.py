@@ -526,7 +526,7 @@ def define_library_dependency(env, libname, relative_repository_dir,
         # instead. Without this, SCons may fail to rebuild a file
         # because it doesn't know that an included file changed.
         env.MBAddIncludePaths(include_path)
-
+    env.MBAddIncludePaths(include_path)
     env.MBAddDevelIncludePath(include_path)
 
     if not header_only:
