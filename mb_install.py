@@ -483,7 +483,7 @@ def windows_debug_tweak(env, lib):
 
 def define_library_dependency(env, libname, relative_repository_dir,
                               include_subdir='include',
-                              header_only=False):
+                              header_only=False,static_lib=False):
     """Set up internal library dependencies.
 
     libname: base name of the library, e.g. 'foo' for libfoo.so or
@@ -524,11 +524,14 @@ def define_library_dependency(env, libname, relative_repository_dir,
 
     if not header_only:
         env.MBAddDevelLibPath(lib_path)
-        env.MBAddLib(windows_debug_tweak(env, libname))
-        if env.MBIsWindows():
-            env.MBWindowsAddAPIImport(api_define(env, libname))
+        if static_lib:
+            env.Append(LIBS=[libname])
         else:
-            define_api_visibility_public(env, libname)
+            env.MBAddLib(windows_debug_tweak(env, libname))
+            if env.MBIsWindows():
+                env.MBWindowsAddAPIImport(api_define(env, libname))
+            else:
+                define_api_visibility_public(env, libname)
 
 def mb_depends_on_mb_core_utils(env):
     define_library_dependency(env, 'MBCoreUtils', '#/../MBCoreUtils',
@@ -564,8 +567,8 @@ def mb_depends_on_tinything(env):
     define_library_dependency(env, 'tinything', '#/../libtinything')
 
 def mb_depends_on_botfacade(env):
-    define_library_dependency(env, 'facade', '#/../botfacade','lib/src/include')
-    define_library_dependency(env, 'mbutility', '#/../botfacade','utilities/src/include')
+    define_library_dependency(env, 'facade', '#/../botfacade','lib/src/include', static_lib=True)
+    define_library_dependency(env, 'mbutility', '#/../botfacade','utilities/src/include', static_lib=True)
 
 def mb_scons_tools_path(env, path):
     base_dir = os.path.dirname(os.path.abspath(__file__))
