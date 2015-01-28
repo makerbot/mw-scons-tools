@@ -575,8 +575,8 @@ def mb_depends_on_tinything(env):
     define_library_dependency(env, 'tinything', '#/../libtinything')
 
 def mb_depends_on_botfacade(env):
-    define_library_dependency(env, 'facade', '#/../botfacade','lib/src/include', static_lib=True)
-    define_library_dependency(env, 'mbutility', '#/../botfacade','utilities/src/include', static_lib=True)
+    define_library_dependency(env, 'facade', '#/../botfacade',include_subdir='lib/src/include', static_lib=True)
+    define_library_dependency(env, 'mbutility', '#/../botfacade',include_subdir='utilities/src/include', static_lib=True)
 
 def mb_scons_tools_path(env, path):
     base_dir = os.path.dirname(os.path.abspath(__file__))
