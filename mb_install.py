@@ -265,6 +265,13 @@ def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
     command = ' '.join([python, virtualenv_args])
 
     return env.Command(target, script, command)
+def mb_add_static_lib(env, name):
+    
+    if env.MBIsWindows():
+        lib_file_ext = '.lib'
+    else:
+        lib_file_ext = '.a'
+    env.Append(LIBS=['lib'+name+lib_file_ext])
 
 def mb_add_lib(env, name):
     if env.MBIsMac() and not env.MBUseDevelLibs():
@@ -525,7 +532,7 @@ def define_library_dependency(env, libname, relative_repository_dir,
     if not header_only:
         if static_lib:
             env.Append(LIBPATH=[lib_path])
-            env.Append(LIBS=[libname])
+            env.MBAddStaticLib(windows_debug_tweak(env, libname))
         else:
             env.MBAddDevelLibPath(lib_path)
             env.MBAddLib(windows_debug_tweak(env, libname))
@@ -721,6 +728,7 @@ def generate(env):
     env.AddMethod(mb_setup_virtualenv, 'MBSetupVirtualenv')
 
     env.AddMethod(mb_add_lib, 'MBAddLib')
+    env.AddMethod(mb_add_static_lib, 'MBAddStaticLib')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
     env.AddMethod(mb_add_standard_compiler_flags, 'MBAddStandardCompilerFlags')
     env.AddMethod(mb_add_devel_lib_path, 'MBAddDevelLibPath')
