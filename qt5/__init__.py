@@ -951,6 +951,7 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
             self.AppendUnique(LIBS=[
 #                              'libGLESv2',
 #                              'libEGL',
+                              'opengl32.lib',
                               'Qt5OpenGL'])
 
         self.AppendUnique(CPPPATH=[ '$QT5DIR/include/'])
