@@ -949,10 +949,10 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
             self.AppendUnique(CPPPATH=['$QT5DIR/include/QtOpenGL'])
             self.AppendUnique(LIBS=['Qt5OpenGL'])
             if 'QT5_ANGLE' in os.environ:
--               self.AppendUnique(CPPPATH=['$QT5DIR/include/QtANGLE'])
--               self.AppendUnique(LIBS=['libGLESv2', 'libEGL'])
--           else:
--               self.AppendUnique(LIBS=['opengl32'])
+                self.AppendUnique(CPPPATH=['$QT5DIR/include/QtANGLE'])
+                self.AppendUnique(LIBS=['libGLESv2', 'libEGL'])
+            else:
+                self.AppendUnique(LIBS=['opengl32'])
 
 
         self.AppendUnique(CPPPATH=[ '$QT5DIR/include/'])
@@ -989,7 +989,7 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
             self.AppendUnique(FRAMEWORKS=m)
 
         if 'QtOpenGL' in modules:
-            self.AppendUnique(FRAMEWORKS=['OpenGL'])
+W=            self.AppendUnique(FRAMEWORKS=['OpenGL'])
 
 def exists(env):
     return _detect(env)
