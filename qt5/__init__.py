@@ -989,7 +989,7 @@ def enable_modules(self, modules, debug=False, crosscompiling=False) :
             self.AppendUnique(FRAMEWORKS=m)
 
         if 'QtOpenGL' in modules:
-W=            self.AppendUnique(FRAMEWORKS=['OpenGL'])
+            self.AppendUnique(FRAMEWORKS=['OpenGL'])
 
 def exists(env):
     return _detect(env)
