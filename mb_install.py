@@ -230,12 +230,15 @@ def mb_create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
 def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python', version = '2.7'):
-    def eggify(base, version):
-        if 'MB_MOD_BUILD' in os.environ:
-            base = os.path.join(env['MB_EGG_DIR'], os.path.basename(base))
+     def eggify(base, version):
         return base + '-py' + version + '.egg'
 
-    deps = [eggify(e, version) for e in egg_dependencies]
+    def installfix(egg):
+        if 'MB_MOD_BUILD' in os.environ:
+            egg = os.path.join(env['MB_EGG_DIR'], os.path.basename(egg))
+        return egg
+
+    deps = [installfix(eggify(e, version)) for e in egg_dependencies]
 
     environment = env['ENV'].copy()
     environment.update({'PYTHONPATH': deps})
