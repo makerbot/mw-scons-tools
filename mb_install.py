@@ -536,6 +536,23 @@ def define_library_dependency(env, libname, relative_repository_dir,
         else:
             define_api_visibility_public(env, libname)
 
+def define_cmake_dependency(env, libname):
+    prefix = env['MB_PREFIX']
+
+    env.MBAddLib(libname)
+
+    if env.MBIsMac():
+        env.Append(LIBPATH=os.path.join(prefix, 'Library', 'MakerBot', 'lib'))
+    else:
+        env.Append(LIBPATH=os.path.join(prefix, 'lib'))
+    env.Append(CPPPATH=os.path.join(prefix, 'include'))
+
+    if env.MBIsWindows():
+        env.MBWindowsAddAPIImport(api_define(env, libname))
+    else:
+        define_api_visibility_public(env, libname)
+
+
 def mb_depends_on_mb_core_utils(env):
     define_library_dependency(env, 'MBCoreUtils', '#/../MBCoreUtils',
                               header_only=True)
@@ -544,7 +561,7 @@ def mb_depends_on_mbqtutils(env):
     define_library_dependency(env, 'mbqtutils', '#/../libmbqtutils')
 
 def mb_depends_on_json_cpp(env):
-    define_library_dependency(env, 'jsoncpp', '#/../json-cpp')
+    define_cmake_dependency(env, 'jsoncpp')
 
 def mb_depends_on_json_rpc(env):
     define_library_dependency(
