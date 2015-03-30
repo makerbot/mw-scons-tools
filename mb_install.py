@@ -230,7 +230,7 @@ def mb_create_install_target(env):
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
 def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python', version = '2.7'):
-     def eggify(base, version):
+    def eggify(base, version):
         return base + '-py' + version + '.egg'
 
     def installfix(egg):
