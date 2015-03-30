@@ -499,15 +499,19 @@ def define_library_dependency(env, libname, relative_repository_dir,
     library path.
 
     """
-    if env.MBIsWindows():
-        # Yeah, on windows we still put stuff in obj,
-        # even without the 'variant dir'
-        lib_path = os.path.join(relative_repository_dir, 'obj')
-        include_path = os.path.join(relative_repository_dir, include_subdir)
+    if env['MB_MOD_BUILD']:
+        lib_path = env['MB_LIB_DIR']
+        include_path = os.path.join(env['MB_LIB_DIR'],include_subdir)
     else:
-        obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
-        lib_path = obj_dir
-        include_path = os.path.join(obj_dir, include_subdir)
+        if env.MBIsWindows():
+            # Yeah, on windows we still put stuff in obj,
+            # even without the 'variant dir'
+            lib_path = os.path.join(relative_repository_dir, 'obj')
+            include_path = os.path.join(relative_repository_dir, include_subdir)
+        else:
+            obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
+            lib_path = obj_dir
+            include_path = os.path.join(obj_dir, include_subdir)
 
     if env.MBIsMac():
         # This is a hack to work around this SCons bug:
