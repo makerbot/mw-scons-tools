@@ -501,8 +501,8 @@ def define_library_dependency(env, libname, relative_repository_dir,
     """
     if env['MB_MOD_BUILD']:
         lib_path = env['MB_LIB_DIR']
-        include_path = os.path.join(env['MB_LIB_DIR'],include_subdir)
-    else:
+        include_path = env['MB_INCLUDE_DIR']
+    else: 
         if env.MBIsWindows():
             # Yeah, on windows we still put stuff in obj,
             # even without the 'variant dir'
