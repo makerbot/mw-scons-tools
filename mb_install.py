@@ -499,7 +499,7 @@ def define_library_dependency(env, libname, relative_repository_dir,
     library path.
 
     """
-    if env['MB_MOD_BUILD']:
+    if 'MB_MOD_BUILD' in os.environ:
         lib_path = env['MB_LIB_DIR']
         include_path = env['MB_INCLUDE_DIR']
     else: 
