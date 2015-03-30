@@ -231,6 +231,8 @@ def mb_create_install_target(env):
 
 def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python', version = '2.7'):
     def eggify(base, version):
+        if 'MB_MOD_BUILD' in os.environ:
+            base = os.path.join(env['MB_EGG_DIR'], os.path.basename(base))
         return base + '-py' + version + '.egg'
 
     deps = [eggify(e, version) for e in egg_dependencies]
@@ -499,15 +501,20 @@ def define_library_dependency(env, libname, relative_repository_dir,
     library path.
 
     """
-    if env.MBIsWindows():
-        # Yeah, on windows we still put stuff in obj,
-        # even without the 'variant dir'
-        lib_path = os.path.join(relative_repository_dir, 'obj')
-        include_path = os.path.join(relative_repository_dir, include_subdir)
-    else:
-        obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
-        lib_path = obj_dir
-        include_path = os.path.join(obj_dir, include_subdir)
+    if 'MB_MOD_BUILD' in os.environ:
+        lib_path = env['MB_LIB_DIR']
+        include_path = env['MB_INCLUDE_DIR']
+    else: 
+        if env.MBIsWindows():
+            # Yeah, on windows we still put stuff in obj,
+            # even without the 'variant dir'
+            lib_path = os.path.join(relative_repository_dir, 'obj')
+            include_path = os.path.join(relative_repository_dir, include_subdir)
+        else:
+            obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
+            lib_path = obj_dir
+            include_path = os.path.join(obj_dir, include_subdir)
+
 
     if env.MBIsMac():
         # This is a hack to work around this SCons bug:
