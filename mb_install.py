@@ -505,10 +505,11 @@ def define_library_dependency(env, libname, relative_repository_dir,
 
     """
     if 'MB_MOD_BUILD' in os.environ:
-        print "Useing fake root installed version of library"
+        print "Using fake root installed version of library of " + libname
         lib_path = env['MB_LIB_DIR']
         include_path = env['MB_INCLUDE_DIR']
     else: 
+        print "Using sibling directory version of dependency of " + libname
         if env.MBIsWindows():
             # Yeah, on windows we still put stuff in obj,
             # even without the 'variant dir'
