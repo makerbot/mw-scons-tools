@@ -131,20 +131,16 @@ def mb_install_headers(env, source, name, dest='', make_current_link=False):
         # E.g. "conveyor-ui" -> "conveyor-ui"
         #      "conveyor-ui/widgets" -> "conveyor-ui"
         #
-        # TODO(nicholasbishop): this will break with more levels of
-        # subdirectories
-        #
         # TODO(nicholasbishop): IMO a more explicit interface that
         # acknowledges better the differences between platforms might
         # be a better idea.
-        split_name = os.path.split(name)
-        if split_name[0]:
-            framework_name = split_name[0]
-            include_subdir = split_name[1]
-        else:
-            framework_name = split_name[1]
-            include_subdir = ''
-        framework_name += '.framework'
+        base_folder = name
+        include_subdir = ''
+        while os.path.dirname(base_folder) != '':
+            include_subdir = os.path.join(os.path.basename(base_folder), include_subdir)
+            base_folder = os.path.dirname(base_folder)
+
+        framework_name = base_folder + '.framework'
 
         framework = os.path.join(env['MB_FRAMEWORK_DIR'], framework_name)
         version_dir = os.path.join('Versions', env['MB_VERSION'])
