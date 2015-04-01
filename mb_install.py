@@ -267,8 +267,8 @@ def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
 
     return env.Command(target, script, command)
 
-def mb_add_lib(env, name):
-    if env.MBIsMac() and not env.MBUseDevelLibs():
+def mb_add_lib(env, name, framework=True):
+    if env.MBIsMac() and framework and (not env.MBUseDevelLibs()):
         env.Append(FRAMEWORKS = [name])
     else:
         env.Append(LIBS = [name])
@@ -539,7 +539,7 @@ def define_library_dependency(env, libname, relative_repository_dir,
 def define_cmake_dependency(env, libname):
     prefix = env['MB_PREFIX']
 
-    env.MBAddLib(libname)
+    env.MBAddLib(libname, framework=False)
 
     if env.MBIsMac():
         env.Append(LIBPATH=os.path.join(prefix, 'Library', 'MakerBot', 'lib'))
