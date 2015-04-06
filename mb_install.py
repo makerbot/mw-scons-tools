@@ -116,11 +116,6 @@ def mb_install_lib(env, source, name, dest=''):
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
 
-def mb_install_third_party(env, source, name, dest=''):
-    return recursive_install(
-            env,
-            os.path.join(env['MB_THIRD_PARTY_DIR'], os.path.join(dest, name)),
-            source)
 
 def mb_install_headers(env, source, name, dest='', make_current_link=False):
     targets = []
@@ -248,24 +243,6 @@ def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python',
 
     return egg
 
-def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
-    paths = [os.path.join('submodule', 'conveyor_bins', 'python')]
-    if env.MBUseDevelLibs():
-        paths += devel_paths
-    else:
-        if env.MBIsLinux() and 'MB_SYSTEM_EGG_DIR' in env:
-            paths.append(env['MB_SYSTEM_EGG_DIR'])
-        else:
-            paths.append(env['MB_EGG_DIR'])
-
-    # add quoting
-    paths = ['"'+path+'"' for path in paths]
-    virtualenv_args = [os.path.join('.', script)] + paths
-    virtualenv_args = ' '.join(virtualenv_args)
-
-    command = ' '.join([python, virtualenv_args])
-
-    return env.Command(target, script, command)
 
 def mb_add_lib(env, name, framework=True):
     if env.MBIsMac() and framework and (not env.MBUseDevelLibs()):
@@ -305,99 +282,62 @@ def mb_add_devel_include_path(env, path):
     if env.MBUseDevelLibs():
         env.PrependUnique(CPPPATH = [str(env.Dir(path))])
 
-def set_default_prefix(env):
-    #setup the default install root
-    prefix = env.MBGetOption('install_prefix')
-    config_prefix = env.MBGetOption('config_prefix')
-
-    #if the user doesn't set either prefix, put configs in /etc
-    if config_prefix == '':
-        if env.MBIsLinux():
-            if prefix == '':
-                config_prefix = '/etc'
-            else:
-                config_prefix = os.path.join(prefix, 'etc')
-
-    if prefix == '':
-        if env.MBIsLinux():
-            if config_prefix == '':
-                config_prefix = '/etc'
-            prefix = '/usr'
-
-        elif env.MBIsWindows():
-            # If we're building 32 bit on a system that
-            # installs 32 bit stuff in "program files (x86)"
-            if (env.MBWindowsIs32Bit() and
-                    os.path.exists('c:/Program Files (x86)')):
-                prefix = 'c:/Program Files (x86)/MakerBot'
-            else:
-                prefix = 'c:/Program Files/MakerBot'
-        elif env.MBIsMac():
-            prefix = '/'
-
-    env.SetDefault(MB_PREFIX = prefix)
-    if config_prefix != '':
-        env.SetDefault(MB_CONFIG_DIR = config_prefix)
-
 
 def set_install_paths(env):
-    prefix = env['MB_PREFIX']
+    prefix = env.MBGetOption('install_prefix')
+    if prefix == '':
+        prefix = '.'
+    env.SetDefault(MB_PREFIX=os.path.abspath(prefix))
 
-    #setup sdk locations
+    config_prefix = env.MBGetOption('config_prefix')
+    if config_prefix != '':
+        env.SetDefault(MB_CONFIG_DIR=config_prefix)
+
     if env.MBIsLinux():
-        lib_dir = prefix + '/lib'
-        include_dir = prefix + '/include'
-
+        env.SetDefault(
+            MB_INCLUDE_DIR=os.path.join(prefix, 'include'),
+            MB_LIB_DIR=os.path.join(prefix, 'lib'),
+            MB_BIN_DIR=os.path.join(prefix, 'bin'),
+            MB_APP_DIR=os.path.join(prefix, 'bin'),
+            MB_RESOURCE_DIR=os.path.join(prefix, 'share', 'makerbot'),
+            MB_CONFIG_DIR=os.path.join(prefix, 'etc'),
+            MB_EGG_DIR=os.path.join(prefix, 'share', 'makerbot', 'python'))
     elif env.MBIsMac():
-        lib_dir = prefix + '/Library/Frameworks/MakerBot.framework/Libraries'
-        include_dir = prefix + '/Library/Frameworks/MakerBot.framework/Include'
-
+        env.SetDefault(
+            MB_INCLUDE_DIR=os.path.join(
+                prefix, 'Library', 'MakerBot', 'include'),
+            MB_LIB_DIR=os.path.join(prefix, 'Library', 'MakerBot', 'lib'),
+            MB_BIN_DIR=os.path.join(prefix, 'Library', 'MakerBot'),
+            MB_APP_DIR=os.path.join(prefix, 'Applications'),
+            MB_RESOURCE_DIR=os.path.join(prefix, 'Library', 'MakerBot'),
+            MB_CONFIG_DIR=os.path.join(prefix, 'Library', 'MakerBot'),
+            MB_EGG_DIR=os.path.join(prefix, 'Library', 'MakerBot', 'python'))
     elif env.MBIsWindows():
-        lib_dir = prefix + '/SDK/msvc12/lib'
-        include_dir = prefix + '/SDK/msvc12/include'
+        env.SetDefault(
+            MB_INCLUDE_DIR=os.path.join(prefix, 'include'),
+            MB_LIB_DIR=os.path.join(prefix, 'lib'),
+            MB_BIN_DIR=os.path.join(prefix, 'MakerWare'),
+            MB_APP_DIR=os.path.join(prefix, 'MakerWare'),
+            MB_RESOURCE_DIR=os.path.join(prefix, 'MakerWare'),
+            MB_CONFIG_DIR=os.path.join(prefix, 'MakerWare'),
+            MB_EGG_DIR=os.path.join(prefix, 'MakerWare', 'python'))
 
-    #OSX doesn't use the standard link lines
+    # These were getting set ----ing everywhere. There is almost no
+    # situation where you would want to build against a sibling and
+    # install to a directory where a different version of that sibling
+    # was installed, and this should be fine in all other situations.
+    env.Append(
+        LIBPATH=env['MB_LIB_DIR'],
+        CPPPATH=env['MB_INCLUDE_DIR'])
+
+    # OSX doesn't use the standard link lines
     if env.MBIsMac():
-        #add the fake root frameworks path
+        # add the fake root frameworks path
         env['MB_FRAMEWORK_DIR'] = os.path.join(prefix, 'Library/Frameworks')
 
         if not env.MBUseDevelLibs():
-            env.AppendUnique(FRAMEWORKPATH = [env['MB_FRAMEWORK_DIR']])
-    else:
-        env.Append(LIBPATH = [lib_dir])
-        env.Append(CPPPATH = [include_dir])
+            env.AppendUnique(FRAMEWORKPATH=[env['MB_FRAMEWORK_DIR']])
 
-    env.SetDefault(MB_LIB_DIR = lib_dir,
-                   MB_INCLUDE_DIR = include_dir)
-
-    #setup other install locations
-
-    if env.MBIsLinux():
-        env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'bin'),
-                       MB_APP_DIR = os.path.join(prefix, 'bin'),
-                       MB_RESOURCE_DIR = os.path.join(prefix,
-                                                      'share', 'makerbot'),
-                       MB_CONFIG_DIR = os.path.join(prefix, 'etc'),
-                       MB_EGG_DIR = os.path.join(prefix,
-                                                 'share', 'makerbot', 'python'),
-                       MB_SYSTEM_EGG_DIR = os.path.join('/', 'usr', 'share',
-                                                         'makerbot', 'python'))
-    elif env.MBIsMac():
-        env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'Library', 'MakerBot'),
-                       MB_RESOURCE_DIR = os.path.join(prefix,
-                                                      'Library', 'MakerBot'),
-                       MB_CONFIG_DIR = os.path.join(prefix,
-                                                    'Library', 'MakerBot'),
-                       MB_APP_DIR = os.path.join(prefix, 'Applications'),
-                       MB_EGG_DIR = os.path.join(prefix, 'Library', 'MakerBot',
-                                                 'python'))
-    elif env.MBIsWindows():
-        env.SetDefault(MB_BIN_DIR = os.path.join(prefix, 'MakerWare'),
-                       MB_APP_DIR = os.path.join(prefix, 'MakerWare'),
-                       MB_THIRD_PARTY_DIR = os.path.join(prefix, 'MakerWare'),
-                       MB_RESOURCE_DIR = os.path.join(prefix, 'MakerWare'),
-                       MB_CONFIG_DIR = os.path.join(prefix, 'MakerWare'),
-                       MB_EGG_DIR = os.path.join(prefix, 'MakerWare', 'python'))
 
 def set_compiler_flags(env):
     ''' Sets flags required by all projects.
@@ -540,12 +480,6 @@ def define_cmake_dependency(env, libname):
     prefix = env['MB_PREFIX']
 
     env.MBAddLib(libname, framework=False)
-
-    if env.MBIsMac():
-        env.Append(LIBPATH=os.path.join(prefix, 'Library', 'MakerBot', 'lib'))
-    else:
-        env.Append(LIBPATH=os.path.join(prefix, 'lib'))
-    env.Append(CPPPATH=os.path.join(prefix, 'include'))
 
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, libname))
@@ -722,7 +656,6 @@ def generate(env):
     env[symlink_env_name] = False
 
     env.AddMethod(mb_install_lib, 'MBInstallLib')
-    env.AddMethod(mb_install_third_party, 'MBInstallThirdParty')
     env.AddMethod(mb_install_headers, 'MBInstallHeaders')
     env.AddMethod(mb_install_bin, 'MBInstallBin')
     env.AddMethod(mb_install_resources, 'MBInstallResources')
@@ -733,7 +666,6 @@ def generate(env):
     env.AddMethod(mb_create_install_target, 'MBCreateInstallTarget')
 
     env.AddMethod(mb_dist_egg, 'MBDistEgg')
-    env.AddMethod(mb_setup_virtualenv, 'MBSetupVirtualenv')
 
     env.AddMethod(mb_add_lib, 'MBAddLib')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
@@ -762,7 +694,6 @@ def generate(env):
 
     env.AddMethod(mb_get_moc_files, 'MBGetMocFiles')
 
-    set_default_prefix(env)
     set_install_paths(env)
     set_compiler_flags(env)
 
