@@ -34,19 +34,22 @@ def mb_append_dl_path(env, path):
     env.AppendENVPath(key, path)
 
 
-def mb_add_always_run_test(env, test_fn, deps=()):
+def mb_add_always_run_test(env, action, deps=(), **kwargs):
     """
     Add a test that will always be run when the "test" target is
     selected.  You can specify targets that must be built before
     the test is run with deps, but the test will still run even
     if no dependency has changed.
     """
-    # TODO: this can probably be a lot cleaner
-    name = getattr(test_fn, '__name__', 'test')
+    # So when the test fails, the only context that scons provides
+    # immediately after the failure is the node name we are building,
+    # so we want the node name to indicate the action that failed.
+    if isinstance(action, str):
+        name = action
+    else:
+        name = getattr(action, '__name__', 'test')
     test = TestNode(name)
-    action = env.Action(lambda *a, **ka: test_fn(), cmdstr=name+'()')
-    builder = env.Builder(action=action, source=deps)
-    test.builder_set(builder)
+    env.Command(test, deps, action, **kwargs)
     env.Alias('test', test)
     env.AlwaysBuild(test)
 
