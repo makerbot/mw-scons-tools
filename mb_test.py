@@ -14,24 +14,28 @@ class TestNode(SCons.Node.Alias.Alias):
     build = SCons.Node.Node.build
 
 
-def _get_ld_path_key(env):
+def _get_ld_path_keys(env):
     if env.MBIsWindows():
-        key = 'PATH'
+        keys = ('PATH',)
     elif env.MBIsMac():
-        key = 'DYLD_LIBRARY_PATH'
+        # We need a separate key for jenkins builds
+        keys = (
+            'DYLD_LIBRARY_PATH',
+            'DYLD_FALLBACK_LIBRARY_PATH',
+        )
     else:
-        key = 'LD_LIBRARY_PATH'
-    return key
+        keys = ('LD_LIBRARY_PATH',)
+    return keys
 
 
 def mb_prepend_dl_path(env, path):
-    key = _get_ld_path_key(env)
-    env.PrependENVPath(key, path)
+    for key in _get_ld_path_keys(env):
+        env.PrependENVPath(key, path)
 
 
 def mb_append_dl_path(env, path):
-    key = _get_ld_path_key(env)
-    env.AppendENVPath(key, path)
+    for key in _get_ld_path_keys(env):
+        env.AppendENVPath(key, path)
 
 
 def mb_add_always_run_test(env, action, deps=(), **kwargs):
