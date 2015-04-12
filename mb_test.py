@@ -38,6 +38,16 @@ def mb_append_dl_path(env, path):
         env.AppendENVPath(key, path)
 
 
+def set_test_paths(env):
+    if env.MBIsMac():
+        # When we are installing on mac, all libraries and binaries
+        # have the framework library paths hard coded in place in the
+        # obj directory, so we have no access to the developer linked
+        # binaries for running unit tests.
+        env.Tool('mb_install')
+        env.PrependENVPath('DYLD_ROOT_PATH', env.MBGetOption('install_prefix'))
+
+
 def mb_add_always_run_test(env, action, deps=(), **kwargs):
     """
     Add a test that will always be run when the "test" target is
@@ -65,6 +75,8 @@ def generate(env):
     env.AddMethod(mb_append_dl_path, 'MBAppendDLPath')
 
     env.AddMethod(mb_add_always_run_test, 'MBAddAlwaysRunTest')
+
+    set_test_paths(env)
 
 
 def exists(env):
