@@ -286,7 +286,8 @@ def mb_add_devel_include_path(env, path):
 def set_install_paths(env):
     prefix = env.MBGetOption('install_prefix')
     if prefix == '':
-        prefix = '.'
+        # TODO(ted): suffer the results of doing this
+        prefix = '../../Install'
     env.SetDefault(MB_PREFIX=os.path.abspath(prefix))
 
     config_prefix = env.MBGetOption('config_prefix')
