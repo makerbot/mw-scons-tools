@@ -35,16 +35,17 @@ def mb_append_dl_path(env, path):
 
 
 def set_test_paths(env):
+    env.MBPrependDLPath(env['MB_LIB_DIR'])
     if env.MBIsMac():
         # When we are installing on mac, all libraries and binaries
         # have the framework library paths hard coded in place in the
         # obj directory, so we have no access to the developer linked
         # binaries for running unit tests.
-        env.Tool('mb_install')
         env.PrependENVPath('DYLD_ROOT_PATH', env.MBGetOption('install_prefix'))
-    if env.MBIsWindows():
+    elif env.MBIsWindows():
         # I don't think that we should be relying on our builders
         # having all third party libraries on the system path.
+        # TODO(chris.moore): is this still necessary?
         env.AppendENVPath('PATH', env['MB_BIN_DIR'])
 
 
@@ -70,6 +71,7 @@ def mb_add_always_run_test(env, action, deps=(), **kwargs):
 
 def generate(env):
     env.Tool('common')
+    env.Tool('mb_install')
 
     env.AddMethod(mb_prepend_dl_path, 'MBPrependDLPath')
     env.AddMethod(mb_append_dl_path, 'MBAppendDLPath')
