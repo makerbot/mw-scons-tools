@@ -42,6 +42,10 @@ def set_test_paths(env):
         # binaries for running unit tests.
         env.Tool('mb_install')
         env.PrependENVPath('DYLD_ROOT_PATH', env.MBGetOption('install_prefix'))
+    if env.MBIsWindows():
+        # I don't think that we should be relying on our builders
+        # having all third party libraries on the system path.
+        env.AppendENVPath('PATH', env['MB_BIN_DIR'])
 
 
 def mb_add_always_run_test(env, action, deps=(), **kwargs):
