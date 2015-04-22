@@ -2,17 +2,6 @@
 Tools for running things that you just built from SCons.
 """
 
-import SCons.Node.Alias
-
-
-# We want scons to treat our unit tests as actual scons nodes, but a
-# unit test does not produce any output on the filesystem.  The only
-# built-in scons node class that does not need to be tied to a fixed
-# filesystem location is an Alias, but an Alias has its build method
-# specifically disabled for some reason.
-class TestNode(SCons.Node.Alias.Alias):
-    build = SCons.Node.Node.build
-
 
 def _get_ld_path_key(env):
     if env.MBIsWindows():
@@ -49,7 +38,7 @@ def set_test_paths(env):
         env.AppendENVPath('PATH', env['MB_BIN_DIR'])
 
 
-def mb_add_always_run_test(env, action, deps=(), **kwargs):
+def mb_add_test(env, action, deps=(), **kwargs):
     """
     Add a test that will always be run when the "test" target is
     selected.  You can specify targets that must be built before
@@ -63,10 +52,11 @@ def mb_add_always_run_test(env, action, deps=(), **kwargs):
         name = action
     else:
         name = getattr(action, '__name__', 'test')
-    test = TestNode(name)
-    env.Command(test, deps, action, **kwargs)
-    env.Alias('test', test)
-    env.AlwaysBuild(test)
+
+    target = env.Command('run_' + name, deps, action, **kwargs)
+    env.Depends(env['_test_alias'], target)
+    env.AlwaysBuild(target)
+    env.Ignore('.', target)
 
 
 def generate(env):
@@ -76,7 +66,10 @@ def generate(env):
     env.AddMethod(mb_prepend_dl_path, 'MBPrependDLPath')
     env.AddMethod(mb_append_dl_path, 'MBAppendDLPath')
 
-    env.AddMethod(mb_add_always_run_test, 'MBAddAlwaysRunTest')
+    env.AddMethod(mb_add_test, 'MBAddTest')
+
+    env['_test_alias'] = env.Alias('test')
+    env.AddMethod(mb_add_test, 'MBAddTest')
 
     set_test_paths(env)
 
