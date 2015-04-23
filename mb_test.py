@@ -2,6 +2,8 @@
 Tools for running things that you just built from SCons.
 """
 
+import os
+
 
 def _get_ld_path_key(env):
     if env.MBIsWindows():
@@ -38,21 +40,13 @@ def set_test_paths(env):
         env.AppendENVPath('PATH', env['MB_BIN_DIR'])
 
 
-def mb_add_test(env, action, deps=(), **kwargs):
+def mb_add_test(env, name, action, deps=(), **kwargs):
     """
     Add a test that will always be run when the "test" target is
     selected.  You can specify targets that must be built before
     the test is run with deps, but the test will still run even
     if no dependency has changed.
     """
-    # So when the test fails, the only context that scons provides
-    # immediately after the failure is the node name we are building,
-    # so we want the node name to indicate the action that failed.
-    if isinstance(action, str):
-        name = action
-    else:
-        name = getattr(action, '__name__', 'test')
-
     target = env.Command('run_' + name, deps, action, **kwargs)
     env.Depends(env['_test_alias'], target)
     env.AlwaysBuild(target)
