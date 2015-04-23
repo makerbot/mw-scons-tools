@@ -61,7 +61,8 @@ def mb_add_test(env, action, deps=(), **kwargs):
 
 def generate(env):
     env.Tool('common')
-    env.Tool('mb_install')
+    if 'mb_install' not in env['TOOLS']:
+        env.Tool('mb_install')
 
     env.AddMethod(mb_prepend_dl_path, 'MBPrependDLPath')
     env.AddMethod(mb_append_dl_path, 'MBAppendDLPath')
