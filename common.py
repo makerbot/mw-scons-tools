@@ -54,18 +54,6 @@ def common_arguments(env):
         default=True,
         help='Uses sibling repositories for libraries, rather than using installed libs.')
 
-    env.MBAddOption(
-        '--build-tests',
-        dest='build_tests',
-        action='store_true',
-        help='Builds the test suite (if one exists)')
-
-    env.MBAddOption(
-        '--run-tests',
-        dest='run_tests',
-        action='store_true',
-        help='Runs the test suite (if one exists). Does not imply --build-tests.')
-
     env_vars = [
             MB_VTK_CPPPATH,
             MB_VTK_LIBPATH,
@@ -102,13 +90,6 @@ def mb_use_devel_libs(env):
 
 def mb_debug_build(env):
     return env.MBGetOption('debug_build')
-
-def mb_build_tests(env):
-    return env.MBGetOption('build_tests')
-
-def mb_run_tests(env):
-    return env.MBGetOption('run_tests')
-
 
 # Utilities for detecting platform
 _is_windows = ('win32' == sys.platform)
@@ -368,6 +349,7 @@ def mb_setup_openmp(env):
     else:
         print('OpenMP disabled')
 
+
 def generate(env):
     # let anything using mw-scons-tools easily access anything here
     sys.path.append(os.path.dirname(__file__))
@@ -378,8 +360,6 @@ def generate(env):
 
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
     env.AddMethod(mb_debug_build, 'MBDebugBuild')
-    env.AddMethod(mb_build_tests, 'MBBuildTests')
-    env.AddMethod(mb_run_tests, 'MBRunTests')
 
     env.AddMethod(mb_is_windows, 'MBIsWindows')
     env.AddMethod(mb_is_linux, 'MBIsLinux')

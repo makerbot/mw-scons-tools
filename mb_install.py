@@ -698,5 +698,7 @@ def generate(env):
     set_install_paths(env)
     set_compiler_flags(env)
 
+    env.Tool('mb_test')
+
 def exists(env) :
     return True
