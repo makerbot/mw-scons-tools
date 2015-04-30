@@ -509,6 +509,9 @@ def mb_depends_on_thing(env):
     define_library_dependency(env, 'thing', '#/../libthing-surprise')
     env.MBDependsOnOpenMesh()
 
+def mb_depends_on_croissant(env):
+    define_library_dependency(env, 'croissant', '#/../croissant')
+
 def mb_depends_on_conveyor(env):
     define_library_dependency(env, 'conveyor', '#/../conveyor')
 
@@ -682,6 +685,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
     env.AddMethod(mb_depends_on_mbcamera, 'MBDependsOnMBCamera')
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
+    env.AddMethod(mb_depends_on_croissant, 'MBDependsOnCroissant')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
     env.AddMethod(mb_depends_on_toolpathviz, 'MBDependsOnToolPathViz')
