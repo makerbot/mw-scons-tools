@@ -378,6 +378,8 @@ def _get_env_substitutions(env):
     libs = _substituted_var('LIBS')
     libs = _remove_dlls(env, libs)
     libpath = _substituted_var('LIBPATH')
+    # hack for CMake compatibility
+    binpath = _substituted_var('MB_BIN_DIR')
     ccflags = _substituted_var('CCFLAGS')
     ignored_libs = env[MB_WINDOWS_IGNORED_LIBS]
     standard_config_defines = env[MB_WINDOWS_STANDARD_CONFIG_DEFINES]
@@ -408,7 +410,7 @@ def _get_env_substitutions(env):
         env['MB_THIRD_PARTY'],
         ('32' if env.MBWindowsIs32Bit() else '64'))
     # debug_path is a special case because of how the environment is specified
-    debug_path  = _format_list('', libpath + [openssl_path], ';')
+    debug_path  = _format_list('', libpath + binpath + [openssl_path], ';')
     api_imports = _format_list(
         indent_3,
         api_imports,
