@@ -4,6 +4,7 @@ import sys
 import json
 import copy
 import imp
+import shutil
 
 import SCons
 
@@ -353,6 +354,7 @@ def simple_codegen_action(env, target, source):
             except Exception as e:
                 raise Exception("Failed to render {0} : {1}"
                                 .format(str(source[0]), e))
+    shutil.copymode(source[0].abspath, target[0].abspath)
 
 _simple_mustache_builder = Builder(
     action=SCons.Action.Action(simple_codegen_action, varlist=['context']),
