@@ -499,8 +499,7 @@ def mb_depends_on_json_cpp(env):
     define_cmake_dependency(env, 'jsoncpp')
 
 def mb_depends_on_json_rpc(env):
-    define_library_dependency(
-        env, 'jsonrpc', '#/../jsonrpc', include_subdir='src/main/include')
+    define_cmake_dependency(env, 'jsonrpc')
 
 def mb_depends_on_mbcamera(env):
     define_library_dependency(env, 'mbcamera', '#/../mbcamera')
