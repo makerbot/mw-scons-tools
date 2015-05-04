@@ -248,6 +248,29 @@ def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python',
 
     return egg
 
+def mb_dist_wheel(env, wheel_name, source, wheel_dependencies = [], python = 'python', version = '2'):
+    def wheelify(base, version):
+        return base + '-py' + version + '-none-any.whl'
+
+    def installfix(wheel):
+        if 'MB_MOD_BUILD' in os.environ:
+            wheel = os.path.join(env['MB_EGG_DIR'], os.path.basename(wheel))
+        return wheel
+
+    deps = [installfix(wheelify(e, version)) for e in wheel_dependencies]
+
+    environment = env['ENV'].copy()
+    environment.update({'PYTHONPATH': deps})
+    wheel = env.Command(
+        wheelify(wheel_name, version),
+        source + [env.File('setup.py')],
+        python + ' -c "import setuptools; execfile(\'setup.py\')" bdist_wheel',
+        ENV = environment)
+
+    env.Depends(wheel, deps)
+
+    return wheel
+
 def mb_setup_virtualenv(env, target, script, devel_paths, python = 'python'):
     paths = [os.path.join('submodule', 'conveyor_bins', 'python')]
     if env.MBUseDevelLibs():
@@ -716,6 +739,7 @@ def generate(env):
     env.AddMethod(mb_create_install_target, 'MBCreateInstallTarget')
 
     env.AddMethod(mb_dist_egg, 'MBDistEgg')
+    env.AddMethod(mb_dist_wheel, 'MBDistWheel')
     env.AddMethod(mb_setup_virtualenv, 'MBSetupVirtualenv')
 
     env.AddMethod(mb_add_lib, 'MBAddLib')
