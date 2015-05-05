@@ -391,8 +391,8 @@ def mb_set_lib_sym_name(env, name):
             env.Append(LINKFLAGS = ['-current_version', env['MB_VERSION']])
 
         if '-compatibility_version' not in env['LINKFLAGS']:
-            env.Append(LINKFLAGS = ['-compatibility_version',
-                                    env['MB_VERSION']])
+            env.Append(SHLINKFLAGS = ['-compatibility_version',
+                                      env['MB_VERSION']])
 
 def api_define(env, target_name):
     """Return the API macro name for specified target.
