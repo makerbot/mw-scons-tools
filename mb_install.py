@@ -381,11 +381,11 @@ def mb_set_lib_sym_name(env, name):
                                'Versions',
                                env['MB_VERSION'],
                                name)
-        if '-install_name' in env['LINKFLAGS']:
-            nameindex = env['LINKFLAGS'].index('-install_name') + 1
-            env['LINKFLAGS'][nameindex] = libpath
+        if '-install_name' in env['SHLINKFLAGS']:
+            nameindex = env['SHLINKFLAGS'].index('-install_name') + 1
+            env['SHLINKFLAGS'][nameindex] = libpath
         else:
-            env.Append(LINKFLAGS = ['-install_name', libpath])
+            env.Append(SHLINKFLAGS = ['-install_name', libpath])
 
         if '-current_version' not in env['LINKFLAGS']:
             env.Append(SHLINKFLAGS = ['-current_version', env['MB_VERSION']])
