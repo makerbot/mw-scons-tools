@@ -56,36 +56,8 @@ def mb_version_build(env):
     return env['MB_VERSION_BUILD']
 
 
-def mb_generate_version_header(env, target, project_name, namespace):
-    """
-    """
-    template = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        'templates',
-        'version_info.h')
-    hash = subprocess.check_output(
-            ['git', 'log', '-1', '--format=%H', 'HEAD'],
-            shell=sys.platform.startswith('win')).strip()
-    status = subprocess.check_output(
-            ['git', 'status', '--porcelain', '--ignored'],
-            shell=sys.platform.startswith('win'))
-    modified = re.search('^\s?[MADRCU]+\s+(.*)$', status, re.MULTILINE)
-    context = {
-        'project': project_name.upper(),
-        'namespace': namespace,
-        'major': env.MBVersionMajor(),
-        'minor': env.MBVersionMinor(),
-        'point': env.MBVersionPoint(),
-        'build': env.MBVersionBuild(),
-        'hash': hash,
-        'modified': 'true' if (modified is not None) else 'false'
-    }
-    return env.SimpleMustacheCodegen(target, template, context)
-
-
 def generate(env):
     env.Tool('options')
-    env.Tool('mustache_codegen')
 
     load_version(env)
 
@@ -95,7 +67,6 @@ def generate(env):
     env.AddMethod(mb_version_point, 'MBVersionPoint')
     env.AddMethod(mb_version_build, 'MBVersionBuild')
 
-    env.AddMethod(mb_generate_version_header, 'MBGenerateVersionHeader')
 
 def exists(env) :
     return True
