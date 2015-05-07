@@ -536,6 +536,13 @@ def _common_binary_stuff(env, target, binary):
 def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
+    elif env.MBIsMac():
+        # OSX needs an rpath option that is only for programs
+        prog_env = env.Clone()
+        lib_relpath = os.path.relpath(env['MB_LIB_DIR'], env['MB_BIN_DIR'])
+        prog_env.Append(LINKFLAGS='-rpath')
+        prog_env.Append(LINKFLAGS='@loader_path/' + lib_relpath)
+        program = prog_env.Program(target, source, *args, **kwargs)
     else:
         program = env.Program(target, source, *args, **kwargs)
     _common_binary_stuff(env, target, program)
