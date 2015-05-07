@@ -4,6 +4,7 @@ import re
 import subprocess
 import sys
 
+
 def load_version(env):
     # extract the build version
     with open(str(env.File('#/mb_version'))) as version_file:
@@ -68,5 +69,5 @@ def generate(env):
     env.AddMethod(mb_version_build, 'MBVersionBuild')
 
 
-def exists(env) :
+def exists(env):
     return True
