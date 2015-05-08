@@ -514,6 +514,9 @@ def mb_depends_on_conveyor(env):
 def mb_depends_on_conveyor_ui(env):
     define_library_dependency(env, 'conveyor-ui', '#/../conveyor-ui')
 
+def mb_depends_on_grits(env):
+    define_library_dependency(env, 'grits', '#/../Grits')
+
 def mb_depends_on_toolpathviz(env):
     define_library_dependency(env, 'toolpathviz', '#/../ToolPathViz')
 
@@ -683,6 +686,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
+    env.AddMethod(mb_depends_on_grits, 'MBDependsOnGrits')
     env.AddMethod(mb_depends_on_toolpathviz, 'MBDependsOnToolPathViz')
     env.AddMethod(mb_depends_on_tinything, 'MBDependsOnTinything')
 
