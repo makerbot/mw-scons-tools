@@ -540,8 +540,9 @@ def mb_program(env, target, source, *args, **kwargs):
         if env.MBIsMac():
             # OSX needs an rpath option that is only for programs
             lib_relpath = os.path.relpath(env['MB_LIB_DIR'], env['MB_BIN_DIR'])
+            lib_relpath = kwargs.get('MB_LIB_RELPATH', lib_relpath)
             linkflags = kwargs.get('LINKFLAGS', env['LINKFLAGS'])
-            linkflags += ['-rpath', '@loader_path/' + lib_relpath]
+            linkflags += ['-rpath', '@executable_path/' + lib_relpath]
             kwargs['LINKFLAGS'] = linkflags
         program = env.Program(target, source, *args, **kwargs)
     _common_binary_stuff(env, target, program)
