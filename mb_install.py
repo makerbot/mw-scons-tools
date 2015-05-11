@@ -466,7 +466,7 @@ def mb_program(env, target, source, *args, **kwargs):
             lib_relpath = kwargs.get('MB_LIB_RELPATH', lib_relpath)
             linkflags = kwargs.get('LINKFLAGS', env['LINKFLAGS'])
             linkflags += ['-rpath', '@executable_path/' + lib_relpath]
-            kwargs['LINKFLAGS'] = linkflags
+            kwargs['LINKFLAGS'] = env.get('LINKFLAGS', []) + linkflags
         program = env.Program(target, source, *args, **kwargs)
     _common_binary_stuff(env, target, program)
     return program
