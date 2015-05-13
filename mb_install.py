@@ -45,29 +45,14 @@ def recursive_install(env, dest, src):
 def mb_install_lib(env, source, name, dest=''):
     targets = []
     if env.MBIsMac():
-        framework = os.path.join(env['MB_FRAMEWORK_DIR'], name + '.framework')
-        version_dir = os.path.join('Versions', env['MB_VERSION'])
-        libinst = env.InstallAs(os.path.join(framework, version_dir, name),
-                                source)
+        libfilename = env.File([source])[0].name
+        libinst = env.Command(
+            os.path.join(env['MB_LIB_DIR'], libfilename),
+            source,
+            'cp $SOURCE $TARGET && '
+            'install_name_tool -id @rpath/%s $TARGET' % libfilename
+        )
         targets.append(libinst)
-
-        #make relative symlinks between Current and the new version
-        current_dir = 'Current'
-        current_link = env.Command(os.path.join(framework, 'Versions',
-                                                current_dir),
-                                   libinst,
-                                   'cd ' + os.path.join(framework, 'Versions')
-                                   + ' && ln -sf ' +
-                                   env['MB_VERSION'] + ' ' + current_dir)
-        targets.append(current_link)
-
-        #make a relative symlink for the current lib
-        targets.append(env.Command(os.path.join(framework, name),
-                                   current_link, 'cd ' + framework +
-                                   ' && ln -sf ' +
-                                   os.path.join('Versions', current_dir, name)
-                                             + ' ' + name))
-
     else:
         if dest is not None and dest != '':
             targetpath = os.path.join(env['MB_LIB_DIR'], dest)
@@ -118,68 +103,9 @@ def mb_install_lib(env, source, name, dest=''):
 
 
 def mb_install_headers(env, source, name, dest='', make_current_link=False):
-    targets = []
-    if env.MBIsMac():
-        # Name might include subdirectories; if so, split out the
-        # top-level directory as the framework name
-        #
-        # E.g. "conveyor-ui" -> "conveyor-ui"
-        #      "conveyor-ui/widgets" -> "conveyor-ui"
-        #
-        # TODO(nicholasbishop): IMO a more explicit interface that
-        # acknowledges better the differences between platforms might
-        # be a better idea.
-        base_folder = name
-        include_subdir = ''
-        while os.path.dirname(base_folder) != '':
-            include_subdir = os.path.join(os.path.basename(base_folder), include_subdir)
-            base_folder = os.path.dirname(base_folder)
-
-        framework_name = base_folder + '.framework'
-
-        framework = os.path.join(env['MB_FRAMEWORK_DIR'], framework_name)
-        version_dir = os.path.join('Versions', env['MB_VERSION'])
-        include_dir = os.path.join(version_dir, 'Headers', include_subdir)
-
-        headers = recursive_install(env, os.path.join(framework, include_dir), source)
-        targets += headers
-
-        #make relative symlinks between Current and the new version
-        current_dir = 'Current'
-
-        symlink_key = symlink_env_name + framework_name
-        symlink_key = symlink_key.replace('-', '_')
-        symlink_key = symlink_key.replace('.', '_')
-
-        if make_current_link and symlink_key not in env:
-            current_link = env.Command(
-                os.path.join(framework, 'Versions', current_dir),
-                headers,
-                'cd {base_dir} && ln -sf {from_dir} {to_dir}'.format(
-                    base_dir=os.path.join(framework, 'Versions'),
-                    from_dir=env['MB_VERSION'],
-                    to_dir=current_dir))
-
-            targets.append(current_link)
-
-        #make a relative symlink for the current headers
-        toplink = os.path.join(framework, 'Headers')
-        target_path = os.path.join(framework, toplink)
-        if symlink_key not in env:
-            targets.append(env.Command(
-                target_path,
-                targets, 'cd ' + framework +
-                ' && ln -sf ' + os.path.join('Versions',
-                                          current_dir,
-                                          'Headers')
-                + ' ' + toplink))
-
-        env[symlink_key] = True
-
-    else:
-        targets = recursive_install(env, os.path.join(env['MB_INCLUDE_DIR'],
-                                            os.path.join(dest, name)),
-                               source)
+    targets = recursive_install(env, os.path.join(env['MB_INCLUDE_DIR'],
+                                                  os.path.join(dest, name)),
+                                source)
 
     env.Append(MB_INSTALL_TARGETS = targets)
     return targets
@@ -381,18 +307,18 @@ def mb_set_lib_sym_name(env, name):
                                'Versions',
                                env['MB_VERSION'],
                                name)
-        if '-install_name' in env['LINKFLAGS']:
-            nameindex = env['LINKFLAGS'].index('-install_name') + 1
-            env['LINKFLAGS'][nameindex] = libpath
+        if '-install_name' in env['SHLINKFLAGS']:
+            nameindex = env['SHLINKFLAGS'].index('-install_name') + 1
+            env['SHLINKFLAGS'][nameindex] = libpath
         else:
-            env.Append(LINKFLAGS = ['-install_name', libpath])
+            env.Append(SHLINKFLAGS = ['-install_name', libpath])
 
         if '-current_version' not in env['LINKFLAGS']:
-            env.Append(LINKFLAGS = ['-current_version', env['MB_VERSION']])
+            env.Append(SHLINKFLAGS = ['-current_version', env['MB_VERSION']])
 
         if '-compatibility_version' not in env['LINKFLAGS']:
-            env.Append(LINKFLAGS = ['-compatibility_version',
-                                    env['MB_VERSION']])
+            env.Append(SHLINKFLAGS = ['-compatibility_version',
+                                      env['MB_VERSION']])
 
 def api_define(env, target_name):
     """Return the API macro name for specified target.
@@ -493,36 +419,32 @@ def mb_depends_on_mb_core_utils(env):
                               header_only=True)
 
 def mb_depends_on_mbqtutils(env):
-    define_library_dependency(env, 'mbqtutils', '#/../libmbqtutils')
+    define_cmake_dependency(env, 'mbqtutils')
 
 def mb_depends_on_json_cpp(env):
     define_cmake_dependency(env, 'jsoncpp')
 
 def mb_depends_on_json_rpc(env):
-    define_library_dependency(
-        env, 'jsonrpc', '#/../jsonrpc', include_subdir='src/main/include')
-
-def mb_depends_on_mbcamera(env):
-    define_library_dependency(env, 'mbcamera', '#/../mbcamera')
+    define_cmake_dependency(env, 'jsonrpc')
 
 def mb_depends_on_thing(env):
-    define_library_dependency(env, 'thing', '#/../libthing-surprise')
+    define_cmake_dependency(env, 'thing')
     env.MBDependsOnOpenMesh()
 
 def mb_depends_on_croissant(env):
-    define_library_dependency(env, 'croissant', '#/../croissant')
+    define_cmake_dependency(env, 'croissant')
 
 def mb_depends_on_conveyor(env):
-    define_library_dependency(env, 'conveyor', '#/../conveyor')
+    define_cmake_dependency(env, 'conveyor')
 
 def mb_depends_on_conveyor_ui(env):
-    define_library_dependency(env, 'conveyor-ui', '#/../conveyor-ui')
+    define_cmake_dependency(env, 'conveyor-ui')
 
 def mb_depends_on_toolpathviz(env):
-    define_library_dependency(env, 'toolpathviz', '#/../ToolPathViz')
+    define_cmake_dependency(env, 'toolpathviz')
 
 def mb_depends_on_tinything(env):
-    define_library_dependency(env, 'tinything', '#/../libtinything')
+    define_cmake_dependency(env, 'tinything')
 
 def mb_scons_tools_path(env, path):
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -541,6 +463,13 @@ def mb_program(env, target, source, *args, **kwargs):
     if env.MBIsWindows():
         program = env.MBWindowsProgram(target, source, *args, **kwargs)
     else:
+        if env.MBIsMac():
+            # OSX needs an rpath option that is only for programs
+            lib_relpath = os.path.relpath(env['MB_LIB_DIR'], env['MB_BIN_DIR'])
+            lib_relpath = kwargs.get('MB_LIB_RELPATH', lib_relpath)
+            linkflags = kwargs.get('LINKFLAGS', env['LINKFLAGS'])
+            linkflags += ['-rpath', '@executable_path/' + lib_relpath]
+            kwargs['LINKFLAGS'] = linkflags
         program = env.Program(target, source, *args, **kwargs)
     _common_binary_stuff(env, target, program)
     return program
@@ -683,7 +612,6 @@ def generate(env):
     env.AddMethod(mb_depends_on_mbqtutils, 'MBDependsOnMBQtUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
-    env.AddMethod(mb_depends_on_mbcamera, 'MBDependsOnMBCamera')
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_croissant, 'MBDependsOnCroissant')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
