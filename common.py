@@ -392,6 +392,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
     env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
     env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
+    env.AddMethod(mb_depends_on_yajl, 'MBDependsOnYajl')
     env.AddMethod(mb_add_boost_libs, 'MBAddBoostLibs')
     env.AddMethod(mb_install_boost_libs, 'MBInstallBoostLibs')
 
