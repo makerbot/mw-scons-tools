@@ -292,6 +292,23 @@ def mb_depends_on_vtk(env):
     env.Append(LIBPATH = env.MBGetPath(MB_VTK_LIBPATH))
     env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
 
+def mb_depends_on_yajl(env):
+    #TODO: switch this to dynamic on all platforms
+    #TODO: make this overridable like everything else
+    if env.MBIsWindows():
+        bitness = '32' if env.MBWindowsIs32Bit() else '64'
+        yajl_base = env['MB_THIRD_PARTY'] + '/yajl-2.1.0/yajl-{}'.format(bitness)
+        env.Append(CPPPATH=yajl_base + '/include')
+        env.Append(LIBPATH=yajl_base + '/lib')
+        yajl = 'yajl_s'
+    elif env.MBIsMac():
+        env.Append(CPPPATH='/usr/local/yajl/include')
+        env.Append(LIBPATH='/usr/local/yajl/lib/')
+        yajl = 'yajl_s'
+    elif env.MBIsLinux():
+        yajl = 'yajl'
+    env.Append(LIBS = [yajl])
+
 def _windows_boost_format(lib, debug):
     return lib + ('-vc120-mt-gd-1_56' if debug else '-vc120-mt-1_56')
 
