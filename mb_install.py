@@ -431,6 +431,9 @@ def mb_depends_on_thing(env):
     define_cmake_dependency(env, 'thing')
     env.MBDependsOnOpenMesh()
 
+def mb_depends_on_croissant(env):
+    define_cmake_dependency(env, 'croissant')
+
 def mb_depends_on_conveyor(env):
     define_cmake_dependency(env, 'conveyor')
 
@@ -610,6 +613,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
+    env.AddMethod(mb_depends_on_croissant, 'MBDependsOnCroissant')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
     env.AddMethod(mb_depends_on_toolpathviz, 'MBDependsOnToolPathViz')
