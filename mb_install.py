@@ -417,6 +417,8 @@ def define_cmake_dependency(env, libname):
 def mb_depends_on_mb_core_utils(env):
     define_library_dependency(env, 'MBCoreUtils', '#/../MBCoreUtils',
                               header_only=True)
+    mb_add_include_paths(env, os.path.join(env['MB_INCLUDE_DIR'],
+                                               "bwcoreutils"))
 
 def mb_depends_on_mbqtutils(env):
     define_cmake_dependency(env, 'mbqtutils')
