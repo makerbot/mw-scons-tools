@@ -169,6 +169,25 @@ def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python',
 
     return egg
 
+def mb_dist_wheel(env, wheel_name, source, wheel_dependencies = [], python = 'python3', version = '3.4'):
+    def installfix(wheel):
+        if 'MB_MOD_BUILD' in os.environ:
+            wheel = os.path.join(env['MB_EGG_DIR'], os.path.basename(wheel))
+        return wheel
+
+    deps = [installfix(e) for e in wheel_dependencies]
+
+    environment = env['ENV'].copy()
+    environment.update({'PYTHONPATH': deps})
+    wheel = env.Command(
+        wheel_name,
+        source + [env.File('setup.py')],
+        python + ' setup.py bdist_wheel',
+        ENV = environment)
+
+    env.Depends(wheel, deps)
+
+    return wheel
 
 def mb_add_lib(env, name, framework=True):
     if env.MBIsMac() and framework and (not env.MBUseDevelLibs()):
@@ -599,6 +618,7 @@ def generate(env):
     env.AddMethod(mb_create_install_target, 'MBCreateInstallTarget')
 
     env.AddMethod(mb_dist_egg, 'MBDistEgg')
+    env.AddMethod(mb_dist_wheel, 'MBDistWheel')
 
     env.AddMethod(mb_add_lib, 'MBAddLib')
     env.AddMethod(mb_add_include_paths, 'MBAddIncludePaths')
