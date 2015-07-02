@@ -280,6 +280,11 @@ def mb_depends_on_boost(env):
         bitness = '64' if env.MBWindowsIs64Bit() else '32'
         env.Append(LIBPATH = env.MBGetPath('MB_BOOST_' + bitness + '_LIBPATH'))
         env.Append(CPPPATH = env.MBGetPath('MB_BOOST_' + bitness + '_CPPPATH'))
+    elif env.MBIsMac():
+        # Adding -isystem to silence compiler warnings when building boost
+        # just mac for now because I can't be bothered to test on linux.
+        env.Append(LIBPATH = env.MBGetPath(MB_BOOST_LIBPATH))
+        env.Append(CCFLAGS="-isystem %s" % env[MB_BOOST_CPPPATH])
     else:
         env.Append(LIBPATH = env.MBGetPath(MB_BOOST_LIBPATH))
         env.Append(CPPPATH = env.MBGetPath(MB_BOOST_CPPPATH))
