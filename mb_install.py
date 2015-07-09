@@ -331,6 +331,9 @@ def api_define(env, target_name):
     """
     if target_name == 'jsoncpp':
         return 'JSON_API'
+    elif target_name == 'embedded_python':
+        # CMake doesn't strip the underscore and I am fine with that
+        return 'EMBEDDED_PYTHON_API'
     else:
         return re.sub('[-_]', '', target_name).upper() + '_API'
 
@@ -349,59 +352,6 @@ def windows_debug_tweak(env, lib):
         lib += 'd'
     return lib
 
-def define_library_dependency(env, libname, relative_repository_dir,
-                              include_subdir='include',
-                              header_only=False):
-    """Set up internal library dependencies.
-
-    libname: base name of the library, e.g. 'foo' for libfoo.so or
-    foo.dll
-
-    relative_repository_dir: relative top-level path of the repository
-    directory, e.g. '#/../foo'
-
-    include_subdir: path of the header files relative to the
-    relative_repository_dir argument, defaults to 'include'
-
-    header_only: if true, only include path is set, not library or
-    library path.
-
-    """
-    if 'MB_MOD_BUILD' in os.environ:
-        lib_path = env['MB_LIB_DIR']
-        include_path = env['MB_INCLUDE_DIR']
-    else:
-        if env.MBIsWindows():
-            # Yeah, on windows we still put stuff in obj,
-            # even without the 'variant dir'
-            lib_path = os.path.join(relative_repository_dir, 'obj')
-            include_path = os.path.join(relative_repository_dir, include_subdir)
-        else:
-            obj_dir = os.path.join(relative_repository_dir, env.MBVariantDir())
-            lib_path = obj_dir
-            include_path = os.path.join(obj_dir, include_subdir)
-
-
-    if env.MBIsMac():
-        # This is a hack to work around this SCons bug:
-        #
-        # scons.tigris.org/issues/show_bug.cgi?id=2123
-        #
-        # Basically SCons doesn't find header dependencies correctly
-        # through framework directories, so add the sibling includes
-        # instead. Without this, SCons may fail to rebuild a file
-        # because it doesn't know that an included file changed.
-        env.MBAddIncludePaths(include_path)
-
-    env.MBAddDevelIncludePath(include_path)
-
-    if not header_only:
-        env.MBAddDevelLibPath(lib_path)
-        env.MBAddLib(windows_debug_tweak(env, libname))
-        if env.MBIsWindows():
-            env.MBWindowsAddAPIImport(api_define(env, libname))
-        else:
-            define_api_visibility_public(env, libname)
 
 def define_cmake_dependency(env, libname):
     prefix = env['MB_PREFIX']
@@ -417,6 +367,16 @@ def define_cmake_dependency(env, libname):
 def mb_depends_on_mb_core_utils(env):
     mb_add_include_paths(env, os.path.join(env['MB_INCLUDE_DIR'],
                                                "bwcoreutils"))
+
+def mb_depends_on_embedded_python(env):
+    define_cmake_dependency(env, 'embedded_python')
+    # Embedded python needs clients to pass in the absolute path to
+    # the python home it should use, or an empty string to indicate
+    # that the system default python home is acceptable.
+    if env.MBIsLinux():
+        env['PYTHON_UNIT_TEST_HOME'] = ''
+    else:
+        env['PYTHON_UNIT_TEST_HOME'] = os.path.join(env['MB_LIB_DIR'], '..')
 
 def mb_depends_on_mbqtutils(env):
     define_cmake_dependency(env, 'mbqtutils')
@@ -612,6 +572,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_mbqtutils, 'MBDependsOnMBQtUtils')
     env.AddMethod(mb_depends_on_json_cpp, 'MBDependsOnJsonCpp')
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
+    env.AddMethod(mb_depends_on_embedded_python, 'MBDependsOnEmbeddedPython')
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
     env.AddMethod(mb_depends_on_croissant, 'MBDependsOnCroissant')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
