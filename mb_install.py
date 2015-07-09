@@ -21,11 +21,9 @@ def recursive_install(env, dest, src):
         srcs = [src]
     else:
         srcs = src
-
     installs = []
-
     for source in srcs:
-        src_str = str(source)
+        src_str = env.Entry(str(source)).abspath
         if not os.path.isdir(src_str):
             inst = env.Install(dest, source)
             if isinstance(inst, list):
@@ -34,12 +32,11 @@ def recursive_install(env, dest, src):
                 installs.append(inst)
         else:
             base = os.path.join(dest, os.path.basename(src_str))
-            for curpath, dirnames, filenames in os.walk(str(source)):
-                relative = os.path.relpath(curpath, source)
+            for curpath, dirnames, filenames in os.walk(src_str):
+                relative = os.path.relpath(curpath, src_str)
                 installs.append(env.Install(os.path.join(base, relative),
                                             map(lambda f: os.path.join(curpath, f),
                                                 filenames)))
-
     return installs
 
 def mb_install_lib(env, source, name, dest=''):
