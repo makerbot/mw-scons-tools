@@ -21,11 +21,9 @@ def recursive_install(env, dest, src):
         srcs = [src]
     else:
         srcs = src
-
     installs = []
-
     for source in srcs:
-        src_str = str(source)
+        src_str = env.Entry(str(source)).abspath
         if not os.path.isdir(src_str):
             inst = env.Install(dest, source)
             if isinstance(inst, list):
@@ -34,12 +32,11 @@ def recursive_install(env, dest, src):
                 installs.append(inst)
         else:
             base = os.path.join(dest, os.path.basename(src_str))
-            for curpath, dirnames, filenames in os.walk(str(source)):
-                relative = os.path.relpath(curpath, source)
+            for curpath, dirnames, filenames in os.walk(src_str):
+                relative = os.path.relpath(curpath, src_str)
                 installs.append(env.Install(os.path.join(base, relative),
                                             map(lambda f: os.path.join(curpath, f),
                                                 filenames)))
-
     return installs
 
 def mb_install_lib(env, source, name, dest=''):
@@ -144,6 +141,9 @@ def mb_install_system(env, source, dest):
     return target
 
 def mb_create_install_target(env):
+    with open(env.File('#/install_manifest.txt').abspath, 'w') as fp:
+        for target in SCons.Util.flatten(env['MB_INSTALL_TARGETS']):
+            fp.write("%s\n" % target.path)
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
 def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python', version = '2.7'):
