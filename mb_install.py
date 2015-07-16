@@ -141,7 +141,7 @@ def mb_install_system(env, source, dest):
     return target
 
 def mb_create_install_target(env):
-    with open(env.File('#/install_manifest.txt').abspath, 'w') as fp:
+    with open(env.File('#/install_manifest.txt').abspath, 'a') as fp:
         for target in SCons.Util.flatten(env['MB_INSTALL_TARGETS']):
             fp.write("%s\n" % target.path)
     env.Alias('install', env['MB_INSTALL_TARGETS'])
