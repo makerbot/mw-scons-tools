@@ -222,13 +222,13 @@ def set_install_paths(env):
 
     if env.MBIsLinux():
         env.SetDefault(
-            MB_INCLUDE_DIR=os.path.join(prefix, 'include'),
-            MB_LIB_DIR=os.path.join(prefix, 'lib'),
-            MB_BIN_DIR=os.path.join(prefix, 'bin'),
-            MB_APP_DIR=os.path.join(prefix, 'bin'),
-            MB_RESOURCE_DIR=os.path.join(prefix, 'share', 'makerbot'),
+            MB_INCLUDE_DIR=os.path.join(prefix, 'usr', 'include'),
+            MB_LIB_DIR=os.path.join(prefix, 'usr', 'lib'),
+            MB_BIN_DIR=os.path.join(prefix, 'usr', 'bin'),
+            MB_APP_DIR=os.path.join(prefix, 'usr', 'bin'),
+            MB_RESOURCE_DIR=os.path.join(prefix, 'usr', 'share', 'makerbot'),
             MB_CONFIG_DIR=os.path.join(prefix, 'etc'),
-            MB_EGG_DIR=os.path.join(prefix, 'share', 'makerbot', 'python'))
+            MB_EGG_DIR=os.path.join(prefix, 'usr', 'share', 'makerbot', 'python'))
     elif env.MBIsMac():
         env.SetDefault(
             MB_INCLUDE_DIR=os.path.join(
