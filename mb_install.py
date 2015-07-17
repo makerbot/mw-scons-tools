@@ -228,17 +228,21 @@ def set_install_paths(env):
             MB_APP_DIR=os.path.join(prefix, 'bin'),
             MB_RESOURCE_DIR=os.path.join(prefix, 'share', 'makerbot'),
             MB_CONFIG_DIR=os.path.join(prefix, 'etc'),
+            MB_PY34_MODULE_DIR=os.path.join(
+                prefix, 'share', 'makebot', 'python34'),
             MB_EGG_DIR=os.path.join(prefix, 'share', 'makerbot', 'python'))
     elif env.MBIsMac():
+        prefix_lm = os.path.join(prefix, 'Library', 'MakerBot')
         env.SetDefault(
-            MB_INCLUDE_DIR=os.path.join(
-                prefix, 'Library', 'MakerBot', 'include'),
-            MB_LIB_DIR=os.path.join(prefix, 'Library', 'MakerBot', 'lib'),
-            MB_BIN_DIR=os.path.join(prefix, 'Library', 'MakerBot'),
+            MB_INCLUDE_DIR=os.path.join(prefix_lm, 'include'),
+            MB_LIB_DIR=os.path.join(prefix_lm, 'lib'),
+            MB_BIN_DIR=prefix_lm,
             MB_APP_DIR=os.path.join(prefix, 'Applications'),
-            MB_RESOURCE_DIR=os.path.join(prefix, 'Library', 'MakerBot'),
-            MB_CONFIG_DIR=os.path.join(prefix, 'Library', 'MakerBot'),
-            MB_EGG_DIR=os.path.join(prefix, 'Library', 'MakerBot', 'python'))
+            MB_RESOURCE_DIR=prefix_lm,
+            MB_CONFIG_DIR=prefix_lm,
+            MB_PY34_MODULE_DIR=os.path.join(
+                prefix_lm, 'lib', 'python3.4', 'site-packages'),
+            MB_EGG_DIR=os.path.join(prefix_lm, 'python'))
     elif env.MBIsWindows():
         env.SetDefault(
             MB_INCLUDE_DIR=os.path.join(prefix, 'include'),
@@ -247,6 +251,8 @@ def set_install_paths(env):
             MB_APP_DIR=os.path.join(prefix, 'MakerWare'),
             MB_RESOURCE_DIR=os.path.join(prefix, 'MakerWare'),
             MB_CONFIG_DIR=os.path.join(prefix, 'MakerWare'),
+            MB_PY34_MODULE_DIR=os.path.join(
+                prefix, 'MakerWare', 'python34', 'Lib', 'site-packages'),
             MB_EGG_DIR=os.path.join(prefix, 'MakerWare', 'python'))
 
     # These were getting set ----ing everywhere. There is almost no
@@ -374,9 +380,11 @@ def mb_depends_on_embedded_python(env):
     # the python home it should use, or an empty string to indicate
     # that the system default python home is acceptable.
     if env.MBIsLinux():
-        env['PYTHON_UNIT_TEST_HOME'] = ''
+        env['PYTHON_DEV_HOME'] = ''
+    elif env.MBIsMac():
+        env['PYTHON_DEV_HOME'] = os.path.join(env['MB_LIB_DIR'], '..')
     else:
-        env['PYTHON_UNIT_TEST_HOME'] = os.path.join(env['MB_LIB_DIR'], '..')
+        env['PYTHON_DEV_HOME'] = os.path.join(env['MB_RESOURCE_DIR'], 'python34')
 
 def mb_depends_on_mbqtutils(env):
     define_cmake_dependency(env, 'mbqtutils')
