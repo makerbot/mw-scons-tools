@@ -313,8 +313,11 @@ def mb_depends_on_python34(env):
     # On linux we expect headers and libs to already be installed to the
     # system, and on OSX/Windows the Python3.4 distributable should put
     # headers and libs on the install target.
-    # TODO: deal with debug builds
-    env.Append(LIBS='python3.4m')
+    if env.MBIsWindows():
+        env.Append(LIBS='python34')
+    else:
+        # TODO: deal with debug builds
+        env.Append(LIBS='python3.4m')
 
 def _windows_boost_format(lib, debug):
     return lib + ('-vc120-mt-gd-1_56' if debug else '-vc120-mt-1_56')
