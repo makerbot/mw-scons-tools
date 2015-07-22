@@ -141,7 +141,7 @@ def mb_install_system(env, source, dest):
     return target
 
 def mb_create_install_target(env):
-    with open(env.File('#/install_manifest.txt').abspath, 'w') as fp:
+    with open(env.File('#/install_manifest.txt').abspath, 'a') as fp:
         for target in SCons.Util.flatten(env['MB_INSTALL_TARGETS']):
             fp.write("%s\n" % target.path)
     env.Alias('install', env['MB_INSTALL_TARGETS'])
@@ -222,13 +222,13 @@ def set_install_paths(env):
 
     if env.MBIsLinux():
         env.SetDefault(
-            MB_INCLUDE_DIR=os.path.join(prefix, 'include'),
-            MB_LIB_DIR=os.path.join(prefix, 'lib'),
-            MB_BIN_DIR=os.path.join(prefix, 'bin'),
-            MB_APP_DIR=os.path.join(prefix, 'bin'),
-            MB_RESOURCE_DIR=os.path.join(prefix, 'share', 'makerbot'),
+            MB_INCLUDE_DIR=os.path.join(prefix, 'usr', 'include'),
+            MB_LIB_DIR=os.path.join(prefix, 'usr', 'lib'),
+            MB_BIN_DIR=os.path.join(prefix, 'usr', 'bin'),
+            MB_APP_DIR=os.path.join(prefix, 'usr', 'bin'),
+            MB_RESOURCE_DIR=os.path.join(prefix, 'usr', 'share', 'makerbot'),
             MB_CONFIG_DIR=os.path.join(prefix, 'etc'),
-            MB_EGG_DIR=os.path.join(prefix, 'share', 'makerbot', 'python'))
+            MB_EGG_DIR=os.path.join(prefix, 'usr', 'share', 'makerbot', 'python'))
     elif env.MBIsMac():
         env.SetDefault(
             MB_INCLUDE_DIR=os.path.join(
