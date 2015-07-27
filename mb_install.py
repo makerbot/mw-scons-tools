@@ -275,14 +275,14 @@ def set_compiler_flags(env):
         env.Replace(CC='clang')
         env.Replace(CXX='clang++')
         env.Append(CXXFLAGS='-arch x86_64  -std=c++11 -stdlib=libc++ ' +
-                             '-mmacosx-version-min=10.7 ' +
+                             '-mmacosx-version-min=10.8 ' +
                              # Disabling this warning since this extension is
                              # used a lot in Qt header files
                              '-Wno-nested-anon-types')
         env.Append(CCFLAGS='-arch x86_64 -stdlib=libc++ ' +
-                           '-mmacosx-version-min=10.7 ')
+                           '-mmacosx-version-min=10.8 ')
         env.Append(LINKFLAGS='-arch x86_64 -stdlib=libc++ ' +
-                             '-mmacosx-version-min=10.7')
+                             '-mmacosx-version-min=10.8')
         env.Append(FRAMEWORKS='CoreFoundation')
     elif env.MBIsLinux():
         env.Append(CXXFLAGS='-std=c++11 ' +
