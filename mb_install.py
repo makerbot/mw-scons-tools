@@ -126,8 +126,8 @@ def mb_install_config(env, source, dest=None):
     return target
 
 def mb_install_app(env, source):
-    target = env.Install(env['MB_APP_DIR'], source)
-    env.Append(MB_INSTALL_TARGETS = target)
+    targets = recursive_install(env, env['MB_APP_DIR'], source)
+    env.Append(MB_INSTALL_TARGETS = targets)
     return target
 
 def mb_install_egg(env, source):
