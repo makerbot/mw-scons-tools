@@ -40,6 +40,7 @@ def recursive_install(env, dest, src):
                 installs.append(env.Install(os.path.join(base, relative),
                                             map(lambda f: os.path.join(curpath, f),
                                                 filenames)))
+    print ("recursive_install created: " + str(SCons.Util.flatten(targets)) + " targets")
     return installs
 
 def mb_install_lib(env, source, name, dest=''):
@@ -131,7 +132,6 @@ def mb_install_config(env, source, dest=None):
 def mb_install_app(env, source):
     print ("installing app source: " + str(source))
     targets = recursive_install(env, env['MB_APP_DIR'], source)
-    print ("recursive_install created: " + str(SCons.Util.flatten(targets)) + " targets")
     env.Append(MB_INSTALL_TARGETS = targets)
     print ("MB_INSTALL_TARGETS is now: " + str(env['MB_INSTALL_TARGETS']))
     return targets
