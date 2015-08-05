@@ -134,7 +134,7 @@ def mb_install_app(env, source):
     target = env.Install(env['MB_APP_DIR'], source)
     env.Append(MB_INSTALL_TARGETS = target)
     print ("MB_INSTALL_TARGETS is now: " + str(env['MB_INSTALL_TARGETS']))
-    return targets
+    return target
 
 def mb_install_egg(env, source):
     target = env.Install(env['MB_EGG_DIR'], source)
