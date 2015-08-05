@@ -24,13 +24,16 @@ def recursive_install(env, dest, src):
     installs = []
     for source in srcs:
         src_str = env.Entry(str(source)).abspath
+        print ("recursive installing: "+src_str)
         if not os.path.isdir(src_str):
+            print("source is not a dir")
             inst = env.Install(dest, source)
             if isinstance(inst, list):
                 installs.extend(inst)
             else:
                 installs.append(inst)
         else:
+            print ("source is a dir")
             base = os.path.join(dest, os.path.basename(src_str))
             for curpath, dirnames, filenames in os.walk(src_str):
                 relative = os.path.relpath(curpath, src_str)
