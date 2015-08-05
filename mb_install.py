@@ -143,7 +143,12 @@ def mb_install_system(env, source, dest):
 def mb_create_install_target(env):
     with open(env.File('#/install_manifest.txt').abspath, 'a') as fp:
         for target in SCons.Util.flatten(env['MB_INSTALL_TARGETS']):
-            fp.write("%s\n" % target.path)
+            if os.path.isdir(target.path):
+                for curdir, dirs, files in os.walk(target.path):
+                    for f in files:
+                        fp.write("%s\n" % os.path.join(curdir,f))
+            else:
+                fp.write("%s\n" % target.path)
     env.Alias('install', env['MB_INSTALL_TARGETS'])
 
 def mb_dist_egg(env, egg_name, source, egg_dependencies = [], python = 'python', version = '2.7'):
