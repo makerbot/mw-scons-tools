@@ -40,7 +40,7 @@ def recursive_install(env, dest, src):
                 installs.append(env.Install(os.path.join(base, relative),
                                             map(lambda f: os.path.join(curpath, f),
                                                 filenames)))
-    print ("recursive_install created: " + str(SCons.Util.flatten(targets)) + " targets")
+    print ("recursive_install created: " + str(SCons.Util.flatten(installs)) + " targets")
     return installs
 
 def mb_install_lib(env, source, name, dest=''):
