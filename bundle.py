@@ -57,7 +57,7 @@ def bundleEmitter(target, source, env):
     for bin in env.Flatten(env['BUNDLE_BINARIES']):
         target.append(env.File(os.path.join(bundle_dir, mac_dir, str(bin))))
     if env['BUNDLE_PLUGINS']:
-        for bin in env.Flatten(env['BUNDLE_PUGINS']):
+        for bin in env.Flatten(env['BUNDLE_PLUGINS']):
             plugin_path = os.path.join(bundle_dir, plugin_dir, str(bin))
             target.append(env.File(plugin_path))
     target.append(env.File(os.path.join(bundle_dir, plist_file)))
