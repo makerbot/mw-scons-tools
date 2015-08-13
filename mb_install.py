@@ -406,12 +406,16 @@ def define_library_dependency(env, libname, relative_repository_dir,
 def define_cmake_dependency(env, libname):
     prefix = env['MB_PREFIX']
 
-    env.MBAddLib(libname, framework=False)
-
     if env.MBIsWindows():
         env.MBWindowsAddAPIImport(api_define(env, libname))
     else:
         define_api_visibility_public(env, libname)
+
+    # We suffix our debug libraries with "d" on windows
+    if env.MBIsWindows() and env.MBDebugBuild():
+        libname += 'd'
+
+    env.MBAddLib(libname, framework=False)
 
 
 def mb_depends_on_mb_core_utils(env):
