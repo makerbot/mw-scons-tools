@@ -126,8 +126,12 @@ def mb_install_config(env, source, dest=None):
     return target
 
 def mb_install_app(env, source):
-    target = env.Install(env['MB_APP_DIR'], source)
-    env.Append(MB_INSTALL_TARGETS = target)
+    for file in source:
+        install_dir = os.path.dirname(file.path)
+        if install_dir.startswith('obj/'):
+            install_dir = install_dir.replace('obj/','')
+        target = env.Install(os.path.join(env['MB_APP_DIR'],install_dir), file)
+        env.Append(MB_INSTALL_TARGETS = target)
     return target
 
 def mb_install_egg(env, source):
