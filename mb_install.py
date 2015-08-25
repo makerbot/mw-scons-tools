@@ -248,7 +248,7 @@ def set_install_paths(env):
             MB_RESOURCE_DIR=os.path.join(prefix, 'usr', 'share', 'makerbot'),
             MB_CONFIG_DIR=os.path.join(prefix, 'etc'),
             MB_PY34_MODULE_DIR=os.path.join(
-                prefix, 'share', 'makebot', 'python34'),
+                prefix, 'usr', 'share', 'makerbot', 'python34'),
             MB_EGG_DIR=os.path.join(prefix, 'usr','share', 'makerbot', 'python'))
     elif env.MBIsMac():
         prefix_lm = os.path.join(prefix, 'Library', 'MakerBot')
