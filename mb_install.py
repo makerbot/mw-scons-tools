@@ -426,6 +426,15 @@ def mb_depends_on_thing(env):
     define_cmake_dependency(env, 'thing')
     env.MBDependsOnOpenMesh()
 
+def mb_depends_on_geomutils(env):
+    define_cmake_dependency(env, 'geomutils')
+
+def mb_depends_on_meshutils(env):
+    define_cmake_dependency(env, 'meshutils')
+
+def mb_depends_on_fopen_hack(env):
+    define_cmake_dependency(env, 'fopen_hack')
+
 def mb_depends_on_croissant(env):
     define_cmake_dependency(env, 'croissant')
 
@@ -610,6 +619,9 @@ def generate(env):
     env.AddMethod(mb_depends_on_json_rpc, 'MBDependsOnJsonRpc')
     env.AddMethod(mb_depends_on_embedded_python, 'MBDependsOnEmbeddedPython')
     env.AddMethod(mb_depends_on_thing, 'MBDependsOnThing')
+    env.AddMethod(mb_depends_on_geomutils, 'MBDependsOnGeomUtils')
+    env.AddMethod(mb_depends_on_meshutils, 'MBDependsOnMeshUtils')
+    env.AddMethod(mb_depends_on_fopen_hack, 'MBDependsOnFOpenHack')
     env.AddMethod(mb_depends_on_croissant, 'MBDependsOnCroissant')
     env.AddMethod(mb_depends_on_conveyor, 'MBDependsOnConveyor')
     env.AddMethod(mb_depends_on_conveyor_ui, 'MBDependsOnConveyorUi')
