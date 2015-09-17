@@ -7,11 +7,11 @@ env = Environment(
 # do not install any file that matches
 # any of these patterns
 excludes = [
-    '(^.*\.git(/.*)?$)',
-    '(^.*debian(/.*)?$)',
-    '(^.*obj/(.*)$)',
-    '(^.*\.pyc$)',
-    '(^.*\.gitignore$)']
+    r'(^.*\.git(/|\\)(.*)$)',
+    r'(^.*debian(/|\\)(.*)$)',
+    r'(^.*obj/(.*)$)',
+    r'(^.*\.pyc$)',
+    r'(^.*\.gitignore$)']
 exclude_pat = '|'.join(excludes)
 exclude_re = re.compile(exclude_pat)
 
