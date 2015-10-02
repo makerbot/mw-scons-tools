@@ -1,6 +1,7 @@
 import os
 import platform
 import re
+import sys
 import shutil
 import SCons
 
@@ -242,18 +243,18 @@ def set_install_paths(env):
     config_prefix = env.MBGetOption('config_prefix')
     if config_prefix != '':
         env.SetDefault(MB_CONFIG_DIR=config_prefix)
+    env.SetDefault(
+        MB_FINDPACKAGE_DIR = os.path.join(prefix, "@FINDPACKAGE_CONFIG_INSTALL_DIR@"),
+        MB_DOC_DIR = os.path.join(prefix, "@DOC_INSTALL_DIR@"),
+        MB_INCLUDE_DIR = os.path.join(prefix, "@HEADER_INSTALL_DIR@"),
+        MB_LIB_DIR = os.path.join(prefix, "@LIB_INSTALL_DIR@"),
+        MB_BIN_DIR = os.path.join(prefix, "@BIN_INSTALL_DIR@"),
+        MB_RESOURCE_DIR = os.path.join(prefix, "@RESOURCE_INSTALL_DIR@"),
+        MB_CONFIG_DIR = os.path.join(prefix, "@USER_EDITABLE_CONFIG_INSTALL_DIR@"),
+        MB_PY34_MODULE_DIR = os.path.join(prefix, "@PY34_MODULE_DIR@"),
+        MB_EGG_DIR = os.path.join(prefix, "@EGG_INSTALL_DIR@"))
 
-    MB_FINDPACKAGE_DIR = os.path.join(prefix, "@FINDPACKAGE_CONFIG_INSTALL_DIR@")
-    MB_DOC_DIR = os.path.join(prefix, "@DOC_INSTALL_DIR@")
-    MB_INCLUDE_DIR = os.path.join(prefix, "@HEADER_INSTALL_DIR@")
-    MB_LIB_DIR = os.path.join(prefix, "@LIB_INSTALL_DIR@")
-    MB_BIN_DIR = os.path.join(prefix, "@BIN_INSTALL_DIR@")
-    MB_RESOURCE_DIR = os.path.join(prefix, "@RESOURCE_INSTALL_DIR@")
-    MB_CONFIG_DIR = os.path.join(prefix, "@USER_EDITABLE_CONFIG_INSTALL_DIR@")
-    MB_PY34_MODULE_DIR = os.path.join(prefix, "@PY34_MODULE_DIR@")
-    MB_EGG_DIR = os.path.join(prefix, "@EGG_INSTALL_DIR@")
-
-    if utils.is_mac:
+    if('darwin' == sys.platform):
         MB_APP_DIR = os.path.join(prefix, "@APP_INSTALL_DIR@")
 
     # These were getting set ----ing everywhere. There is almost no
