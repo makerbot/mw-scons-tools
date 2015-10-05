@@ -1,6 +1,7 @@
 import os
 import platform
 import re
+import sys
 import shutil
 import SCons
 
@@ -242,46 +243,25 @@ def set_install_paths(env):
     config_prefix = env.MBGetOption('config_prefix')
     if config_prefix != '':
         env.SetDefault(MB_CONFIG_DIR=config_prefix)
+    env.SetDefault(
+        MB_FINDPACKAGE_DIR = os.path.join(prefix, "@FINDPACKAGE_CONFIG_INSTALL_DIR@"),
+        MB_DOC_DIR = os.path.join(prefix, "@DOC_INSTALL_DIR@"),
+        MB_INCLUDE_DIR = os.path.join(prefix, "@HEADER_INSTALL_DIR@"),
+        MB_LIB_DIR = os.path.join(prefix, "@LIB_INSTALL_DIR@"),
+        MB_BIN_DIR = os.path.join(prefix, "@BIN_INSTALL_DIR@"),
+        MB_RESOURCE_DIR = os.path.join(prefix, "@RESOURCE_INSTALL_DIR@"),
+        MB_CONFIG_DIR = os.path.join(prefix, "@USER_EDITABLE_CONFIG_INSTALL_DIR@"),
+        MB_PY34_MODULE_DIR = os.path.join(prefix, "@PY34_MODULE_DIR@"),
+        MB_EGG_DIR = os.path.join(prefix, "@EGG_INSTALL_DIR@"))
 
-    if env.MBIsLinux():
-        env.SetDefault(
-            MB_INCLUDE_DIR=os.path.join(prefix, 'usr', 'include'),
-            MB_LIB_DIR=os.path.join(prefix, 'usr', 'lib'),
-            MB_BIN_DIR=os.path.join(prefix, 'usr', 'bin'),
-            MB_APP_DIR=os.path.join(prefix, 'usr', 'bin'),
-            MB_RESOURCE_DIR=os.path.join(prefix, 'usr', 'share', 'makerbot'),
-            MB_CONFIG_DIR=os.path.join(prefix, 'etc'),
-            MB_PY34_MODULE_DIR=os.path.join(
-                prefix, 'usr', 'share', 'makerbot', 'python34'),
-            MB_EGG_DIR=os.path.join(prefix, 'usr','share', 'makerbot', 'python'))
-    elif env.MBIsMac():
-        prefix_lm = os.path.join(prefix, 'Library', 'MakerBot')
-        env.SetDefault(
-            MB_INCLUDE_DIR=os.path.join(prefix_lm, 'include'),
-            MB_LIB_DIR=os.path.join(prefix_lm, 'lib'),
-            MB_BIN_DIR=prefix_lm,
-            MB_APP_DIR=os.path.join(prefix, 'Applications'),
-            MB_RESOURCE_DIR=prefix_lm,
-            MB_CONFIG_DIR=prefix_lm,
-            MB_PY34_MODULE_DIR=os.path.join(
-                prefix_lm, 'lib', 'python3.4', 'site-packages'),
-            MB_EGG_DIR=os.path.join(prefix_lm, 'python'))
-    elif env.MBIsWindows():
-        env.SetDefault(
-            MB_INCLUDE_DIR=os.path.join(prefix, 'include'),
-            MB_LIB_DIR=os.path.join(prefix, 'lib'),
-            MB_BIN_DIR=os.path.join(prefix, 'MakerWare'),
-            MB_APP_DIR=os.path.join(prefix, 'MakerWare'),
-            MB_RESOURCE_DIR=os.path.join(prefix, 'MakerWare'),
-            MB_CONFIG_DIR=os.path.join(prefix, 'MakerWare'),
-            MB_PY34_MODULE_DIR=os.path.join(
-                prefix, 'MakerWare', 'python34', 'Lib', 'site-packages'),
-            MB_EGG_DIR=os.path.join(prefix, 'MakerWare', 'python'))
+    if('darwin' == sys.platform):
+        MB_APP_DIR = os.path.join(prefix, "@APP_INSTALL_DIR@")
 
     # These were getting set ----ing everywhere. There is almost no
     # situation where you would want to build against a sibling and
     # install to a directory where a different version of that sibling
     # was installed, and this should be fine in all other situations.
+
     env.Append(
         LIBPATH=env['MB_LIB_DIR'],
         CPPPATH=env['MB_INCLUDE_DIR'])
