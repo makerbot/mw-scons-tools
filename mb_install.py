@@ -423,6 +423,8 @@ def mb_depends_on_json_rpc(env):
     define_cmake_dependency(env, 'jsonrpc')
 
 def mb_depends_on_thing(env):
+    define_cmake_dependency(env, 'meshutils')
+    define_cmake_dependency(env, 'geomutils')
     define_cmake_dependency(env, 'thing')
     env.MBDependsOnOpenMesh()
 
