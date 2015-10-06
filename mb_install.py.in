@@ -255,7 +255,7 @@ def set_install_paths(env):
         MB_EGG_DIR = os.path.join(prefix, "@EGG_INSTALL_DIR@"))
 
     if('darwin' == sys.platform):
-        MB_APP_DIR = os.path.join(prefix, "@APP_INSTALL_DIR@")
+        env.SetDefault(MB_APP_DIR = os.path.join(prefix, "@APP_INSTALL_DIR@"))
 
     # These were getting set ----ing everywhere. There is almost no
     # situation where you would want to build against a sibling and
