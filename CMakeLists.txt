@@ -17,7 +17,6 @@ install(
         version.py
         doxygen.py
         __init__.py
-        mustache.py
         scons_condensed_readme.md
         mb_test.py
         log.py
