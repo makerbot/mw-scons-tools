@@ -54,18 +54,6 @@ def common_arguments(env):
         default=True,
         help='Uses sibling repositories for libraries, rather than using installed libs.')
 
-    env.MBAddOption(
-        '--build-tests',
-        dest='build_tests',
-        action='store_true',
-        help='Builds the test suite (if one exists)')
-
-    env.MBAddOption(
-        '--run-tests',
-        dest='run_tests',
-        action='store_true',
-        help='Runs the test suite (if one exists). Does not imply --build-tests.')
-
     env_vars = [
             MB_VTK_CPPPATH,
             MB_VTK_LIBPATH,
@@ -102,13 +90,6 @@ def mb_use_devel_libs(env):
 
 def mb_debug_build(env):
     return env.MBGetOption('debug_build')
-
-def mb_build_tests(env):
-    return env.MBGetOption('build_tests')
-
-def mb_run_tests(env):
-    return env.MBGetOption('run_tests')
-
 
 # Utilities for detecting platform
 _is_windows = ('win32' == sys.platform)
@@ -299,6 +280,11 @@ def mb_depends_on_boost(env):
         bitness = '64' if env.MBWindowsIs64Bit() else '32'
         env.Append(LIBPATH = env.MBGetPath('MB_BOOST_' + bitness + '_LIBPATH'))
         env.Append(CPPPATH = env.MBGetPath('MB_BOOST_' + bitness + '_CPPPATH'))
+    elif env.MBIsMac():
+        # Adding -isystem to silence compiler warnings when building boost
+        # just mac for now because I can't be bothered to test on linux.
+        env.Append(LIBPATH = env.MBGetPath(MB_BOOST_LIBPATH))
+        env.Append(CCFLAGS="-isystem %s" % env[MB_BOOST_CPPPATH])
     else:
         env.Append(LIBPATH = env.MBGetPath(MB_BOOST_LIBPATH))
         env.Append(CPPPATH = env.MBGetPath(MB_BOOST_CPPPATH))
@@ -310,6 +296,23 @@ def mb_depends_on_opencv(env):
 def mb_depends_on_vtk(env):
     env.Append(LIBPATH = env.MBGetPath(MB_VTK_LIBPATH))
     env.Append(CPPPATH = env.MBGetPath(MB_VTK_CPPPATH))
+
+def mb_depends_on_yajl(env):
+    #TODO: switch this to dynamic on all platforms
+    #TODO: make this overridable like everything else
+    if env.MBIsWindows():
+        bitness = '32' if env.MBWindowsIs32Bit() else '64'
+        yajl_base = env['MB_THIRD_PARTY'] + '/yajl-2.1.0/yajl-{}'.format(bitness)
+        env.Append(CPPPATH=yajl_base + '/include')
+        env.Append(LIBPATH=yajl_base + '/lib')
+        yajl = 'yajl_s'
+    elif env.MBIsMac():
+        env.Append(CPPPATH='/usr/local/yajl/include')
+        env.Append(LIBPATH='/usr/local/yajl/lib/')
+        yajl = 'yajl_s'
+    elif env.MBIsLinux():
+        yajl = 'yajl'
+    env.Append(LIBS = [yajl])
 
 def _windows_boost_format(lib, debug):
     return lib + ('-vc120-mt-gd-1_56' if debug else '-vc120-mt-1_56')
@@ -368,6 +371,7 @@ def mb_setup_openmp(env):
     else:
         print('OpenMP disabled')
 
+
 def generate(env):
     # let anything using mw-scons-tools easily access anything here
     sys.path.append(os.path.dirname(__file__))
@@ -378,8 +382,6 @@ def generate(env):
 
     env.AddMethod(mb_use_devel_libs, 'MBUseDevelLibs')
     env.AddMethod(mb_debug_build, 'MBDebugBuild')
-    env.AddMethod(mb_build_tests, 'MBBuildTests')
-    env.AddMethod(mb_run_tests, 'MBRunTests')
 
     env.AddMethod(mb_is_windows, 'MBIsWindows')
     env.AddMethod(mb_is_linux, 'MBIsLinux')
@@ -395,6 +397,7 @@ def generate(env):
     env.AddMethod(mb_depends_on_boost, 'MBDependsOnBoost')
     env.AddMethod(mb_depends_on_opencv, 'MBDependsOnOpenCV')
     env.AddMethod(mb_depends_on_vtk, 'MBDependsOnVTK')
+    env.AddMethod(mb_depends_on_yajl, 'MBDependsOnYajl')
     env.AddMethod(mb_add_boost_libs, 'MBAddBoostLibs')
     env.AddMethod(mb_install_boost_libs, 'MBInstallBoostLibs')
 
