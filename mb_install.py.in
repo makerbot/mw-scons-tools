@@ -42,20 +42,21 @@ def recursive_install(env, dest, src):
 
 def mb_install_lib(env, source, name, dest=''):
     targets = []
+    if dest is not None and dest != '':
+        targetpath = os.path.join(env['MB_LIB_DIR'], dest)
+    else:
+        targetpath = env['MB_LIB_DIR']
+
     if env.MBIsMac():
         libfilename = env.File([source])[0].name
         libinst = env.Command(
-            os.path.join(env['MB_LIB_DIR'], libfilename),
+            os.path.join(targetpath, libfilename),
             source,
             'cp $SOURCE $TARGET && '
             'install_name_tool -id @rpath/%s $TARGET' % libfilename
         )
         targets.append(libinst)
     else:
-        if dest is not None and dest != '':
-            targetpath = os.path.join(env['MB_LIB_DIR'], dest)
-        else:
-            targetpath = env['MB_LIB_DIR']
         targets.append(env.Install(targetpath, source))
         if env.MBIsWindows():
             targets.append(env.Install(env['MB_BIN_DIR'], source))
