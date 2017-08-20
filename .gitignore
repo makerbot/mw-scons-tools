@@ -2,3 +2,8 @@
 *~
 obj/
 .sconsign.dblite
+
+# artifac dirs
+Install/
+_artifacts/
+_build/
